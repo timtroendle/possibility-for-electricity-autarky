@@ -1,6 +1,12 @@
 # generated files
 build/
 
+# ignore raw data
+data/
+
+# ignore notebooks
+notebooks/
+
 ## Core latex/pdflatex auxiliary files:
 *.aux
 *.lof

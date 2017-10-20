@@ -6,6 +6,8 @@ This repository contains the entire scientific project, including code and repor
 
 ## Getting ready
 
+### Installation
+
 The following dependencies are needed to set up an environment in which the analysis can be run and the paper be build:
 
 * [conda](https://conda.io/docs/index.html)
@@ -19,6 +21,12 @@ When these dependencies are installed, you can create a conda environment from w
 Don't forget to activate the environment. To see what you can do now, run:
 
     make help
+
+### Data to be retrieved manually
+
+Whenever possible, data is retrieved automatically. As this is not always possible, you will need to download the following data sets manually:
+
+* [Gridded Population of the World (GPW), v4, 2015](http://sedac.ciesin.columbia.edu/data/set/gpw-v4-population-count), to be placed in `./data/gpw-v4-population-count-2015`
 
 ## Run the analysis
 
