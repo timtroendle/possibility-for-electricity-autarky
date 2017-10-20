@@ -1,0 +1,13 @@
+---
+title: Renewable Resource Potentials
+author:
+    - Tim Tröndle
+institute: ETH Zürich
+tags:
+    - 'reproducible-science'
+abstract: |
+    Evaluation of resource potential sufficiency for energy autarkic regions.
+bibliography:
+    - 'literature.bib'
+csl: 'energy-policy.csl'
+---
