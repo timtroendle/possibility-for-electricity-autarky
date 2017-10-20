@@ -1,6 +1,5 @@
-PYTHON = PYTHONPATH=./src python
-RESULTS = build/results.pickle
-PLOT = build/plot.png
+PYTHON = PYTHONPATH=./ python
+RAW_DEMAND_DATA = https://data.open-power-system-data.org/time_series/2017-07-09/time_series_60min_stacked.csv
 
 .PHONY : help
 help : Makefile
@@ -19,17 +18,17 @@ clean:
 test:
 	py.test
 
-$(RESULTS): src/model.py
-	$(PYTHON) $< 4 5 $@
+build/raw-data-demand.csv:
+	curl -Lo $@ '$(RAW_DEMAND_DATA)'
 
-$(PLOT): src/vis.py $(RESULTS)
+
+build/national-demand.csv: src/process_demand.py build/raw-data-demand.csv
 	$(PYTHON) $^ $@
 
 ## paper : runs all computational steps and creates the final paper
 .PHONY: paper
 paper: | build build/paper.pdf
 
-build/paper.pdf: $(PLOT)
 build/paper.pdf: report/literature.bib report/main.md report/pandoc-metadata.yml
 	cd ./report && \
 	pandoc --filter pantable --filter pandoc-fignos --filter pandoc-tablenos --filter pandoc-citeproc \
