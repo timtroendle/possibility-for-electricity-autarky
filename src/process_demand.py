@@ -17,7 +17,8 @@ def process_data(path_to_raw_data, path_to_output_data):
     data.drop(["variable", "attribute"], axis=1, inplace=True)
     data = data.pivot(columns="region", index="utc_timestamp", values="data")
     watt_to_watthours(data["2016"].mean(), timedelta(days=365)).div(1000).div(1000).to_csv(
-        path_to_output_data
+        path_to_output_data,
+        header=["twh_per_year"]
     )
 
 

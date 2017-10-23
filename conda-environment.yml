@@ -12,6 +12,7 @@ dependencies:
   - click=6.7
   - ipython
   - rasterstats=0.12.0
+  - geopandas=0.3.0
   - pip:
       - pytest-pythonpath # adds the root path "./" to PYTHONPATH
       - pandoc-tablenos

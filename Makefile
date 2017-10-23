@@ -36,6 +36,9 @@ build/national-demand.csv: src/process_demand.py build/raw-data-demand.csv
 build/nuts-2013-with-population.geojson: $(RAW_NUTS_SHP) $(RAW_GRIDDED_POP_DATA)
 	fio cat $(RAW_NUTS_SHP) | rio zonalstats -r $(RAW_GRIDDED_POP_DATA) --prefix "population_" --stats sum > $@
 
+build/nuts-2013-demand.geojson: src/spatial_demand.py build/national-demand.csv build/nuts-2013-with-population.geojson
+	$(PYTHON) $^ $@
+
 ## paper : runs all computational steps and creates the final paper
 .PHONY: paper
 paper: | build build/paper.pdf
