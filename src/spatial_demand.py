@@ -1,4 +1,6 @@
 """Module and script to determine the spatial distribution of power demand."""
+from pathlib import Path
+
 import click
 import numpy as np
 import pandas as pd
@@ -18,7 +20,6 @@ def spatial_distribution(path_to_national_demand, path_to_nuts, path_to_results)
     demand = demand["twh_per_year"]
 
     nuts = gpd.read_file(path_to_nuts)
-    countries = nuts[nuts.STAT_LEVL_ == 0].copy()
     third_level = nuts[nuts.STAT_LEVL_ == 3].copy()
     third_level["COUNTRY_CODE"] = third_level["NUTS_ID"].map(lambda nuts_id: nuts_id[:-3])
     third_level["POPULATION_SHARE"] = third_level.groupby(
@@ -29,7 +30,9 @@ def spatial_distribution(path_to_national_demand, path_to_nuts, path_to_results)
         _determine_national_demand_share(demand),
         axis=1
     )
-    third_level.to_file(path_to_results)
+    if Path(path_to_results).exists():
+        Path(path_to_results).unlink() # somehow fiona cannot overwrite existing GeoJSON
+    third_level.to_file(path_to_results, driver='GeoJSON')
 
 
 def _determine_national_demand_share(demand):
