@@ -1,7 +1,11 @@
 PYTHON = PYTHONPATH=./ python
-RAW_DEMAND_DATA = https://data.open-power-system-data.org/time_series/2017-07-09/time_series_60min_stacked.csv
 RAW_NUTS_SHP = build/NUTS_2013_01M_SH/data/NUTS_RG_01M_2013.shp
 RAW_GRIDDED_POP_DATA = ./data/gpw-v4-population-count-2015/gpw-v4-population-count_2015.tif
+RAW_LAND_COVER_DATA = ./build/Globcover2009_V2.3_Global_/GLOBCOVER_L4_200901_200912_V2.3.tif
+
+DEMAND_URL = https://data.open-power-system-data.org/time_series/2017-07-09/time_series_60min_stacked.csv
+NUTS_URL = http://ec.europa.eu/eurostat/cache/GISCO/geodatafiles/NUTS_2013_01M_SH.zip
+LAND_COVER_URL = http://due.esrin.esa.int/files/Globcover2009_V2.3_Global_.zip
 
 .PHONY : help
 help : Makefile
@@ -21,13 +25,16 @@ test:
 	py.test
 
 build/raw-data-demand.csv:
-	curl -Lo $@ '$(RAW_DEMAND_DATA)'
+	curl -Lo $@ '$(DEMAND_URL)'
 
-build/raw-nuts-2013-01M-SH.zip:
-	curl -Lo $@ 'http://ec.europa.eu/eurostat/cache/GISCO/geodatafiles/NUTS_2013_01M_SH.zip'
+$(RAW_LAND_COVER_DATA):
+	curl -Lo ./build/Globcover2009.zip '$(LAND_COVER_URL)'
+	unzip ./build/Globcover2009.zip -d ./build/Globcover2009_V2.3_Global_
+	touch $@ # otherwise the rule would be executed again next time
 
 $(RAW_NUTS_SHP): build/raw-nuts-2013-01M-SH.zip
-	unzip $^ -d ./build && \
+	curl -Lo $@ ./build/nuts-2013-01M-SH.zip '$(NUTS_URL)'
+	unzip $^ -d ./build
 	touch $@ # otherwise the rule would be executed again next time
 
 build/national-demand.csv: src/process_demand.py build/raw-data-demand.csv
@@ -41,8 +48,6 @@ build/nuts-distributions.png: src/visualise_nuts.py build/nuts-2013-with-populat
 
 build/nuts-2013-demand.geojson: src/spatial_demand.py build/national-demand.csv build/nuts-2013-with-population.geojson
 	$(PYTHON) $^ $@
-
-
 
 ## paper : runs all computational steps and creates the final paper
 .PHONY: paper
