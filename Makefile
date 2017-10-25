@@ -40,13 +40,16 @@ $(RAW_NUTS_SHP): build/raw-nuts-2013-01M-SH.zip
 build/national-demand.csv: src/process_demand.py build/raw-data-demand.csv
 	$(PYTHON) $^ $@
 
-build/nuts-2013-with-population.geojson: $(RAW_NUTS_SHP) $(RAW_GRIDDED_POP_DATA)
+build/nuts-2013-pop.geojson: $(RAW_NUTS_SHP) $(RAW_GRIDDED_POP_DATA)
 	fio cat $(RAW_NUTS_SHP) | rio zonalstats -r $(RAW_GRIDDED_POP_DATA) --prefix "population_" --stats sum > $@
 
 build/nuts-distributions.png: src/visualise_nuts.py build/nuts-2013-with-population.geojson
 	$(PYTHON) $^ $@
 
-build/nuts-2013-demand.geojson: src/spatial_demand.py build/national-demand.csv build/nuts-2013-with-population.geojson
+build/nuts-2013-pop-demand.geojson: src/spatial_demand.py build/national-demand.csv build/nuts-2013-pop.geojson
+	$(PYTHON) $^ $@
+
+build/nuts-2013-pop-demand-cover.geojson: src/available_land.py build/nuts-2013-pop-demand.geojson $(RAW_LAND_COVER_DATA)
 	$(PYTHON) $^ $@
 
 ## paper : runs all computational steps and creates the final paper
