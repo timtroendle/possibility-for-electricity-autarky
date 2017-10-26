@@ -3,11 +3,15 @@ RAW_NUTS_SHP = build/NUTS_2013_01M_SH/data/NUTS_RG_01M_2013.shp
 RAW_GRIDDED_POP_DATA = ./data/gpw-v4-population-count-2015/gpw-v4-population-count_2015.tif
 RAW_LAND_COVER_DATA = ./build/Globcover2009_V2.3_Global_/GLOBCOVER_L4_200901_200912_V2.3.tif
 RAW_PROTECTED_AREAS_DATA = build/WDPA_Oct2017/WDPA_Oct2017-shapefile-polygons.shp
+RAW_ELEVATION_DATA = build/raw-elevation-data.tif
 
 DEMAND_URL = https://data.open-power-system-data.org/time_series/2017-07-09/time_series_60min_stacked.csv
 NUTS_URL = http://ec.europa.eu/eurostat/cache/GISCO/geodatafiles/NUTS_2013_01M_SH.zip
 LAND_COVER_URL = http://due.esrin.esa.int/files/Globcover2009_V2.3_Global_.zip
 PROTECTED_AREAS_URL = https://www.protectedplanet.net/downloads/WDPA_Oct2017?type=shapefile
+
+REF_EXTENT=-12 17 42 79
+REF_RESOLUTION=0.002777777777778 -0.002777777777778
 
 .PHONY : help
 help : Makefile
@@ -43,6 +47,16 @@ $(RAW_PROTECTED_AREAS_DATA):
 	curl -Lo ./build/wdpa.zip -H 'Referer: $(PROTECTED_AREAS_URL)' $(PROTECTED_AREAS_URL)
 	unzip build/wdpa.zip -d build/WDPA_Oct2017
 	touch $@ # otherwise the rule would be executed again next time
+
+$(RAW_ELEVATION_DATA): src/download_elevation_data.py
+	$(PYTHON) $^ $@
+
+build/slope-europe.tif: $(RAW_ELEVATION_DATA) build/land-cover-europe.tif
+	gdaldem slope -s 111120 -compute_edges $(RAW_ELEVATION_DATA) build/slope.tif
+	rio warp build/slope.tif $@ --like build/land-cover-europe.tif --resampling bilinear
+
+build/land-cover-europe.tif: $(RAW_LAND_COVER_DATA)
+	rio clip $^ $@ --bounds $(REF_EXTENT)
 
 build/national-demand.csv: src/process_demand.py build/raw-data-demand.csv
 	$(PYTHON) $^ $@
