@@ -5,6 +5,8 @@ import pandas as pd
 import geopandas as gpd
 import seaborn as sns
 
+from src.conversion import area_in_squaremeters
+
 
 @click.command()
 @click.argument('path_to_nuts')
@@ -16,7 +18,7 @@ def visualise_nuts_distributions(path_to_nuts, path_to_figure):
 
     nuts = gpd.read_file(path_to_nuts)
     nuts = nuts.rename(columns={"STAT_LEVL_": "NUTS LEVEL"})
-    nuts["area"] = nuts.area
+    nuts["area"] = area_in_squaremeters(nuts)
     nuts["population sum"] = nuts["population_sum"]
     nuts["population density"] = nuts["population_sum"] / nuts["area"]
 

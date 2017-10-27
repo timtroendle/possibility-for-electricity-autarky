@@ -82,10 +82,15 @@ build/nuts-distributions.png: src/visualise_nuts.py build/nuts-2013-with-populat
 	$(PYTHON) $^ $@
 
 build/nuts-2013-pop-demand.geojson: src/spatial_demand.py build/national-demand.csv build/nuts-2013-pop.geojson
+	# TODO check whether demand time series incorporates oversea regions in FR, ES, PT
 	$(PYTHON) $^ $@
 
 build/nuts-2013-pop-demand-availability.geojson: build/nuts-2013-pop-demand.geojson build/available-land.tif
 	fio cat build/nuts-2013-pop-demand.geojson | rio zonalstats -r build/available-land.tif --categorical --prefix availability > $@
+
+build/nuts-2013-necessary-land.geojson: src/necessary_land.py build/nuts-2013-pop-demand-availability.geojson
+	# TODO this approach leads to up to 866 m^2 roof area per citizen -- way too much
+	$(PYTHON) $^ $@
 
 ## paper : runs all computational steps and creates the final paper
 .PHONY: paper
