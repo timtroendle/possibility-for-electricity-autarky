@@ -1,21 +1,29 @@
 import pytest
+import numpy as np
+from numpy.testing import assert_array_equal
 
-from src.available_land import aggregate_stats
+from src.available_land import Availability, determine_availability
 
 
 @pytest.fixture
-def rasterstats():
-    """Statistics as returned by rasterstats."""
-    return [
-        {11: 3, 14: 6, 230: 10},
-        {14: 7, 230: 14}
-    ]
+def land_cover():
+    return np.array([[11, 110], [110, 210], [14, 14]])
 
 
-def test_watt_to_watthour_conversion(rasterstats):
-    expected_result = {
-        "WATER": [0, 0],
-        "NO_WATER": [9, 7],
-        "NO_DATA": [10, 14]
-    }
-    assert aggregate_stats(rasterstats) == expected_result
+@pytest.fixture
+def protected_areas():
+    return np.array([[0, 0], [1, 0], [0, 0]])
+
+
+@pytest.fixture
+def slope():
+    return np.array([[2, 2], [2, 1], [3, 18]])
+
+
+def test_availability(land_cover, protected_areas, slope):
+    expected_result = np.array([
+        [Availability.WIND_OR_PV_FARM, Availability.WIND_FARM],
+        [Availability.NOT_AVAILABLE, Availability.NOT_AVAILABLE],
+        [Availability.WIND_OR_PV_FARM, Availability.WIND_FARM]
+    ])
+    assert_array_equal(determine_availability(land_cover, protected_areas, slope), expected_result)

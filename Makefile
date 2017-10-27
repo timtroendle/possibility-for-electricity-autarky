@@ -54,7 +54,7 @@ $(RAW_ELEVATION_DATA): src/download_elevation_data.py
 
 build/slope-europe.tif: $(RAW_ELEVATION_DATA) build/land-cover-europe.tif
 	gdaldem slope -s 111120 -compute_edges $(RAW_ELEVATION_DATA) build/slope-temp.tif
-	rio warp build/slope-temp.tif $@ --like build/land-cover-europe.tif --resampling bilinear
+	rio warp build/slope-temp.tif -o $@ --like build/land-cover-europe.tif --resampling bilinear
 	rm build/slope-temp.tif
 
 build/land-cover-europe.tif: $(RAW_LAND_COVER_DATA)
@@ -69,6 +69,9 @@ build/protected-areas-europe.tif: $(RAW_PROTECTED_AREAS_DATA) build/land-cover-e
 	rio convert --dtype uint8 build/protected-areas-europe-temp.tif -o $@
 	rm build/protected-areas-europe-temp.tif
 
+build/available-land.tif: src/available_land.py build/land-cover-europe.tif build/protected-areas-europe.tif build/slope-europe.tif
+	$(PYTHON) $^ $@
+
 build/national-demand.csv: src/process_demand.py build/raw-data-demand.csv
 	$(PYTHON) $^ $@
 
@@ -81,8 +84,8 @@ build/nuts-distributions.png: src/visualise_nuts.py build/nuts-2013-with-populat
 build/nuts-2013-pop-demand.geojson: src/spatial_demand.py build/national-demand.csv build/nuts-2013-pop.geojson
 	$(PYTHON) $^ $@
 
-build/nuts-2013-pop-demand-cover.geojson: src/available_land.py build/nuts-2013-pop-demand.geojson $(RAW_LAND_COVER_DATA)
-	$(PYTHON) $^ $@
+build/nuts-2013-pop-demand-availability.geojson: build/nuts-2013-pop-demand.geojson build/available-land.tif
+	fio cat build/nuts-2013-pop-demand.geojson | rio zonalstats -r build/available-land.tif --categorical --prefix availability > $@
 
 ## paper : runs all computational steps and creates the final paper
 .PHONY: paper
