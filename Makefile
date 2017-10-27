@@ -11,6 +11,7 @@ LAND_COVER_URL = http://due.esrin.esa.int/files/Globcover2009_V2.3_Global_.zip
 PROTECTED_AREAS_URL = https://www.protectedplanet.net/downloads/WDPA_Oct2017?type=shapefile
 
 REF_EXTENT=-12 17 42 79
+REF_EXTENT_COMMA=-12,17,42,79
 REF_RESOLUTION=0.002777777777778 -0.002777777777778
 
 .PHONY : help
@@ -52,11 +53,21 @@ $(RAW_ELEVATION_DATA): src/download_elevation_data.py
 	$(PYTHON) $^ $@
 
 build/slope-europe.tif: $(RAW_ELEVATION_DATA) build/land-cover-europe.tif
-	gdaldem slope -s 111120 -compute_edges $(RAW_ELEVATION_DATA) build/slope.tif
-	rio warp build/slope.tif $@ --like build/land-cover-europe.tif --resampling bilinear
+	gdaldem slope -s 111120 -compute_edges $(RAW_ELEVATION_DATA) build/slope-temp.tif
+	rio warp build/slope-temp.tif $@ --like build/land-cover-europe.tif --resampling bilinear
+	rm build/slope-temp.tif
 
 build/land-cover-europe.tif: $(RAW_LAND_COVER_DATA)
 	rio clip $^ $@ --bounds $(REF_EXTENT)
+
+build/protected-areas-europe.tif: $(RAW_PROTECTED_AREAS_DATA) build/land-cover-europe.tif
+	# TODO misses the 9% protected areas available as points only. How to incorporate those?
+	fio cat --rs --bbox $(REF_EXTENT_COMMA) $< | \
+	fio filter "f.properties.STATUS == 'Designated'" | \
+	fio collect --record-buffered | \
+	rio rasterize --like build/land-cover-europe.tif -o build/protected-areas-europe-temp.tif
+	rio convert --dtype uint8 build/protected-areas-europe-temp.tif -o $@
+	rm build/protected-areas-europe-temp.tif
 
 build/national-demand.csv: src/process_demand.py build/raw-data-demand.csv
 	$(PYTHON) $^ $@
