@@ -78,7 +78,7 @@ build/national-demand.csv: src/process_demand.py build/raw-data-demand.csv
 build/nuts-2013-pop.geojson: $(RAW_NUTS_SHP) $(RAW_GRIDDED_POP_DATA)
 	fio cat $(RAW_NUTS_SHP) | rio zonalstats -r $(RAW_GRIDDED_POP_DATA) --prefix "population_" --stats sum > $@
 
-build/nuts-distributions.png: src/visualise_nuts.py build/nuts-2013-with-population.geojson
+build/nuts-distributions.png: src/vis/nuts.py build/nuts-2013-with-population.geojson
 	$(PYTHON) $^ $@
 
 build/nuts-2013-pop-demand.geojson: src/spatial_demand.py build/national-demand.csv build/nuts-2013-pop.geojson
@@ -92,10 +92,14 @@ build/nuts-2013-necessary-land.geojson: src/necessary_land.py build/nuts-2013-po
 	# TODO this approach leads to up to 866 m^2 roof area per citizen -- way too much
 	$(PYTHON) $^ $@
 
+build/necessary-land-boxplots.png build/necessary-land-map.png: src/vis/necessary_land.py build/nuts-2013-necessary-land.geojson
+	$(PYTHON) $^ build/necessary-land-boxplots.png build/necessary-land-map.png
+
 ## paper : runs all computational steps and creates the final paper
 .PHONY: paper
 paper: | build build/paper.pdf
 
+build/paper.pdf: build/necessary-land-boxplots.png build/necessary-land-map.png
 build/paper.pdf: report/literature.bib report/main.md report/pandoc-metadata.yml
 	cd ./report && \
 	pandoc --filter pantable --filter pandoc-fignos --filter pandoc-tablenos --filter pandoc-citeproc \
