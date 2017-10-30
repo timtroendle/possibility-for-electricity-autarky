@@ -1,5 +1,6 @@
 PYTHON = PYTHONPATH=./ python
 RAW_NUTS_SHP = build/NUTS_2013_01M_SH/data/NUTS_RG_01M_2013.shp
+RAW_ADMINISTRATIVE_BORDERS = build/administrative-borders.gpkg
 RAW_GRIDDED_POP_DATA = ./data/gpw-v4-population-count-2015/gpw-v4-population-count_2015.tif
 RAW_LAND_COVER_DATA = ./build/Globcover2009_V2.3_Global_/GLOBCOVER_L4_200901_200912_V2.3.tif
 RAW_PROTECTED_AREAS_DATA = build/WDPA_Oct2017/WDPA_Oct2017-shapefile-polygons.shp
@@ -30,6 +31,9 @@ clean:
 .PHONY: test
 test:
 	py.test
+
+$(RAW_ADMINISTRATIVE_BORDERS): src/administrative_borders.py
+	$(PYTHON) $^ $@
 
 build/raw-data-demand.csv:
 	curl -Lo $@ '$(DEMAND_URL)'

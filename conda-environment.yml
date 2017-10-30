@@ -14,8 +14,10 @@ dependencies:
   - rasterstats=0.12.0
   - geopandas=0.3.0
   - requests=2.18.4
+  - requests-cache=0.4.13
   - pip:
       - pytest-pythonpath # adds the root path "./" to PYTHONPATH
       - pandoc-tablenos
       - pandoc-fignos
       - pantable
+      - pycountry
