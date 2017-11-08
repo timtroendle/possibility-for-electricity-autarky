@@ -96,6 +96,9 @@ build/nuts-2013-necessary-land.geojson: src/necessary_land.py build/nuts-2013-po
 	# TODO this approach leads to up to 866 m^2 roof area per citizen -- way too much
 	$(PYTHON) $^ $@
 
+build/capacity_factors.txt: src/capacity_factors.py build/raw-data-demand.csv
+	$(PYTHON) $^ $@
+
 build/necessary-land-boxplots.png build/necessary-land-map.png: src/vis/necessary_land.py build/nuts-2013-necessary-land.geojson
 	$(PYTHON) $^ build/necessary-land-boxplots.png build/necessary-land-map.png
 
