@@ -76,7 +76,7 @@ build/protected-areas-europe.tif: $(RAW_PROTECTED_AREAS_DATA) build/land-cover-e
 build/available-land.tif: src/available_land.py build/land-cover-europe.tif build/protected-areas-europe.tif build/slope-europe.tif
 	$(PYTHON) $^ $@
 
-build/national-demand.csv: src/process_demand.py build/raw-data-demand.csv
+build/national-demand.csv: src/process_load.py build/raw-data-demand.csv
 	$(PYTHON) $^ $@
 
 build/nuts-2013-pop.geojson: $(RAW_NUTS_SHP) $(RAW_GRIDDED_POP_DATA)
@@ -97,6 +97,9 @@ build/nuts-2013-necessary-land.geojson: src/necessary_land.py build/nuts-2013-po
 	$(PYTHON) $^ $@
 
 build/capacity_factors.txt: src/capacity_factors.py build/raw-data-demand.csv
+	$(PYTHON) $^ $@
+
+build/capacity_factors.png: src/vis/capacity_factors.py build/raw-data-demand.csv
 	$(PYTHON) $^ $@
 
 build/necessary-land-boxplots.png build/necessary-land-map.png: src/vis/necessary_land.py build/nuts-2013-necessary-land.geojson
