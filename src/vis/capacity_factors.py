@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 from src.process_load import read_load_profiles
+from src.capacity_factors import capacity_factor, average_capacity_factor
 
 
 @click.command()
@@ -26,10 +27,10 @@ def visualise_capacity_factors(path_to_load, path_to_plot):
     bars = ax.bar(cap_factors.index, cap_factors.values)
     bars[-1].set_color(plt.rcParams['axes.prop_cycle'].by_key()['color'][1])
     ax.axhline(
-        cap_factors.mean(),
+        average_capacity_factor(cap_factors, national.sum(axis="index")),
         color=plt.rcParams['axes.prop_cycle'].by_key()['color'][3],
         linestyle="dashed",
-        label="EU average",
+        label="national autarky average",
         linewidth=0.75
     )
     plt.legend()
@@ -39,10 +40,6 @@ def visualise_capacity_factors(path_to_load, path_to_plot):
     for tick in ax.get_xticklabels():
         tick.set_rotation(90)
     fig.savefig(path_to_plot, dpi=300)
-
-
-def capacity_factor(time_series):
-    return time_series.mean() / time_series.max()
 
 
 if __name__ == "__main__":

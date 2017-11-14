@@ -19,14 +19,21 @@ def capacity_factors(path_to_raw_load, path_to_result):
     )
     cap_factors = national.apply(capacity_factor, axis="index")
     global_cap_factor = capacity_factor(national.sum(axis="columns"))
+    average_cap_factor = average_capacity_factor(cap_factors, national.sum(axis="index"))
     with open(path_to_result, "w") as result_file:
         print("Global capacity factor: {:.2f}".format(global_cap_factor), file=result_file)
-        print("Average national capacity factor: {:.2f}".format(cap_factors.mean()),
+        print("Average national capacity factor: {:.2f}".format(average_cap_factor),
               file=result_file)
 
 
 def capacity_factor(time_series):
+    """Returns the capacity factor of a load or supply time series."""
     return time_series.mean() / time_series.max()
+
+
+def average_capacity_factor(capacity_factors, demands):
+    """Returns the average capacity factors weighted by yearly demand."""
+    return (capacity_factors * demands).sum() / demands.sum()
 
 
 if __name__ == "__main__":
