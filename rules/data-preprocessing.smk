@@ -6,6 +6,12 @@ URL_LOAD = "https://data.open-power-system-data.org/time_series/2017-07-09/time_
 URL_REGIONS = "http://ec.europa.eu/eurostat/cache/GISCO/geodatafiles/NUTS_2013_01M_SH.zip"
 URL_LAND_COVER = "http://due.esrin.esa.int/files/Globcover2009_V2.3_Global_.zip"
 URL_PROTECTED_AREAS = "https://www.protectedplanet.net/downloads/WDPA_Jan2018?type=shapefile"
+URL_ELEVATION_TILE = "http://droppr.org/srtm/v4.1/6_5x5_TIFs/" # CGIAR
+
+CGIAR_X_MIN = 34 # x coordinate of CGIAR tile raster
+CGIAR_X_MAX = 42
+CGIAR_Y_MIN = 1 # y coordinate of CGIAR tile raster
+CGIAR_Y_MAX = 6
 
 REF_EXTENT = "-12 17 42 79"
 REF_EXTENT_COMMA = "-12,17,42,79"
@@ -22,7 +28,7 @@ rule electricity_demand_national:
         "src/process_load.py",
         rules.raw_load.output
     output:
-        "build/electricity-demand-national.csv"
+        temp("build/electricity-demand-national.csv")
     shell:
         PYTHON_SCRIPT
 
@@ -63,11 +69,28 @@ rule raw_protected_areas:
     shell: "unzip {input} -d {output}"
 
 
-rule raw_elevation_data:
-    input: "src/download_elevation_data.py"
-    output: protected("build/raw-elevation-data.tif")
+rule raw_elevation_tile:
+    output:
+        tif = temp("build/srtm_{x}_{y}.tif"),
+        zip = temp("build/srtm_{x}_{y}.zip")
+    shadow: "full"
     shell:
-        PYTHON_SCRIPT
+        """
+        curl -Lo {output.zip} '{URL_ELEVATION_TILE}/srtm_{wildcards.x}_{wildcards.y}.zip'
+        unzip {output.zip} -d build
+        """
+
+
+rule raw_elevation_data:
+    input:
+        ["build/srtm_{x:02d}_{y:02d}.tif".format(x=x, y=y)
+         for x in range(CGIAR_X_MIN, CGIAR_X_MAX + 1)
+         for y in range(CGIAR_Y_MIN, CGIAR_Y_MAX + 1)
+         if not (x is 34 and y not in [1, 2])] # these tiles do not exist
+    output:
+        protected("build/raw-elevation-data.tif")
+    shell:
+        "rio merge {input} {output} --force-overwrite"
 
 
 rule land_cover_in_europe:
