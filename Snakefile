@@ -12,19 +12,9 @@ RAW_LAND_COVER_DATA = "build/Globcover2009_V2.3_Global_/GLOBCOVER_L4_200901_2009
 REF_EXTENT = "-12 17 42 79"
 REF_EXTENT_COMMA = "-12,17,42,79"
 
-rule paper:
+rule all:
     input:
-        "build/necessary-land-boxplots.png",
-        "build/necessary-land-map.png",
-        "report/literature.bib",
-        "report/main.md",
-        "report/pandoc-metadata.yml"
-    output:
         "build/paper.pdf"
-    shell:
-        "cd ./report && \
-        pandoc --filter pantable --filter pandoc-fignos --filter pandoc-tablenos \
-        --filter pandoc-citeproc main.md pandoc-metadata.yml -t latex -o ../build/paper.pdf"
 
 
 rule raw_load:
@@ -156,6 +146,51 @@ rule available_land:
         "build/available-land.tif"
     shell:
         PYTHON_SCRIPT
+
+
+rule available_land_per_region:
+    input:
+        regions = rules.regional_upsampling_demand.output,
+        available_land = rules.available_land.output
+    output: "build/regions_population_demand_available_land.geojson"
+    shell:
+        "fio cat {input.regions} | rio zonalstats -r {input.available_land} --categorical --prefix availability > {output}"
+
+
+rule necessary_land:
+    input:
+        "src/necessary_land.py",
+        rules.available_land_per_region.output
+    output:
+        "build/necessary-land.geojson"
+    shell:
+        # TODO this approach leads to up to 866 m^2 roof area per citizen -- way too much
+        PYTHON_SCRIPT
+
+
+rule necessary_land_plots:
+    input:
+        "src/vis/necessary_land.py",
+        rules.necessary_land.output
+    output:
+        "build/necessary-land-boxplots.png",
+        "build/necessary-land-map.png"
+    shell:
+        PYTHON_SCRIPT
+
+
+rule paper:
+    input:
+        "report/literature.bib",
+        "report/main.md",
+        "report/pandoc-metadata.yml",
+        rules.necessary_land_plots.output
+    output:
+        "build/paper.pdf"
+    shell:
+        "cd ./report && \
+        pandoc --filter pantable --filter pandoc-fignos --filter pandoc-tablenos \
+        --filter pandoc-citeproc main.md pandoc-metadata.yml -t latex -o ../build/paper.pdf"
 
 
 rule clean: # removes all generated results
