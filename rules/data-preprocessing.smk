@@ -65,8 +65,8 @@ rule raw_protected_areas_zipped:
 
 rule raw_protected_areas:
     input: rules.raw_protected_areas_zipped.output
-    output: "build/WDPA_Oct2017"
-    shell: "unzip {input} -d {output}"
+    output: "build/raw-wdpa-jan2018/WDPA_Jan2018-shapefile-polygons.shp"
+    shell: "unzip {input} -d build/raw-wdpa-jan2018"
 
 
 rule raw_elevation_tile:
