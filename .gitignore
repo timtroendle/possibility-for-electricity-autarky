@@ -47,3 +47,4 @@ __pycache__
 
 # Snakemake
 .snakemake/
+dag.pdf
