@@ -127,5 +127,6 @@ rule protected_areas_in_europe:
         fio collect --record-buffered | \
         rio rasterize --like {input.land_cover} -o build/protected-areas-europe-temp.tif
         rio convert --dtype uint8 build/protected-areas-europe-temp.tif -o {output}
+        rio edit-info --nodata 99 {output}
         rm build/protected-areas-europe-temp.tif
         """
