@@ -125,8 +125,6 @@ rule protected_areas_in_europe:
         fio cat --rs --bbox {REF_EXTENT_COMMA} {input.raw_protected_areas} | \
         fio filter "f.properties.STATUS == 'Designated'" | \
         fio collect --record-buffered | \
-        rio rasterize --like {input.land_cover} -o build/protected-areas-europe-temp.tif
-        rio convert --dtype uint8 build/protected-areas-europe-temp.tif -o {output}
-        rio edit-info --nodata 99 {output}
+        rio rasterize --like {input.land_cover} --default-value 255 -o build/protected-areas-europe-temp.tif
         rm build/protected-areas-europe-temp.tif
         """

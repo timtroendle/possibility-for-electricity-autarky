@@ -37,7 +37,7 @@ rule regions_with_population_and_demand:
         rules.electricity_demand_national.output,
         rules.regions_with_population.output
     output:
-        temp("build/regions_population_demand.geojson")
+        "build/regions_population_demand.geojson"
     shell:
         PYTHON_SCRIPT
 
