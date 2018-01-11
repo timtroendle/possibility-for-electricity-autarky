@@ -119,12 +119,13 @@ rule protected_areas_in_europe:
         land_cover = rules.land_cover_in_europe.output
     output:
         "build/protected-areas-europe.tif"
+    benchmark:
+        "build/rasterisation-benchmark.txt"
     shell:
         # TODO misses the 9% protected areas available as points only. How to incorporate those?
         """
         fio cat --rs --bbox {REF_EXTENT_COMMA} {input.raw_protected_areas} | \
         fio filter "f.properties.STATUS == 'Designated'" | \
         fio collect --record-buffered | \
-        rio rasterize --like {input.land_cover} --default-value 255 -o build/protected-areas-europe-temp.tif
-        rm build/protected-areas-europe-temp.tif
+        rio rasterize --like {input.land_cover} --default-value 255 -o {output}
         """
