@@ -7,14 +7,25 @@ URL_REGIONS = "http://ec.europa.eu/eurostat/cache/GISCO/geodatafiles/NUTS_2013_0
 URL_LAND_COVER = "http://due.esrin.esa.int/files/Globcover2009_V2.3_Global_.zip"
 URL_PROTECTED_AREAS = "https://www.protectedplanet.net/downloads/WDPA_Jan2018?type=shapefile"
 URL_ELEVATION_TILE = "http://droppr.org/srtm/v4.1/6_5x5_TIFs/" # CGIAR
+URL_GMTED_TILE = "https://edcintl.cr.usgs.gov/downloads/sciweb1/shared/topo/downloads/GMTED/Global_tiles_GMTED/075darcsec/mea/"
 
-CGIAR_X_MIN = 34 # x coordinate of CGIAR tile raster
-CGIAR_X_MAX = 42
-CGIAR_Y_MIN = 1 # y coordinate of CGIAR tile raster
-CGIAR_Y_MAX = 6
+BOUNDS_STUDY_AREA = {
+    "x_min": -12, # in degrees east
+    "x_max": 40, # in degrees east
+    "y_min": 20, # in degrees north
+    "y_max": 79  # in degrees north
+}
 
-REF_EXTENT = "-12 17 42 79"
-REF_EXTENT_COMMA = "-12,17,42,79"
+RESOLUTION_STUDY = 0.002777777777777778
+RESOLUTION_SLOPE = 0.0008333333333333334
+
+SRTM_X_MIN = 34 # x coordinate of CGIAR tile raster
+SRTM_X_MAX = 44
+SRTM_Y_MIN = 1 # y coordinate of CGIAR tile raster
+SRTM_Y_MAX = 8
+GMTED_Y = ["50N", "70N"]
+GMTED_X = ["030W", "000E", "030E"]
+
 
 rule raw_load:
     output:
@@ -69,7 +80,7 @@ rule raw_protected_areas:
     shell: "unzip {input} -d build/raw-wdpa-jan2018"
 
 
-rule raw_elevation_tile:
+rule raw_srtm_elevation_tile:
     output:
         tif = temp("build/srtm_{x}_{y}.tif"),
         zip = temp("build/srtm_{x}_{y}.zip")
@@ -81,34 +92,79 @@ rule raw_elevation_tile:
         """
 
 
-rule raw_elevation_data:
+rule raw_srtm_elevation_data:
     input:
         ["build/srtm_{x:02d}_{y:02d}.tif".format(x=x, y=y)
-         for x in range(CGIAR_X_MIN, CGIAR_X_MAX + 1)
-         for y in range(CGIAR_Y_MIN, CGIAR_Y_MAX + 1)
+         for x in range(SRTM_X_MIN, SRTM_X_MAX + 1)
+         for y in range(SRTM_Y_MIN, SRTM_Y_MAX + 1)
          if not (x is 34 and y not in [1, 2])] # these tiles do not exist
     output:
-        protected("build/raw-elevation-data.tif")
+        protected("build/raw-srtm-elevation-data.tif")
     shell:
         "rio merge {input} {output} --force-overwrite"
 
 
+rule raw_gmted_elevation_tile:
+    output:
+        temp("build/raw-gmted-{y}-{x}.tif")
+    run:
+        url = "{base_url}/{x_inverse}/{y}{x}_20101117_gmted_mea075.tif".format(**{
+            "base_url": URL_GMTED_TILE,
+            "x": wildcards.x,
+            "y": wildcards.y,
+            "x_inverse": wildcards.x[-1] + wildcards.x[:-1]
+        })
+        shell("curl -Lo {output} '{url}'".format(**{"url": url, "output": output}))
+
+
+rule raw_gmted_elevation_data:
+    input:
+        ["build/raw-gmted-{y}-{x}.tif".format(x=x, y=y)
+         for x in GMTED_X
+         for y in GMTED_Y
+        ]
+    output:
+        protected("build/raw-gmted-elevation-data.tif")
+    shell:
+        "rio merge {input} {output} --force-overwrite"
+
+
+rule elevation_in_europe:
+    input:
+        gmted = rules.raw_gmted_elevation_data.output,
+        srtm = rules.raw_srtm_elevation_data.output
+    output:
+        "build/elevation-europe.tif"
+    params:
+        srtm_bounds = "{x_min} {y_min} {x_max} 60".format(**BOUNDS_STUDY_AREA),
+        gmted_bounds = "{x_min} 59.5 {x_max} {y_max}".format(**BOUNDS_STUDY_AREA)
+    shell:
+        """
+        rio clip --bounds {params.srtm_bounds} {input.srtm} -o build/tmp-srtm.tif
+        rio clip --bounds {params.gmted_bounds} {input.gmted} -o build/tmp-gmted.tif
+        rio warp build/tmp-gmted.tif -o build/tmp-gmted2.tif -r {RESOLUTION_SLOPE} --resampling nearest
+        rio merge build/tmp-srtm.tif build/tmp-gmted2.tif {output}
+        rm build/tmp-gmted.tif
+        rm build/tmp-gmted2.tif
+        rm build/tmp-srtm.tif
+        """
+
 rule land_cover_in_europe:
     input: rules.raw_land_cover.output
     output: "build/land-cover-europe.tif"
-    shell: "rio clip {input} {output} --bounds {REF_EXTENT}"
+    params: bounds = "{x_min} {y_min} {x_max} {y_max}".format(**BOUNDS_STUDY_AREA)
+    shell: "rio clip {input} {output} --bounds {params.bounds}"
 
 
 rule slope_in_europe:
     input:
-        raw_elevation = rules.raw_elevation_data.output,
-        land_cover = rules.land_cover_in_europe.output
+        rules.elevation_in_europe.output,
     output:
         "build/slope-europe.tif"
     shell:
         """
-        gdaldem slope -s 111120 -compute_edges {input.raw_elevation} build/slope-temp.tif
-        rio warp build/slope-temp.tif -o {output} --like {input.land_cover} --resampling bilinear
+        gdaldem slope -s 111120 -compute_edges {input} build/slope-temp.tif
+        rio warp build/slope-temp.tif -o {output} -r {RESOLUTION_STUDY} --resampling bilinear
         rm build/slope-temp.tif
         """
 
@@ -119,12 +175,14 @@ rule protected_areas_in_europe:
         land_cover = rules.land_cover_in_europe.output
     output:
         "build/protected-areas-europe.tif"
+    params:
+        bounds = "{x_min},{y_min},{x_max},{y_max}".format(**BOUNDS_STUDY_AREA)
     benchmark:
         "build/rasterisation-benchmark.txt"
     shell:
         # TODO misses the 9% protected areas available as points only. How to incorporate those?
         """
-        fio cat --rs --bbox {REF_EXTENT_COMMA} {input.raw_protected_areas} | \
+        fio cat --rs --bbox {params.bounds} {input.raw_protected_areas} | \
         fio filter "f.properties.STATUS == 'Designated'" | \
         fio collect --record-buffered | \
         rio rasterize --like {input.land_cover} --default-value 255 -o {output}
