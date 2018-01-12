@@ -19,6 +19,8 @@ BOUNDS_STUDY_AREA = {
 RESOLUTION_STUDY = 0.002777777777777778
 RESOLUTION_SLOPE = 0.0008333333333333334
 
+CRS_STUDY = "EPSG:4326"
+
 SRTM_X_MIN = 34 # x coordinate of CGIAR tile raster
 SRTM_X_MAX = 44
 SRTM_Y_MIN = 1 # y coordinate of CGIAR tile raster
@@ -171,19 +173,20 @@ rule slope_in_europe:
 
 rule protected_areas_in_europe:
     input:
-        raw_protected_areas = rules.raw_protected_areas.output,
-        land_cover = rules.land_cover_in_europe.output
+        rules.raw_protected_areas.output,
     output:
         "build/protected-areas-europe.tif"
     params:
-        bounds = "{x_min},{y_min},{x_max},{y_max}".format(**BOUNDS_STUDY_AREA)
+        bounds = "{x_min} {y_min} {x_max} {y_max}".format(**BOUNDS_STUDY_AREA),
+        bounds_comma = "{x_min},{y_min},{x_max},{y_max}".format(**BOUNDS_STUDY_AREA)
     benchmark:
         "build/rasterisation-benchmark.txt"
     shell:
         # TODO misses the 9% protected areas available as points only. How to incorporate those?
         """
-        fio cat --rs --bbox {params.bounds} {input.raw_protected_areas} | \
+        fio cat --rs --bbox {params.bounds_comma} {input} | \
         fio filter "f.properties.STATUS == 'Designated'" | \
         fio collect --record-buffered | \
-        rio rasterize --like {input.land_cover} --default-value 255 -o {output}
+        rio rasterize --src-crs {CRS_STUDY} --bounds {params.bounds} --res {RESOLUTION_STUDY} \
+        --default-value 255 --all_touched -f "GTiff" --co dtype=uint8 -o {output}
         """
