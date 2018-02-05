@@ -6,11 +6,13 @@ configfile: "config/snakemake.yaml"
 include: "rules/data-preprocessing.smk"
 
 rule all:
-    input:
-        "build/paper.pdf"
+    message: "Run entire analysis and compile report."
+    input: "build/paper.pdf"
 
 
 rule available_land:
+    message:
+        "Determine land available for renewables based on land cover, slope, and protected areas."
     input:
         "src/available_land.py",
         rules.land_cover_in_europe.output,
@@ -23,6 +25,7 @@ rule available_land:
 
 
 rule regions_with_population:
+    message: "Allocate population to regions."
     input:
         regions = rules.raw_regions.output,
         population = RAW_GRIDDED_POP_DATA
@@ -33,6 +36,7 @@ rule regions_with_population:
 
 
 rule regions_with_population_and_demand:
+    message: "Allocate electricity demand to regions."
     input:
         "src/spatial_demand.py",
         rules.electricity_demand_national.output,
@@ -44,6 +48,7 @@ rule regions_with_population_and_demand:
 
 
 rule regions:
+    message: "Allocate available land to regions."
     input:
         regions = rules.regions_with_population_and_demand.output,
         available_land = rules.available_land.output
@@ -54,6 +59,7 @@ rule regions:
 
 
 rule necessary_land:
+    message: "Determine fraction of land necessary to supply demand per region."
     input:
         "src/necessary_land.py",
         rules.regions.output
@@ -65,6 +71,7 @@ rule necessary_land:
 
 
 rule necessary_land_plots:
+    message: "Plot fraction of land necessary."
     input:
         "src/vis/necessary_land.py",
         rules.necessary_land.output
@@ -76,6 +83,7 @@ rule necessary_land_plots:
 
 
 rule paper:
+    message: "Compile report."
     input:
         "report/literature.bib",
         "report/main.md",

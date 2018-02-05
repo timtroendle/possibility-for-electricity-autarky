@@ -30,6 +30,7 @@ GMTED_X = ["030W", "000E", "030E"]
 
 
 rule raw_load:
+    message: "Download raw load."
     output:
         protected("build/raw-load-data.csv")
     shell:
@@ -37,6 +38,7 @@ rule raw_load:
 
 
 rule electricity_demand_national:
+    message: "Determine yearly demand per country."
     input:
         "src/process_load.py",
         rules.raw_load.output
@@ -47,6 +49,7 @@ rule electricity_demand_national:
 
 
 rule raw_regions_zipped:
+    message: "Download regions as zip."
     output:
         protected("build/raw-regions.zip")
     shell:
@@ -54,6 +57,7 @@ rule raw_regions_zipped:
 
 
 rule raw_regions:
+    message: "Extract regions as zip."
     input: rules.raw_regions_zipped.output
     output: "build/NUTS_2013_01M_SH/data/NUTS_RG_01M_2013.shp"
     shell:
@@ -61,28 +65,33 @@ rule raw_regions:
 
 
 rule raw_land_cover_zipped:
+    message: "Download land cover data as zip."
     output: protected("build/raw-globcover2009.zip")
     shell: "curl -Lo {output} '{URL_LAND_COVER}'"
 
 
 rule raw_land_cover:
+    message: "Extract land cover data as zip."
     input: rules.raw_land_cover_zipped.output
     output: "build/raw-globcover2009-v2.3/GLOBCOVER_L4_200901_200912_V2.3.tif"
     shell: "unzip {input} -d ./build/raw-globcover2009-v2.3"
 
 
 rule raw_protected_areas_zipped:
+    message: "Download protected areas data as zip."
     output: protected("build/raw-wdpa.zip")
     shell: "curl -Lo {output} -H 'Referer: {URL_PROTECTED_AREAS}' {URL_PROTECTED_AREAS}"
 
 
 rule raw_protected_areas:
+    message: "Extract protected areas data as zip."
     input: rules.raw_protected_areas_zipped.output
     output: "build/raw-wdpa-jan2018/WDPA_Jan2018-shapefile-polygons.shp"
     shell: "unzip {input} -d build/raw-wdpa-jan2018"
 
 
 rule raw_srtm_elevation_tile:
+    message: "Download SRTM elevation data tile (x={x}, y={y}) from CGIAR."
     output:
         tif = temp("build/srtm_{x}_{y}.tif"),
         zip = temp("build/srtm_{x}_{y}.zip")
@@ -95,6 +104,7 @@ rule raw_srtm_elevation_tile:
 
 
 rule raw_srtm_elevation_data:
+    message: "Merge all SRTM elevation data tiles."
     input:
         ["build/srtm_{x:02d}_{y:02d}.tif".format(x=x, y=y)
          for x in range(SRTM_X_MIN, SRTM_X_MAX + 1)
@@ -107,6 +117,7 @@ rule raw_srtm_elevation_data:
 
 
 rule raw_gmted_elevation_tile:
+    message: "Download GMTED elevation data tile."
     output:
         temp("build/raw-gmted-{y}-{x}.tif")
     run:
@@ -120,6 +131,7 @@ rule raw_gmted_elevation_tile:
 
 
 rule raw_gmted_elevation_data:
+    message: "Merge all GMTED elevation data tiles."
     input:
         ["build/raw-gmted-{y}-{x}.tif".format(x=x, y=y)
          for x in GMTED_X
@@ -132,6 +144,7 @@ rule raw_gmted_elevation_data:
 
 
 rule elevation_in_europe:
+    message: "Merge SRTM and GMTED elevation data and warp/clip to Europe using {threads} threads."
     input:
         gmted = rules.raw_gmted_elevation_data.output,
         srtm = rules.raw_srtm_elevation_data.output
@@ -154,6 +167,7 @@ rule elevation_in_europe:
         """
 
 rule land_cover_in_europe:
+    message: "Clip land cover data to Europe."
     input: rules.raw_land_cover.output
     output: "build/land-cover-europe.tif"
     params: bounds = "{x_min} {y_min} {x_max} {y_max}".format(**BOUNDS_STUDY_AREA)
@@ -161,6 +175,7 @@ rule land_cover_in_europe:
 
 
 rule slope_in_europe:
+    message: "Calculate slope and warp to resolution of study using {threads} threads."
     input:
         elevation = rules.elevation_in_europe.output,
         land_cover = rules.land_cover_in_europe.output
@@ -177,6 +192,7 @@ rule slope_in_europe:
 
 
 rule protected_areas_in_europe:
+    message: "Rasterise protected areas data and clip to Europe."
     input:
         protected_areas = rules.raw_protected_areas.output,
         land_cover = rules.land_cover_in_europe.output
