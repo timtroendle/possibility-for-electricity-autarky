@@ -140,11 +140,13 @@ rule elevation_in_europe:
     params:
         srtm_bounds = "{x_min} {y_min} {x_max} 60".format(**BOUNDS_STUDY_AREA),
         gmted_bounds = "{x_min} 59.5 {x_max} {y_max}".format(**BOUNDS_STUDY_AREA)
+    threads: config["max-threads"]
     shell:
         """
         rio clip --bounds {params.srtm_bounds} {input.srtm} -o build/tmp-srtm.tif
         rio clip --bounds {params.gmted_bounds} {input.gmted} -o build/tmp-gmted.tif
-        rio warp build/tmp-gmted.tif -o build/tmp-gmted2.tif -r {RESOLUTION_SLOPE} --resampling nearest
+        rio warp build/tmp-gmted.tif -o build/tmp-gmted2.tif -r {RESOLUTION_SLOPE} \
+        --resampling nearest --threads {threads}
         rio merge build/tmp-srtm.tif build/tmp-gmted2.tif {output}
         rm build/tmp-gmted.tif
         rm build/tmp-gmted2.tif
@@ -164,10 +166,12 @@ rule slope_in_europe:
         land_cover = rules.land_cover_in_europe.output
     output:
         "build/slope-europe.tif"
+    threads: config["max-threads"]
     shell:
         """
         gdaldem slope -s 111120 -compute_edges {input.elevation} build/slope-temp.tif
-        rio warp build/slope-temp.tif -o {output} --like {input.land_cover} --resampling bilinear
+        rio warp build/slope-temp.tif -o {output} --like {input.land_cover} \
+        --resampling bilinear --threads {threads}
         rm build/slope-temp.tif
         """
 
