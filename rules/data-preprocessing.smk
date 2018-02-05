@@ -6,7 +6,7 @@ URL_LOAD = "https://data.open-power-system-data.org/time_series/2017-07-09/time_
 URL_REGIONS = "http://ec.europa.eu/eurostat/cache/GISCO/geodatafiles/NUTS_2013_01M_SH.zip"
 URL_LAND_COVER = "http://due.esrin.esa.int/files/Globcover2009_V2.3_Global_.zip"
 URL_PROTECTED_AREAS = "https://www.protectedplanet.net/downloads/WDPA_Jan2018?type=shapefile"
-URL_ELEVATION_TILE = "http://droppr.org/srtm/v4.1/6_5x5_TIFs/" # CGIAR
+URL_CGIAR_TILE = "http://droppr.org/srtm/v4.1/6_5x5_TIFs/"
 URL_GMTED_TILE = "https://edcintl.cr.usgs.gov/downloads/sciweb1/shared/topo/downloads/GMTED/Global_tiles_GMTED/075darcsec/mea/"
 
 BOUNDS_STUDY_AREA = {
@@ -16,8 +16,8 @@ BOUNDS_STUDY_AREA = {
     "y_max": 79  # in degrees north
 }
 
-RESOLUTION_STUDY = 0.002777777777777778
-RESOLUTION_SLOPE = 0.0008333333333333334
+RESOLUTION_STUDY = (1 / 3600) * 10 # 10 arcseconds
+RESOLUTION_SLOPE = (1 / 3600) * 3 # 3 arcseconds
 
 CRS_STUDY = "EPSG:4326"
 
@@ -89,7 +89,7 @@ rule raw_srtm_elevation_tile:
     shadow: "full"
     shell:
         """
-        curl -Lo {output.zip} '{URL_ELEVATION_TILE}/srtm_{wildcards.x}_{wildcards.y}.zip'
+        curl -Lo {output.zip} '{URL_CGIAR_TILE}/srtm_{wildcards.x}_{wildcards.y}.zip'
         unzip {output.zip} -d build
         """
 
@@ -124,7 +124,7 @@ rule raw_gmted_elevation_data:
         ["build/raw-gmted-{y}-{x}.tif".format(x=x, y=y)
          for x in GMTED_X
          for y in GMTED_Y
-        ]
+         ]
     output:
         protected("build/raw-gmted-elevation-data.tif")
     shell:
@@ -160,13 +160,14 @@ rule land_cover_in_europe:
 
 rule slope_in_europe:
     input:
-        rules.elevation_in_europe.output,
+        elevation = rules.elevation_in_europe.output,
+        land_cover = rules.land_cover_in_europe.output
     output:
         "build/slope-europe.tif"
     shell:
         """
-        gdaldem slope -s 111120 -compute_edges {input} build/slope-temp.tif
-        rio warp build/slope-temp.tif -o {output} -r {RESOLUTION_STUDY} --resampling bilinear
+        gdaldem slope -s 111120 -compute_edges {input.elevation} build/slope-temp.tif
+        rio warp build/slope-temp.tif -o {output} --like {input.land_cover} --resampling bilinear
         rm build/slope-temp.tif
         """
 
