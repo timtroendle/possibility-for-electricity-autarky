@@ -174,7 +174,8 @@ rule slope_in_europe:
 
 rule protected_areas_in_europe:
     input:
-        rules.raw_protected_areas.output,
+        protected_areas = rules.raw_protected_areas.output,
+        land_cover = rules.land_cover_in_europe.output
     output:
         "build/protected-areas-europe.tif"
     params:
@@ -185,9 +186,9 @@ rule protected_areas_in_europe:
     shell:
         # TODO misses the 9% protected areas available as points only. How to incorporate those?
         """
-        fio cat --rs --bbox {params.bounds_comma} {input} | \
+        fio cat --rs --bbox {params.bounds_comma} {input.protected_areas} | \
         fio filter "f.properties.STATUS == 'Designated'" | \
         fio collect --record-buffered | \
-        rio rasterize --src-crs {CRS_STUDY} --bounds {params.bounds} --res {RESOLUTION_STUDY} \
+        rio rasterize --like {input.land_cover} \
         --default-value 255 --all_touched -f "GTiff" --co dtype=uint8 -o {output}
         """
