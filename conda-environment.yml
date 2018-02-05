@@ -1,6 +1,7 @@
 name: resource-potentials
 channels:
   - conda-forge
+  - bioconda
 dependencies:
   - python=3.6
   - numpy=1.13.3
@@ -15,6 +16,7 @@ dependencies:
   - geopandas=0.3.0
   - requests=2.18.4
   - requests-cache=0.4.13
+  - snakemake=4.4.0
   - pip:
       - pytest-pythonpath # adds the root path "./" to PYTHONPATH
       - pandoc-tablenos

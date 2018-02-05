@@ -14,9 +14,9 @@ DATATYPE = np.uint8
 class Availability(IntEnum):
     """Categories defining land availability for renewable power."""
     NOT_AVAILABLE = 0
-    ROOFTOP_PV = 1
-    WIND_OR_PV_FARM = 2
-    WIND_FARM = 3
+    ROOFTOP_PV = 150
+    WIND_OR_PV_FARM = 250
+    WIND_FARM = 80
 
 
 class GlobCover(IntEnum):
@@ -61,7 +61,7 @@ BARE = [GlobCover.BARE_AREAS]
 
 class ProtectedArea(IntEnum):
     """Derived from UNEP-WCMC data set."""
-    PROTECTED = 1
+    PROTECTED = 255
     NOT_PROTECTED = 0
 
 

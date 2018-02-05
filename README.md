@@ -12,7 +12,6 @@ The following dependencies are needed to set up an environment in which the anal
 
 * [conda](https://conda.io/docs/index.html)
 * `LaTeX` to [produce a PDF](http://pandoc.org/MANUAL.html#creating-a-pdf). Can be avoided by switching to [any other output format supported by pandoc](http://pandoc.org/index.html).
-* `make` (optional; without `make`, e.g. on Windows, you will need to manually run all steps)
 
 When these dependencies are installed, you can create a conda environment from within you can run the analysis:
 
@@ -20,7 +19,7 @@ When these dependencies are installed, you can create a conda environment from w
 
 Don't forget to activate the environment. To see what you can do now, run:
 
-    make help
+    snakemake --list
 
 ### Data to be retrieved manually
 
@@ -30,17 +29,19 @@ Whenever possible, data is retrieved automatically. As this is not always possib
 
 ## Run the analysis
 
-    make paper
+    snakemake paper
 
 This will run all analysis steps to reproduce results and eventually build the paper.
 
-You can also run certain parts only by using other `make` rules; to get a list of all rules see the `Makefile`.
+You can also run certain parts only by using other `snakemake` rules; to get a list of all rules run `snakemake --list`.
 
-If you do not have `make` you can manually run the steps through the Python command line interfaces. Refer to the `Makefile` to see which commands are called to produce results.
+To generate a PDF of the dependency graph of all steps, run:
+
+    snakemake --rulegraph | dot -Tpdf > dag.pdf
 
 ## Run the tests
 
-    make test
+    snakemake test
 
 ## Repo structure
 
@@ -48,5 +49,6 @@ If you do not have `make` you can manually run the steps through the Python comm
 * `src`: contains the Python source code
 * `tests`: contains the test code
 * `config`: configurations used in the study
+* `rules`: additional Snakemake rules and workflows
 * `data`: place for raw data
 * `build`: will contain all results (does not exist initially)
