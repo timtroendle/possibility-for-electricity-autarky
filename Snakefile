@@ -92,9 +92,11 @@ rule paper:
     output:
         "build/paper.pdf"
     shell:
-        "cd ./report && \
+        """
+        cd ./report
         pandoc --filter pantable --filter pandoc-fignos --filter pandoc-tablenos \
-        --filter pandoc-citeproc main.md pandoc-metadata.yml -t latex -o ../build/paper.pdf"
+        --filter pandoc-citeproc main.md pandoc-metadata.yml -t latex -o ../build/paper.pdf
+        """
 
 
 rule clean: # removes all generated results
