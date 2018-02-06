@@ -91,11 +91,12 @@ rule raw_protected_areas:
 
 
 rule raw_srtm_elevation_tile:
-    message: "Download SRTM elevation data tile (x={x}, y={y}) from CGIAR."
+    message: "Download SRTM elevation data tile (x={wildcards.x}, y={wildcards.y}) from CGIAR."
     output:
         tif = temp("build/srtm_{x}_{y}.tif"),
         zip = temp("build/srtm_{x}_{y}.zip")
     shadow: "full"
+    threads: config["max-threads"] # this is a hack to prevent parallel execution which fails
     shell:
         """
         curl -Lo {output.zip} '{URL_CGIAR_TILE}/srtm_{wildcards.x}_{wildcards.y}.zip'
@@ -109,7 +110,7 @@ rule raw_srtm_elevation_data:
         ["build/srtm_{x:02d}_{y:02d}.tif".format(x=x, y=y)
          for x in range(SRTM_X_MIN, SRTM_X_MAX + 1)
          for y in range(SRTM_Y_MIN, SRTM_Y_MAX + 1)
-         if not (x is 34 and y not in [1, 2])] # these tiles do not exist
+         if not (x is 34 and y in [3, 4, 5, 6])] # these tiles do not exist
     output:
         protected("build/raw-srtm-elevation-data.tif")
     shell:
