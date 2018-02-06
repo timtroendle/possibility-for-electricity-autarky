@@ -12,6 +12,8 @@ dependencies:
   - pytest=3.2.3
   - click=6.7
   - ipython
+  - fiona=1.7.11
+  - rasterio=0.36.0
   - rasterstats=0.12.0
   - geopandas=0.3.0
   - requests=2.18.4
