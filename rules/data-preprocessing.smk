@@ -187,7 +187,7 @@ rule slope_in_europe:
         """
         gdaldem slope -s 111120 -compute_edges {input.elevation} build/slope-temp.tif
         rio warp build/slope-temp.tif -o {output} --like {input.land_cover} \
-        --resampling bilinear --threads {threads}
+        --resampling max --threads {threads}
         rm build/slope-temp.tif
         """
 
