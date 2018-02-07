@@ -1,0 +1,39 @@
+snakemake:
+    max-threads: 4
+scope:
+    countries:
+        - "Austria"
+        - "Belgium"
+        - "Bulgaria"
+        - "Croatia"
+        - "Cyprus"
+        - "Czech Republic"
+        - "Denmark"
+        - "Estonia"
+        - "Finland"
+        - "France"
+        - "Germany"
+        - "Greece"
+        - "Hungary"
+        - "Ireland"
+        - "Italy"
+        - "Latvia"
+        - "Lithuania"
+        - "Luxembourg"
+        - "Malta"
+        - "Netherlands"
+        - "Poland"
+        - "Portugal"
+        - "Romania"
+        - "Slovakia"
+        - "Slovenia"
+        - "Spain"
+        - "Sweden"
+        - "United Kingdom"
+        - "Norway"
+        - "Switzerland"
+    bounds:
+        x_min: -12 # in degrees east
+        x_max: 40  # in degrees east
+        y_min: 20  # in degrees north
+        y_max: 79  # in degrees north

@@ -1,8 +1,9 @@
 PYTHON_SCRIPT = "PYTHONPATH=./ python {input} {output}"
 
 RAW_GRIDDED_POP_DATA = "data/gpw-v4-population-count-2015/gpw-v4-population-count_2015.tif"
+CONFIG_FILE = "config/default.yaml"
 
-configfile: "config/snakemake.yaml"
+configfile: CONFIG_FILE
 include: "rules/data-preprocessing.smk"
 
 rule all:

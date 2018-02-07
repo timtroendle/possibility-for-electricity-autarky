@@ -1,6 +1,8 @@
 """This is a Snakemake file defining rules to retrieve raw data from online sources."""
 
+PYTHON = "PYTHONPATH=./ python"
 PYTHON_SCRIPT = "PYTHONPATH=./ python {input} {output}"
+PYTHON_SCRIPT_WITH_CONFIG = PYTHON_SCRIPT + " {CONFIG_FILE}"
 
 URL_LOAD = "https://data.open-power-system-data.org/time_series/2017-07-09/time_series_60min_stacked.csv"
 URL_REGIONS = "http://ec.europa.eu/eurostat/cache/GISCO/geodatafiles/NUTS_2013_01M_SH.zip"
@@ -8,13 +10,6 @@ URL_LAND_COVER = "http://due.esrin.esa.int/files/Globcover2009_V2.3_Global_.zip"
 URL_PROTECTED_AREAS = "https://www.protectedplanet.net/downloads/WDPA_Jan2018?type=shapefile"
 URL_CGIAR_TILE = "http://droppr.org/srtm/v4.1/6_5x5_TIFs/"
 URL_GMTED_TILE = "https://edcintl.cr.usgs.gov/downloads/sciweb1/shared/topo/downloads/GMTED/Global_tiles_GMTED/075darcsec/mea/"
-
-BOUNDS_STUDY_AREA = {
-    "x_min": -12, # in degrees east
-    "x_max": 40, # in degrees east
-    "y_min": 20, # in degrees north
-    "y_max": 79  # in degrees north
-}
 
 RESOLUTION_STUDY = (1 / 3600) * 10 # 10 arcseconds
 RESOLUTION_SLOPE = (1 / 3600) * 3 # 3 arcseconds
@@ -86,7 +81,9 @@ rule raw_protected_areas_zipped:
 rule raw_protected_areas:
     message: "Extract protected areas data as zip."
     input: rules.raw_protected_areas_zipped.output
-    output: "build/raw-wdpa-jan2018/WDPA_Jan2018-shapefile-polygons.shp"
+    output:
+        polygons = "build/raw-wdpa-jan2018/WDPA_Jan2018-shapefile-polygons.shp",
+        points = "build/raw-wdpa-jan2018/WDPA_Jan2018-shapefile-points.shp"
     shell: "unzip {input} -d build/raw-wdpa-jan2018"
 
 
@@ -96,7 +93,7 @@ rule raw_srtm_elevation_tile:
         tif = temp("build/srtm_{x}_{y}.tif"),
         zip = temp("build/srtm_{x}_{y}.zip")
     shadow: "full"
-    threads: config["max-threads"] # this is a hack to prevent parallel execution which fails
+    threads: config["snakemake"]["max-threads"] # hack to prevent parallel execution which fails
     shell:
         """
         curl -Lo {output.zip} '{URL_CGIAR_TILE}/srtm_{wildcards.x}_{wildcards.y}.zip'
@@ -152,9 +149,9 @@ rule elevation_in_europe:
     output:
         "build/elevation-europe.tif"
     params:
-        srtm_bounds = "{x_min} {y_min} {x_max} 60".format(**BOUNDS_STUDY_AREA),
-        gmted_bounds = "{x_min} 59.5 {x_max} {y_max}".format(**BOUNDS_STUDY_AREA)
-    threads: config["max-threads"]
+        srtm_bounds = "{x_min} {y_min} {x_max} 60".format(**config["scope"]["bounds"]),
+        gmted_bounds = "{x_min} 59.5 {x_max} {y_max}".format(**config["scope"]["bounds"])
+    threads: config["snakemake"]["max-threads"]
     shell:
         """
         rio clip --bounds {params.srtm_bounds} {input.srtm} -o build/tmp-srtm.tif
@@ -171,7 +168,7 @@ rule land_cover_in_europe:
     message: "Clip land cover data to Europe."
     input: rules.raw_land_cover.output
     output: "build/land-cover-europe.tif"
-    params: bounds = "{x_min} {y_min} {x_max} {y_max}".format(**BOUNDS_STUDY_AREA)
+    params: bounds = "{x_min} {y_min} {x_max} {y_max}".format(**config["scope"]["bounds"])
     shell: "rio clip {input} {output} --bounds {params.bounds}"
 
 
@@ -182,7 +179,7 @@ rule slope_in_europe:
         land_cover = rules.land_cover_in_europe.output
     output:
         "build/slope-europe.tif"
-    threads: config["max-threads"]
+    threads: config["snakemake"]["max-threads"]
     shell:
         """
         gdaldem slope -s 111120 -compute_edges {input.elevation} build/slope-temp.tif
@@ -192,22 +189,33 @@ rule slope_in_europe:
         """
 
 
+rule protected_areas_points_to_circles:
+    message: "Estimate shape of protected areas available as points only."
+    input:
+        "src/estimate_protected_shapes.py",
+        rules.raw_protected_areas.output.points
+    output:
+        temp("build/protected-areas-points-as-circles.geojson")
+    shell:
+        PYTHON_SCRIPT_WITH_CONFIG
+
+
 rule protected_areas_in_europe:
     message: "Rasterise protected areas data and clip to Europe."
     input:
-        protected_areas = rules.raw_protected_areas.output,
+        polygons = rules.raw_protected_areas.output.polygons,
+        points = rules.protected_areas_points_to_circles.output,
         land_cover = rules.land_cover_in_europe.output
     output:
         "build/protected-areas-europe.tif"
     params:
-        bounds = "{x_min} {y_min} {x_max} {y_max}".format(**BOUNDS_STUDY_AREA),
-        bounds_comma = "{x_min},{y_min},{x_max},{y_max}".format(**BOUNDS_STUDY_AREA)
+        bounds = "{x_min} {y_min} {x_max} {y_max}".format(**config["scope"]["bounds"]),
+        bounds_comma = "{x_min},{y_min},{x_max},{y_max}".format(**config["scope"]["bounds"])
     benchmark:
         "build/rasterisation-benchmark.txt"
     shell:
-        # TODO misses the 9% protected areas available as points only. How to incorporate those?
         """
-        fio cat --rs --bbox {params.bounds_comma} {input.protected_areas} | \
+        fio cat --rs --bbox {params.bounds_comma} {input.polygons} {input.points} | \
         fio filter "f.properties.STATUS == 'Designated'" | \
         fio collect --record-buffered | \
         rio rasterize --like {input.land_cover} \
