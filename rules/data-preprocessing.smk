@@ -208,14 +208,14 @@ rule protected_areas_in_europe:
         land_cover = rules.land_cover_in_europe.output
     output:
         "build/protected-areas-europe.tif"
-    params:
-        bounds = "{x_min} {y_min} {x_max} {y_max}".format(**config["scope"]["bounds"]),
-        bounds_comma = "{x_min},{y_min},{x_max},{y_max}".format(**config["scope"]["bounds"])
     benchmark:
         "build/rasterisation-benchmark.txt"
     shell:
+        # fio cat below should use a bounding box to not forward polygons outside
+        # the study area. This would increase the performance drastically. Doing so
+        # is blocked by bug https://github.com/Toblerity/Fiona/issues/543
         """
-        fio cat --rs --bbox {params.bounds_comma} {input.polygons} {input.points} | \
+        fio cat --rs {input.points} {input.polygons} | \
         fio filter "f.properties.STATUS == 'Designated'" | \
         fio collect --record-buffered | \
         rio rasterize --like {input.land_cover} \
