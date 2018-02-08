@@ -1,4 +1,5 @@
 """This is a Snakemake file defining rules to retrieve raw data from online sources."""
+import pycountry
 
 PYTHON = "PYTHONPATH=./ python"
 PYTHON_SCRIPT = "PYTHONPATH=./ python {input} {output}"
@@ -10,6 +11,7 @@ URL_LAND_COVER = "http://due.esrin.esa.int/files/Globcover2009_V2.3_Global_.zip"
 URL_PROTECTED_AREAS = "https://www.protectedplanet.net/downloads/WDPA_Jan2018?type=shapefile"
 URL_CGIAR_TILE = "http://droppr.org/srtm/v4.1/6_5x5_TIFs/"
 URL_GMTED_TILE = "https://edcintl.cr.usgs.gov/downloads/sciweb1/shared/topo/downloads/GMTED/Global_tiles_GMTED/075darcsec/mea/"
+URL_GADM = "http://biogeo.ucdavis.edu/data/gadm2.8/gpkg"
 
 RESOLUTION_STUDY = (1 / 3600) * 10 # 10 arcseconds
 RESOLUTION_SLOPE = (1 / 3600) * 3 # 3 arcseconds
@@ -40,8 +42,34 @@ rule electricity_demand_national:
     output:
         temp("build/electricity-demand-national.csv")
     shell:
-        PYTHON_SCRIPT
+        PYTHON_SCRIPT_WITH_CONFIG
 
+
+rule raw_administrative_borders_zipped:
+    message: "Download administrative borders for {wildcards.country_code} as zip."
+    output: protected("build/raw-gadm/{country_code}.zip")
+    shell: "curl -Lo {output} '{URL_GADM}/{wildcards.country_code}_adm_gpkg.zip'"
+
+
+rule raw_administrative_borders:
+    message: "Unzip administrative borders of {wildcards.country_code} as zip."
+    input: "build/raw-gadm/{country_code}.zip"
+    output: temp("build/raw-gadm/{country_code}_adm.gpkg")
+    shell: "unzip -o {input} -d build/raw-gadm"
+
+
+rule administrative_borders:
+    message: "Merge administrative borders of all countries up to layer {params.max_layer_depth}."
+    input:
+        "src/administrative_borders.py",
+        ["build/raw-gadm/{}_adm.gpkg".format(country_code)
+            for country_code in [pycountry.countries.lookup(country).alpha_3
+                                 for country in config['scope']['countries']]
+         ]
+    params: max_layer_depth = 3
+    output: "build/administrative-borders.gpkg"
+    shell:
+        PYTHON + " {input} {params.max_layer_depth} {output}"
 
 rule raw_regions_zipped:
     message: "Download regions as zip."

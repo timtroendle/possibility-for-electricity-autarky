@@ -4,33 +4,33 @@ from datetime import timedelta, datetime
 import click
 import pandas as pd
 import numpy as np
+import pycountry
 
 from src.conversion import watt_to_watthours
-
-NATIONAL_REGIONS = [
-    'AT', 'BE', 'BG', 'CH', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI',
-    'FR', 'GB', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'ME',
-    'MK', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'SE', 'SI', 'SK'
-]
+from src.utils import Config
 
 
 @click.command()
 @click.argument('path_to_raw_load')
 @click.argument('path_to_output_data')
-def process_data(path_to_raw_load, path_to_output_data):
+@click.argument('config', type=Config())
+def process_data(path_to_raw_load, path_to_output_data, config):
     """Extracts national energy demand 2016 from raw data."""
     data = read_load_profiles(
         path_to_raw_load=path_to_raw_load,
         start=datetime(2016, 1, 1),
-        end=datetime(2017, 1, 1)
+        end=datetime(2017, 1, 1),
+        country_codes_iso2=[pycountry.countries.lookup(country).alpha_2
+                            for country in config["scope"]["countries"]]
     )
     watt_to_watthours(data.mean(), timedelta(days=365)).div(1000).div(1000).to_csv(
         path_to_output_data,
-        header=["twh_per_year"]
+        header=["twh_per_year"],
+        index_label="country_code"
     )
 
 
-def read_load_profiles(path_to_raw_load, start, end):
+def read_load_profiles(path_to_raw_load, start, end, country_codes_iso2):
     """Reads national load data and handles outliers."""
     data = pd.read_csv(path_to_raw_load, nrows=9499818, parse_dates=[3])
     data = data[(data["variable"] == "load") & (data["attribute"] == "new")]
@@ -38,7 +38,9 @@ def read_load_profiles(path_to_raw_load, start, end):
     data = data[(data.utc_timestamp >= start) &
                 (data.utc_timestamp < end)]
     data = data.pivot(columns="region", index="utc_timestamp", values="data")
-    national = data.loc[:, NATIONAL_REGIONS].copy()
+    national = data.loc[:, country_codes_iso2].copy()
+    national.columns.name = "country_code"
+    national.rename(columns=lambda iso2: pycountry.countries.lookup(iso2).alpha_3, inplace=True)
     return _handle_outliers(national)
 
 

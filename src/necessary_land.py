@@ -44,7 +44,7 @@ def determine_necessary_land(path_to_regions, path_to_output):
         max_yield.sum(axis=1),
         timedelta(days=365)
     ).div(1e12)
-    regions["fraction_land_necessary"] = (regions["DEMAND_TWH_PER_YEAR"] /
+    regions["fraction_land_necessary"] = (regions["demand_twh_per_year"] /
                                           regions["max_yield_twh_per_year"])
     if Path(path_to_output).exists():
         Path(path_to_output).unlink() # somehow fiona cannot overwrite existing GeoJSON

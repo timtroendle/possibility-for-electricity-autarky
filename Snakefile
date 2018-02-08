@@ -26,14 +26,19 @@ rule available_land:
 
 
 rule regions_with_population:
-    message: "Allocate population to regions."
+    message: "Allocate population to regions of layer {params.layer}."
     input:
-        regions = rules.raw_regions.output,
+        regions = rules.administrative_borders.output,
         population = RAW_GRIDDED_POP_DATA
     output:
         temp("build/regions_population.geojson")
+    params:
+        layer = "adm1"
     shell:
-        "fio cat {input.regions} | rio zonalstats -r {input.population} --prefix 'population_' --stats sum > {output}"
+        """
+        fio cat {input.regions} --layer 1:{params.layer} | \
+        rio zonalstats -r {input.population} --prefix 'population_' --stats sum > {output}
+        """
 
 
 rule regions_with_population_and_demand:
@@ -56,7 +61,10 @@ rule regions:
     output:
         "build/regions.geojson"
     shell:
-        "fio cat {input.regions} | rio zonalstats -r {input.available_land} --categorical --prefix availability > {output}"
+        """
+        fio cat {input.regions} | \
+        rio zonalstats -r {input.available_land} --categorical --prefix availability > {output}
+        """
 
 
 rule necessary_land:
@@ -75,7 +83,8 @@ rule necessary_land_plots:
     message: "Plot fraction of land necessary."
     input:
         "src/vis/necessary_land.py",
-        rules.necessary_land.output
+        rules.necessary_land.output,
+        rules.administrative_borders.output
     output:
         "build/necessary-land-boxplots.png",
         "build/necessary-land-map.png"
