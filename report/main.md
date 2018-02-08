@@ -61,6 +61,22 @@ Based on the land cover, protected areas, and slope data, the land available for
 
 The electricity demand of each autarkic region is determined using the national electricity demand data, the gridded population data, and the NUTS regions data set. In a first step, the gridded population is mapped to the NUTS region to determine the local population. After that, the national electricity demand is allocated to the regions proportional to the local population.
 
+For France, Spain, and Portugal, the geographical perimeter of the load data is of importance in particular to understand whether their islands are included or not. ENTSO-e has enquired the national transmission grid operators in this regard [@entso-e:2016] and from the document the following can be derived on the geographical perimeter of the load data:
+
+France
+
+:   The hourly load data excludes all overseas territories and Corsica as well.
+
+Spain
+
+:   The hourly load data includes Spanish mainland only.
+
+Portugal
+
+:   The hourly load data excludes Azores and Madeira.
+
+In conclusion, this means that Corsica and the Balearic Islands are missing in the load data and the data should hence be scaled up.
+
 ### Regions
 
 Using the electricity demand distribution and the available land raster data set, a final vector data base of all regions and their necessary attributes can be formed. For that, the available land categories are counted and associated to their regions.
