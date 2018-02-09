@@ -28,7 +28,7 @@ World Database on Protected Areas
 
 Gridded Population of the World v4
 
-:   The gridded population of the world data base provides an estimate of the spatial distribution of the worlds population in 2015 with a resolution of 30 arcseconds [@Doxsey-Whitfield:2015]. It is based on national censuses and population registers.
+:   The gridded population of the world data base provides an estimate of the spatial distribution of the worlds population in 2020 with a resolution of 30 arcseconds [@CIESIN:2016; @Doxsey-Whitfield:2015]. It is based on national censuses and population registers.
 
 NUTS regions
 

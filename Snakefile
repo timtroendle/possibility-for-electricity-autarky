@@ -1,6 +1,6 @@
 PYTHON_SCRIPT = "PYTHONPATH=./ python {input} {output}"
 
-RAW_GRIDDED_POP_DATA = "data/gpw-v4-population-count-2015/gpw-v4-population-count_2015.tif"
+RAW_GRIDDED_POP_DATA = "data/gpw-v4-population-count-2020/gpw-v4-population-count_2020.tif"
 CONFIG_FILE = "config/default.yaml"
 
 configfile: CONFIG_FILE
