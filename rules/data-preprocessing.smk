@@ -6,7 +6,7 @@ PYTHON_SCRIPT = "PYTHONPATH=./ python {input} {output}"
 PYTHON_SCRIPT_WITH_CONFIG = PYTHON_SCRIPT + " {CONFIG_FILE}"
 
 URL_LOAD = "https://data.open-power-system-data.org/time_series/2017-07-09/time_series_60min_stacked.csv"
-URL_REGIONS = "http://ec.europa.eu/eurostat/cache/GISCO/geodatafiles/NUTS_2013_01M_SH.zip"
+URL_NUTS = "http://ec.europa.eu/eurostat/cache/GISCO/geodatafiles/NUTS_2013_01M_SH.zip"
 URL_LAND_COVER = "http://due.esrin.esa.int/files/Globcover2009_V2.3_Global_.zip"
 URL_PROTECTED_AREAS = "https://www.protectedplanet.net/downloads/WDPA_Jan2018?type=shapefile"
 URL_CGIAR_TILE = "http://droppr.org/srtm/v4.1/6_5x5_TIFs/"
@@ -71,12 +71,13 @@ rule administrative_borders:
     shell:
         PYTHON + " {input} {params.max_layer_depth} {output}"
 
+
 rule raw_regions_zipped:
     message: "Download regions as zip."
     output:
         protected("build/raw-regions.zip")
     shell:
-        "curl -Lo {output} '{URL_REGIONS}'"
+        "curl -Lo {output} '{URL_NUTS}'"
 
 
 rule raw_regions:

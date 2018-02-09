@@ -30,9 +30,9 @@ Gridded Population of the World v4
 
 :   The gridded population of the world data base provides an estimate of the spatial distribution of the worlds population in 2020 with a resolution of 30 arcseconds [@CIESIN:2016; @Doxsey-Whitfield:2015]. It is based on national censuses and population registers.
 
-NUTS regions
+GADM
 
-:   The nomenclature of territorial units for statistics (NUTS) [@eurostat:2015] provides the basis by which Europe is divided into regions in this analysis.
+:   The global administrative areas database [@GADM:2015] provides the basis by which Europe is divided into regions in this analysis.
 
 Electricity demand
 
@@ -59,7 +59,7 @@ Based on the land cover, protected areas, and slope data, the land available for
 
 ### Electricity demand distribution
 
-The electricity demand of each autarkic region is determined using the national electricity demand data, the gridded population data, and the NUTS regions data set. In a first step, the gridded population is mapped to the NUTS region to determine the local population. After that, the national electricity demand is allocated to the regions proportional to the local population.
+The electricity demand of each autarkic region is determined using the national electricity demand data, the gridded population data, and the administrative areas data set. In a first step, the gridded population is mapped to the regions to determine the local population. After that, the national electricity demand is allocated to the regions proportional to the local population.
 
 For France, Spain, and Portugal, the geographical perimeter of the load data is of importance in particular to understand whether their islands are included or not. ENTSO-e has enquired the national transmission grid operators in this regard [@entso-e:2016] and from the document the following can be derived on the geographical perimeter of the load data:
 
