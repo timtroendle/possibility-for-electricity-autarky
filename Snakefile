@@ -111,12 +111,10 @@ rule paper:
 
 rule clean: # removes all generated results
     shell:
-        "rm -r ./build/*"
-
-
-rule force_clean: # removes all builds including protected results
-    shell:
-        "rm -rf ./build/*"
+        """
+        rm -r ./build/*
+        echo "Data downloaded to data/ has not been cleaned."
+        """
 
 
 rule test:

@@ -50,5 +50,5 @@ To generate a PDF of the dependency graph of all steps, run:
 * `tests`: contains the test code
 * `config`: configurations used in the study
 * `rules`: additional Snakemake rules and workflows
-* `data`: place for raw data
+* `data`: place for raw data, whether retrieved manually and automatically
 * `build`: will contain all results (does not exist initially)

@@ -29,9 +29,9 @@ GMTED_X = ["030W", "000E", "030E"]
 rule raw_load:
     message: "Download raw load."
     output:
-        protected("build/raw-load-data.csv")
+        protected("data/automatic/raw-load-data.csv")
     shell:
-        "curl -Lo {output} '{URL_LOAD}'"
+        "curl -sLo {output} '{URL_LOAD}'"
 
 
 rule electricity_demand_national:
@@ -47,22 +47,22 @@ rule electricity_demand_national:
 
 rule raw_administrative_borders_zipped:
     message: "Download administrative borders for {wildcards.country_code} as zip."
-    output: protected("build/raw-gadm/{country_code}.zip")
-    shell: "curl -Lo {output} '{URL_GADM}/{wildcards.country_code}_adm_gpkg.zip'"
+    output: protected("data/automatic/raw-gadm/{country_code}.zip")
+    shell: "curl -sLo {output} '{URL_GADM}/{wildcards.country_code}_adm_gpkg.zip'"
 
 
 rule raw_administrative_borders:
     message: "Unzip administrative borders of {wildcards.country_code} as zip."
-    input: "build/raw-gadm/{country_code}.zip"
-    output: temp("build/raw-gadm/{country_code}_adm.gpkg")
-    shell: "unzip -o {input} -d build/raw-gadm"
+    input: "data/automatic/raw-gadm/{country_code}.zip"
+    output: temp("data/automatic/raw-gadm/{country_code}_adm.gpkg")
+    shell: "unzip -o {input} -d data/automatic/raw-gadm"
 
 
 rule administrative_borders:
     message: "Merge administrative borders of all countries up to layer {params.max_layer_depth}."
     input:
         "src/administrative_borders.py",
-        ["build/raw-gadm/{}_adm.gpkg".format(country_code)
+        ["data/automatic/raw-gadm/{}_adm.gpkg".format(country_code)
             for country_code in [pycountry.countries.lookup(country).alpha_3
                                  for country in config['scope']['countries']]
          ]
@@ -75,9 +75,9 @@ rule administrative_borders:
 rule raw_regions_zipped:
     message: "Download regions as zip."
     output:
-        protected("build/raw-regions.zip")
+        protected("data/automatic/raw-regions.zip")
     shell:
-        "curl -Lo {output} '{URL_NUTS}'"
+        "curl -sLo {output} '{URL_NUTS}'"
 
 
 rule raw_regions:
@@ -90,21 +90,22 @@ rule raw_regions:
 
 rule raw_land_cover_zipped:
     message: "Download land cover data as zip."
-    output: protected("build/raw-globcover2009.zip")
-    shell: "curl -Lo {output} '{URL_LAND_COVER}'"
+    output: protected("data/automatic/raw-globcover2009.zip")
+    shell: "curl -sLo {output} '{URL_LAND_COVER}'"
 
 
 rule raw_land_cover:
     message: "Extract land cover data as zip."
     input: rules.raw_land_cover_zipped.output
-    output: "build/raw-globcover2009-v2.3/GLOBCOVER_L4_200901_200912_V2.3.tif"
-    shell: "unzip {input} -d ./build/raw-globcover2009-v2.3"
+    output: temp("build/GLOBCOVER_L4_200901_200912_V2.3.tif")
+    shadow: "full"
+    shell: "unzip {input} -d ./build/"
 
 
 rule raw_protected_areas_zipped:
     message: "Download protected areas data as zip."
-    output: protected("build/raw-wdpa.zip")
-    shell: "curl -Lo {output} -H 'Referer: {URL_PROTECTED_AREAS}' {URL_PROTECTED_AREAS}"
+    output: protected("data/automatic/raw-wdpa.zip")
+    shell: "curl -sLo {output} -H 'Referer: {URL_PROTECTED_AREAS}' {URL_PROTECTED_AREAS}"
 
 
 rule raw_protected_areas:
@@ -116,18 +117,25 @@ rule raw_protected_areas:
     shell: "unzip {input} -d build/raw-wdpa-jan2018"
 
 
-rule raw_srtm_elevation_tile:
+rule raw_srtm_elevation_tile_zipped:
     message: "Download SRTM elevation data tile (x={wildcards.x}, y={wildcards.y}) from CGIAR."
     output:
-        tif = temp("build/srtm_{x}_{y}.tif"),
-        zip = temp("build/srtm_{x}_{y}.zip")
-    shadow: "full"
-    threads: config["snakemake"]["max-threads"] # hack to prevent parallel execution which fails
+        protected("data/automatic/raw-srtm/srtm_{x}_{y}.zip")
     shell:
         """
-        curl -Lo {output.zip} '{URL_CGIAR_TILE}/srtm_{wildcards.x}_{wildcards.y}.zip'
-        unzip {output.zip} -d build
+        curl -sLo {output} '{URL_CGIAR_TILE}/srtm_{wildcards.x}_{wildcards.y}.zip'
         """
+
+
+rule raw_srtm_elevation_tile:
+    message: "Unzip SRTM elevation data tile (x={wildcards.x}, y={wildcards.y})."
+    input:
+        "data/automatic/raw-srtm/srtm_{x}_{y}.zip"
+    output:
+        temp("build/srtm_{x}_{y}.tif")
+    shadow: "full"
+    shell:
+        "unzip {input} -d build"
 
 
 rule raw_srtm_elevation_data:
@@ -138,7 +146,7 @@ rule raw_srtm_elevation_data:
          for y in range(SRTM_Y_MIN, SRTM_Y_MAX + 1)
          if not (x is 34 and y in [3, 4, 5, 6])] # these tiles do not exist
     output:
-        protected("build/raw-srtm-elevation-data.tif")
+        temp("build/raw-srtm-elevation-data.tif")
     shell:
         "rio merge {input} {output} --force-overwrite"
 
@@ -146,7 +154,7 @@ rule raw_srtm_elevation_data:
 rule raw_gmted_elevation_tile:
     message: "Download GMTED elevation data tile."
     output:
-        temp("build/raw-gmted-{y}-{x}.tif")
+        protected("data/automatic/raw-gmted/raw-gmted-{y}-{x}.tif")
     run:
         url = "{base_url}/{x_inverse}/{y}{x}_20101117_gmted_mea075.tif".format(**{
             "base_url": URL_GMTED_TILE,
@@ -154,18 +162,18 @@ rule raw_gmted_elevation_tile:
             "y": wildcards.y,
             "x_inverse": wildcards.x[-1] + wildcards.x[:-1]
         })
-        shell("curl -Lo {output} '{url}'".format(**{"url": url, "output": output}))
+        shell("curl -sLo {output} '{url}'".format(**{"url": url, "output": output}))
 
 
 rule raw_gmted_elevation_data:
     message: "Merge all GMTED elevation data tiles."
     input:
-        ["build/raw-gmted-{y}-{x}.tif".format(x=x, y=y)
+        ["data/automatic/raw-gmted/raw-gmted-{y}-{x}.tif".format(x=x, y=y)
          for x in GMTED_X
          for y in GMTED_Y
          ]
     output:
-        protected("build/raw-gmted-elevation-data.tif")
+        temp("build/raw-gmted-elevation-data.tif")
     shell:
         "rio merge {input} {output} --force-overwrite"
 
@@ -192,6 +200,7 @@ rule elevation_in_europe:
         rm build/tmp-gmted2.tif
         rm build/tmp-srtm.tif
         """
+
 
 rule land_cover_in_europe:
     message: "Clip land cover data to Europe."
