@@ -1,7 +1,7 @@
 """Functions to convert units."""
 
-# from http://spatialreference.org/ref/sr-org/22/
-GALL_PETERS_PROJ4 = "+proj=cea +lon_0=0 +lat_ts=45 +x_0=0 +y_0=0 +ellps=WGS84 +units=m +no_defs "
+# from https://epsg.io/3035
+EPSG_3035_PROJ4 = "+proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs "
 
 
 def watt_to_watthours(watt, duration):
@@ -12,9 +12,11 @@ def watt_to_watthours(watt, duration):
 def area_in_squaremeters(geodataframe):
     """Calculates the area sizes of a geo dataframe in square meters.
 
-    Following https://gis.stackexchange.com/a/20056/77760 I am choosing Gall-Peters to receive
-    a most accurate determination of the size of polygons in the geo dataframe.
+    Following https://gis.stackexchange.com/a/20056/77760 I am choosing equal-area projections
+    to receive a most accurate determination of the size of polygons in the geo dataframe.
+    Instead of Gall-Peters, as suggested in the answer, I am using EPSG_3035 which is
+    particularly usefull for Europe.
 
-    Returns a pandas series of area sizes in squre meters.
+    Returns a pandas series of area sizes in square meters.
     """
-    return geodataframe.to_crs(GALL_PETERS_PROJ4).area
+    return geodataframe.to_crs(EPSG_3035_PROJ4).area
