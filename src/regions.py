@@ -1,4 +1,4 @@
-"""Module to determine availability per region."""
+"""Module to determine eligible land per region."""
 from textwrap import dedent
 from multiprocessing import Pool
 from itertools import cycle
@@ -11,7 +11,7 @@ import rasterio.mask
 from rasterio.warp import calculate_default_transform, reproject, RESAMPLING
 import geopandas as gpd
 
-from available_land import Availability
+from eligible_land import Eligibility
 from conversion import area_in_squaremeters
 
 EQUAL_AREA_PROJECTION = "EPSG:3035" # projection to use to derive area sizes
@@ -21,32 +21,32 @@ PRECISION = 0.01 # 1%
 
 @click.command()
 @click.argument("path_to_regions")
-@click.argument("path_to_availability")
+@click.argument("path_to_eligibility")
 @click.argument("path_to_output")
 @click.argument("threads", type=click.INT)
-def allocate_availability_to_regions(path_to_regions, path_to_availability, path_to_output, threads):
-    """Allocates available land to regions defined by vector data."""
+def allocate_eligibility_to_regions(path_to_regions, path_to_eligibility, path_to_output, threads):
+    """Allocates eligible land to regions defined by vector data."""
     with fiona.open(path_to_regions, "r") as regions:
         meta = regions.meta
         meta["driver"] = "GeoJSON"
-        for availability in Availability:
-            meta["schema"]["properties"][availability.property_name] = "float"
+        for eligibility in Eligibility:
+            meta["schema"]["properties"][eligibility.property_name] = "float"
         with Pool(threads) as pool:
             new_regions = pool.map(
-                _allocate_availability_to_region,
-                zip(regions, cycle([path_to_availability]))
+                _allocate_eligibility_to_region,
+                zip(regions, cycle([path_to_eligibility]))
             )
         with fiona.open(path_to_output, "w", **meta) as output:
             output.writerecords(new_regions)
     _test_allocation(path_to_output)
 
 
-def _allocate_availability_to_region(args):
+def _allocate_eligibility_to_region(args):
     region = args[0].copy()
-    with rasterio.open(args[1], "r") as availability_raster:
-        raster_crs = availability_raster.crs
+    with rasterio.open(args[1], "r") as eligibility_raster:
+        raster_crs = eligibility_raster.crs
         crop, crop_transform = rasterio.mask.mask(
-            availability_raster,
+            eligibility_raster,
             [region["geometry"]],
             crop=True,
             nodata=INVALID_DATA
@@ -57,9 +57,9 @@ def _allocate_availability_to_region(args):
         src_bounds=rasterio.features.bounds(region),
         src_transform=crop_transform
     )
-    for availability in Availability:
-        area_size = float((crop == availability).sum() * pixel_width * pixel_height / 1000 / 1000)
-        region["properties"][availability.property_name] = area_size
+    for eligibility in Eligibility:
+        area_size = float((crop == eligibility).sum() * pixel_width * pixel_height / 1000 / 1000)
+        region["properties"][eligibility.property_name] = area_size
     return region
 
 
@@ -93,7 +93,7 @@ def _test_allocation(path_to_output):
     regions = gpd.read_file(path_to_output)
     regions.set_index("name", inplace=True)
     total_allocated_area = sum(
-        [regions[availability.property_name] for availability in Availability]
+        [regions[eligibility.property_name] for eligibility in Eligibility]
     )
     region_size = area_in_squaremeters(regions) / 1000 / 1000
     below_threshold = abs(total_allocated_area - region_size) < region_size * PRECISION
@@ -109,4 +109,4 @@ def _test_allocation(path_to_output):
 
 
 if __name__ == "__main__":
-    allocate_availability_to_regions()
+    allocate_eligibility_to_regions()

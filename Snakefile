@@ -11,16 +11,16 @@ rule all:
     input: "build/paper.pdf"
 
 
-rule available_land:
+rule eligible_land:
     message:
-        "Determine land available for renewables based on land cover, slope, and protected areas."
+        "Determine land eligibility for renewables based on land cover, slope, and protected areas."
     input:
-        "src/available_land.py",
+        "src/eligible_land.py",
         rules.land_cover_in_europe.output,
         rules.protected_areas_in_europe.output,
         rules.slope_in_europe.output
     output:
-        "build/available-land.tif"
+        "build/eligible-land.tif"
     shell:
         PYTHON_SCRIPT
 
@@ -54,11 +54,11 @@ rule regions_with_population_and_demand:
 
 
 rule regions:
-    message: "Allocate available land to regions using {threads} threads."
+    message: "Allocate eligible land to regions using {threads} threads."
     input:
         "src/regions.py",
         rules.regions_with_population_and_demand.output,
-        rules.available_land.output
+        rules.eligible_land.output
     output:
         "build/regions.geojson"
     threads: config["snakemake"]["max-threads"]

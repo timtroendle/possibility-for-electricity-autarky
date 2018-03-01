@@ -1,6 +1,6 @@
 # Introduction
 
-This analysis assesses the sufficiency of available land for renewable power units in Europe. It does so by first determining the land that is available for renewable power generation through an analysis of geospatial data on a high spatial resolution. Second, it estimates the electrical energy that can be harvested on the available land. And third, it compares this amount to the local demand for electrical energy. The renewable power potential is called sufficient whenever it exceeds the demand, otherwise it is called insufficient. The analysis is performed on different geographical scales where on each scale each region is considered autarkic in terms of electrical energy.
+This analysis assesses the sufficiency of eligible land for renewable power units in Europe. It does so by first determining the land that is eligible for renewable power generation through an analysis of geospatial data on a high spatial resolution. Second, it estimates the electrical energy that can be harvested on the eligible land. And third, it compares this amount to the local demand for electrical energy. The renewable power potential is called sufficient whenever it exceeds the demand, otherwise it is called insufficient. The analysis is performed on different geographical scales where on each scale each region is considered autarkic in terms of electrical energy.
 
 This document first describes the method and data analysis steps in details and then presents and discusses results.
 
@@ -53,9 +53,9 @@ The protected areas database is provided in two files: a shapefile including pol
 
 The slope in Europe is calculated from digital elevation data. The main source is SRTM, but for the Northern part of Europe, GMTED is used as SRTM is not available here. After merging the two data sets and clipping them to the study area, the slope is calculated using `gdaldem slope`. The resulting slope raster data has the resolution of the SRTM data of 3 arcseconds. It is downsampled to 10 arcseconds by taking the maximum slope in the 10 arcsecond region; a conservative approach of resampling.
 
-### Available land
+### Land Eligibility
 
-Based on the land cover, protected areas, and slope data, the land available for renewable power units is determined. Currently, only roof mounted PV, PV farms, and wind farms are considered. The result is a raster data set classifying each pixel whether its land can be used for roof-mounted PV, PV and wind farms, wind farms only, or not at all for renewable power provision.
+Based on the land cover, protected areas, and slope data, the land eligibility for renewable power plants is determined. Currently, only roof mounted PV, PV farms, and wind farms are considered. The result is a raster data set classifying each pixel whether its land can be used for roof-mounted PV, PV and wind farms, wind farms only, or not at all for renewable power provision.
 
 ### Electricity demand distribution
 
@@ -79,11 +79,11 @@ In conclusion, this means that Corsica and the Balearic Islands are missing in t
 
 ### Regions
 
-Using the electricity demand distribution and the available land raster data set, a final vector data base of all regions and their necessary attributes can be formed. For that, the available land categories are counted and associated to their regions.
+Using the electricity demand distribution and the land eligibility raster data set, a final vector data base of all regions and their necessary attributes can be formed. For that, the eligible land categories are counted and associated to their regions.
 
 ### Necessary land
 
-Finally the fraction of the available land that is necessary to supply the electricity demand can be assessed. For that I am using assumptions on the annual energy yield per squaremeter of PV and wind to determine the annual energy yield per region. This can then be compared to the electrical energy demand in the region to determine the fraction of available land necessary to supply the demand.
+Finally the fraction of the eligible land that is necessary to supply the electricity demand can be assessed. For that I am using assumptions on the annual energy yield per squaremeter of PV and wind to determine the annual energy yield per region. This can then be compared to the electrical energy demand in the region to determine the fraction of eligible land necessary to supply the demand.
 
 # Results
 

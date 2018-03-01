@@ -5,15 +5,15 @@ import click
 import pandas as pd
 import geopandas as gpd
 
-from src.available_land import Availability
+from src.eligible_land import Eligibility
 from src.conversion import watt_to_watthours
 
 
 MAX_YIELD = {
-    Availability.NOT_AVAILABLE: 0,
-    Availability.ROOFTOP_PV: 20,
-    Availability.WIND_OR_PV_FARM: 20,
-    Availability.WIND_FARM: 2
+    Eligibility.NOT_ELIGIBLE: 0,
+    Eligibility.ROOFTOP_PV: 20,
+    Eligibility.WIND_OR_PV_FARM: 20,
+    Eligibility.WIND_FARM: 2
 }
 """Max yield in [W/m^2] taken from MacKay 2009.
 
@@ -29,8 +29,8 @@ def determine_necessary_land(path_to_regions, path_to_output):
     """Determines the fraction of land needed in each region to fulfill the demand."""
     regions = gpd.read_file(path_to_regions)
     max_yield = pd.DataFrame({
-        availability: regions[availability.property_name] * MAX_YIELD[availability] * 1e6
-        for availability in Availability
+        eligibility: regions[eligibility.property_name] * MAX_YIELD[eligibility] * 1e6
+        for eligibility in Eligibility
     })
     regions["max_yield_twh_per_year"] = watt_to_watthours(
         max_yield.sum(axis=1),

@@ -1,4 +1,4 @@
-"""This module determines available land for renewable generation based on geospatial data."""
+"""This module determines land eligibility for renewable generation based on geospatial data."""
 from enum import IntEnum
 
 import click
@@ -11,16 +11,16 @@ MAX_SLOPE_WIND = 20
 DATATYPE = np.uint8
 
 
-class Availability(IntEnum):
-    """Categories defining land availability for renewable power."""
-    NOT_AVAILABLE = 0
+class Eligibility(IntEnum):
+    """Categories defining land eligibility for renewable power."""
+    NOT_ELIGIBLE = 0
     ROOFTOP_PV = 150
     WIND_OR_PV_FARM = 250
     WIND_FARM = 80
 
     @property
     def property_name(self):
-        return "availability_{}_km2".format(self.name.lower())
+        return "eligibility_{}_km2".format(self.name.lower())
 
 
 class GlobCover(IntEnum):
@@ -74,9 +74,8 @@ class ProtectedArea(IntEnum):
 @click.argument("path_to_protected_areas")
 @click.argument("path_to_slope")
 @click.argument("path_to_result")
-def determine_available_land(path_to_land_cover, path_to_protected_areas, path_to_slope,
-                             path_to_result):
-    """Determines availability of land for renewables."""
+def determine_eligible_land(path_to_land_cover, path_to_protected_areas, path_to_slope, path_to_result):
+    """Determines eligibility of land for renewables."""
     with rasterio.open(path_to_land_cover) as src:
         raster_affine = src.affine
         land_cover = src.read(1)
@@ -85,28 +84,28 @@ def determine_available_land(path_to_land_cover, path_to_protected_areas, path_t
         slope = src.read(1)
     with rasterio.open(path_to_protected_areas) as src:
         protected_areas = src.read(1)
-    availability = determine_availability(land_cover, protected_areas, slope)
-    with rasterio.open(path_to_result, 'w', driver='GTiff', height=availability.shape[0],
-                       width=availability.shape[1], count=1, dtype=DATATYPE,
+    eligibility = determine_eligibility(land_cover, protected_areas, slope)
+    with rasterio.open(path_to_result, 'w', driver='GTiff', height=eligibility.shape[0],
+                       width=eligibility.shape[1], count=1, dtype=DATATYPE,
                        crs=crs, transform=raster_affine) as new_geotiff:
-        new_geotiff.write(availability, 1)
+        new_geotiff.write(eligibility, 1)
 
 
-def determine_availability(land_cover, protected_areas, slope):
-    availability = np.ones_like(land_cover, dtype=DATATYPE) * Availability.NOT_AVAILABLE
-    availability[land_cover == GlobCover.ARTIFICAL_SURFACES_AND_URBAN_AREAS] = \
-        Availability.ROOFTOP_PV
-    availability[(np.isin(land_cover, FARM + VEGETATION + BARE)) &
-                 (protected_areas == ProtectedArea.NOT_PROTECTED) &
-                 (slope <= MAX_SLOPE_PV)] = Availability.WIND_OR_PV_FARM
-    availability[(np.isin(land_cover, FARM + VEGETATION + BARE)) &
-                 (protected_areas == ProtectedArea.NOT_PROTECTED) &
-                 (slope <= MAX_SLOPE_WIND) & (slope > MAX_SLOPE_PV)] = Availability.WIND_FARM
-    availability[(np.isin(land_cover, FOREST)) &
-                 (protected_areas == ProtectedArea.NOT_PROTECTED) &
-                 (slope <= MAX_SLOPE_WIND)] = Availability.WIND_FARM
-    return availability
+def determine_eligibility(land_cover, protected_areas, slope):
+    eligibility = np.ones_like(land_cover, dtype=DATATYPE) * Eligibility.NOT_ELIGIBLE
+    eligibility[land_cover == GlobCover.ARTIFICAL_SURFACES_AND_URBAN_AREAS] = \
+        Eligibility.ROOFTOP_PV
+    eligibility[(np.isin(land_cover, FARM + VEGETATION + BARE)) &
+                (protected_areas == ProtectedArea.NOT_PROTECTED) &
+                (slope <= MAX_SLOPE_PV)] = Eligibility.WIND_OR_PV_FARM
+    eligibility[(np.isin(land_cover, FARM + VEGETATION + BARE)) &
+                (protected_areas == ProtectedArea.NOT_PROTECTED) &
+                (slope <= MAX_SLOPE_WIND) & (slope > MAX_SLOPE_PV)] = Eligibility.WIND_FARM
+    eligibility[(np.isin(land_cover, FOREST)) &
+                (protected_areas == ProtectedArea.NOT_PROTECTED) &
+                (slope <= MAX_SLOPE_WIND)] = Eligibility.WIND_FARM
+    return eligibility
 
 
 if __name__ == "__main__":
-    determine_available_land()
+    determine_eligible_land()
