@@ -1,4 +1,9 @@
-"""This module estimates the shape of protected areas, for which only centroids are known."""
+"""This module estimates the shape of protected areas, for which only centroids are known.
+
+This procedure is applied by the provider of the database, UNEP-WCMC, as well. See:
+https://www.protectedplanet.net/c/calculating-protected-area-coverage
+or the manual of the database for further information.
+"""
 import math
 
 import click
@@ -7,8 +12,8 @@ import pycountry
 
 from src.utils import Config
 
-# from http://spatialreference.org/ref/sr-org/22/
-GALL_PETERS_PROJ4 = "+proj=cea +lon_0=0 +lat_ts=45 +x_0=0 +y_0=0 +ellps=WGS84 +units=m +no_defs "
+# from https://epsg.io/3035
+EPSG_3035_PROJ4 = "+proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs "
 
 
 @click.command()
@@ -21,7 +26,7 @@ def estimate_shapes(path_to_input, path_to_output, config):
     points_in_scope = filter_points(points, config)
     original_crs = points_in_scope.crs
     # convert points to circles
-    points_in_scope = points_in_scope.to_crs(GALL_PETERS_PROJ4)
+    points_in_scope = points_in_scope.to_crs(EPSG_3035_PROJ4)
     points_in_scope.geometry = [rec[1].geometry.buffer(radius_meter(rec[1]["REP_AREA"]))
                                 for rec in points_in_scope.iterrows()]
     test_area_size(points_in_scope)

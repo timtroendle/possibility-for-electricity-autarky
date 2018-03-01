@@ -47,7 +47,7 @@ The GlobCover2009 land cover data is provided in the coordinate reference system
 
 ### Protected areas data
 
-The protected areas database is provided in two files: a shapefile including polygons of protected areas for all areas where the shape is known, and a shapefile including the centroids of all other areas as points. The polygons are used as provided, but for the centroids their shape is estimated. This is done by simply drawing a circle with the correct size around the centroid. All polygons including the estimated are rasterised to prepare them for the next step. The resolution, shape, and coordinate reference system of the processed land cover data is used as a template.
+The protected areas database is provided in two files: a shapefile including polygons of protected areas for all areas where the shape is known, and a shapefile including the centroids of all other areas as points. The polygons are used as provided, but for the centroids their shape is estimated. This is done by simply drawing a circle with the correct size around the centroid. The provider of the database, UNEP-WCMC, suggests and uses the same estimation method. All polygons including the estimated ones are rasterised to prepare them for the next step. The resolution, shape, and coordinate reference system of the processed land cover data is used as a template.
 
 ### Slope data
 

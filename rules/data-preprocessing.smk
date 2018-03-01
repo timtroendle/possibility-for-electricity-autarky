@@ -252,9 +252,13 @@ rule protected_areas_in_europe:
         # fio cat below should use a bounding box to not forward polygons outside
         # the study area. This would increase the performance drastically. Doing so
         # is blocked by bug https://github.com/Toblerity/Fiona/issues/543
+        #
+        # The filter is in accordance to the way UNEP-WCMC calculates statistics:
+        # https://www.protectedplanet.net/c/calculating-protected-area-coverage
         """
         fio cat --rs {input.points} {input.polygons} | \
-        fio filter "f.properties.STATUS == 'Designated'" | \
+        fio filter "f.properties.STATUS in ['Designated', 'Inscribed', 'Established'] and \
+        f.properties.DESIG_ENG != 'UNESCO-MAB Biosphere Reserve'" | \
         fio collect --record-buffered | \
         rio rasterize --like {input.land_cover} \
         --default-value 255 --all_touched -f "GTiff" --co dtype=uint8 -o {output}
