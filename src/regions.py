@@ -1,5 +1,7 @@
 """Module to determine availability per region."""
 from textwrap import dedent
+from multiprocessing import Pool
+from itertools import cycle
 
 import click
 import numpy as np
@@ -21,32 +23,37 @@ PRECISION = 0.01 # 1%
 @click.argument("path_to_regions")
 @click.argument("path_to_availability")
 @click.argument("path_to_output")
-def allocate_availability_to_regions(path_to_regions, path_to_availability, path_to_output):
+@click.argument("threads", type=click.INT)
+def allocate_availability_to_regions(path_to_regions, path_to_availability, path_to_output, threads):
     """Allocates available land to regions defined by vector data."""
     with fiona.open(path_to_regions, "r") as regions:
         meta = regions.meta
         meta["driver"] = "GeoJSON"
         for availability in Availability:
             meta["schema"]["properties"][availability.property_name] = "float"
-        with fiona.open(path_to_output, "w", **meta) as output,\
-                rasterio.open(path_to_availability) as availability_raster:
-            for region in regions:
-                region = _allocate_availability_to_region(region, availability_raster)
-                output.write(region)
+        with Pool(threads) as pool:
+            new_regions = pool.map(
+                _allocate_availability_to_region,
+                zip(regions, cycle([path_to_availability]))
+            )
+        with fiona.open(path_to_output, "w", **meta) as output:
+            output.writerecords(new_regions)
     _test_allocation(path_to_output)
 
 
-def _allocate_availability_to_region(region, availability_raster):
-    region = region.copy()
-    crop, crop_transform = rasterio.mask.mask(
-        availability_raster,
-        [region["geometry"]],
-        crop=True,
-        nodata=INVALID_DATA
-    )
+def _allocate_availability_to_region(args):
+    region = args[0].copy()
+    with rasterio.open(args[1], "r") as availability_raster:
+        raster_crs = availability_raster.crs
+        crop, crop_transform = rasterio.mask.mask(
+            availability_raster,
+            [region["geometry"]],
+            crop=True,
+            nodata=INVALID_DATA
+        )
     crop, pixel_width, pixel_height = _reproject_raster(
         crop,
-        src_crs=availability_raster.crs,
+        src_crs=raster_crs,
         src_bounds=rasterio.features.bounds(region),
         src_transform=crop_transform
     )

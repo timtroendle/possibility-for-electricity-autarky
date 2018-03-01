@@ -54,15 +54,16 @@ rule regions_with_population_and_demand:
 
 
 rule regions:
-    message: "Allocate available land to regions."
+    message: "Allocate available land to regions using {threads} threads."
     input:
         "src/regions.py",
         rules.regions_with_population_and_demand.output,
         rules.available_land.output
     output:
         "build/regions.geojson"
+    threads: config["snakemake"]["max-threads"]
     shell:
-        PYTHON_SCRIPT
+        PYTHON_SCRIPT + " {threads}"
 
 
 rule necessary_land:
