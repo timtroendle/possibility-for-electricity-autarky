@@ -69,7 +69,7 @@ rule administrative_borders:
     params: max_layer_depth = 3
     output: "build/administrative-borders.gpkg"
     shell:
-        PYTHON + " {input} {params.max_layer_depth} {output}"
+        PYTHON + " {input} {params.max_layer_depth} {output} {CONFIG_FILE}"
 
 
 rule raw_regions_zipped:
