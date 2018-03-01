@@ -18,6 +18,10 @@ class Availability(IntEnum):
     WIND_OR_PV_FARM = 250
     WIND_FARM = 80
 
+    @property
+    def property_name(self):
+        return "availability_{}_km2".format(self.name.lower())
+
 
 class GlobCover(IntEnum):
     """Original categories taken from GlobCover 2009 land cover."""

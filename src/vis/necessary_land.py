@@ -37,8 +37,8 @@ def _boxplot(regions, path_to_plot):
         y="fraction_land_necessary",
         ax=ax
     )
-    _ = plt.ylabel("fraction land necessary")
-    _ = plt.xlabel("country code")
+    plt.ylabel("fraction land necessary")
+    plt.xlabel("country code")
     ax.set_yscale('log')
     fig.autofmt_xdate()
     fig.savefig(path_to_plot, dpi=300)
@@ -58,11 +58,11 @@ def _map(regions, countries, path_to_plot):
         color='grey', edgecolor='black', linewidth=0.4, ax=ax, alpha=0.2
     )
     countries.plot(color='white', edgecolor='black', linewidth=0.4, ax=ax)
-    regions.plot(column='sufficient_supply', linewidth=0.1, ax=ax, cmap=cmap)
-    _ = plt.xlim(-15, 30)
-    _ = plt.ylim(30, 70)
-    _ = plt.xticks([])
-    _ = plt.yticks([])
+    regions.plot(column='sufficient_supply', linewidth=0.1, ax=ax, cmap=cmap, vmax=2)
+    plt.xlim(-15, 30)
+    plt.ylim(30, 70)
+    plt.xticks([])
+    plt.yticks([])
     fig.savefig(path_to_plot, dpi=300)
 
 

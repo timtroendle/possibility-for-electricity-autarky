@@ -33,7 +33,7 @@ rule regions_with_population:
     output:
         temp("build/regions_population.geojson")
     params:
-        layer = "adm1"
+        layer = "adm0"
     shell:
         """
         fio cat {input.regions} --layer 1:{params.layer} | \
@@ -56,15 +56,13 @@ rule regions_with_population_and_demand:
 rule regions:
     message: "Allocate available land to regions."
     input:
-        regions = rules.regions_with_population_and_demand.output,
-        available_land = rules.available_land.output
+        "src/regions.py",
+        rules.regions_with_population_and_demand.output,
+        rules.available_land.output
     output:
         "build/regions.geojson"
     shell:
-        """
-        fio cat {input.regions} | \
-        rio zonalstats -r {input.available_land} --categorical --prefix availability > {output}
-        """
+        PYTHON_SCRIPT
 
 
 rule necessary_land:
