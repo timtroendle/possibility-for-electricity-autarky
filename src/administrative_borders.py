@@ -11,7 +11,7 @@ from src.utils import Config
 LAYER_NAME = "adm{layer_id}"
 SCHEMA = {
     "properties": {"country_code": "str", "name": "str",
-                   "gadm_layer_id": "int", "region_type": "str"},
+                   "region_type": "str"},
     "geometry": "MultiPolygon"
 }
 
@@ -60,7 +60,6 @@ def _country_features(path_to_file, layer_id, study_area):
                 feature["properties"]["NAME_{}".format(layer_id)] if layer_id > 0
                 else feature["properties"]["NAME_ENGLISH"]
             )
-            new_feature["properties"]["gadm_layer_id"] = layer_id
             new_feature["properties"]["region_type"] = (
                 feature["properties"]["ENGTYPE_{}".format(layer_id)] if layer_id > 0
                 else "country"

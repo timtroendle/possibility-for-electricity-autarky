@@ -72,21 +72,27 @@ rule administrative_borders:
         PYTHON + " {input} {params.max_layer_depth} {output} {CONFIG_FILE}"
 
 
-rule raw_regions_zipped:
+rule raw_nuts_regions_zipped:
     message: "Download regions as zip."
     output:
-        protected("data/automatic/raw-regions.zip")
+        protected("data/automatic/raw-nuts-regions.zip")
     shell:
         "curl -sLo {output} '{URL_NUTS}'"
 
 
-rule raw_regions:
-    message: "Extract regions as zip."
-    input: rules.raw_regions_zipped.output
-    output: "build/NUTS_2013_01M_SH/data/NUTS_RG_01M_2013.shp"
+rule nuts_administrative_borders:
+    message: "Normalise NUTS administrative borders."
+    input:
+        src = "src/nuts.py",
+        zip = rules.raw_nuts_regions_zipped.output
+    output:
+        "build/nuts-administrative-borders.gpkg"
+    shadow: "full"
     shell:
-        "unzip {input} -d ./build"
-
+        """
+        unzip {input.zip} -d ./build
+        {PYTHON} {input.src} ./build/NUTS_2013_01M_SH/data/NUTS_RG_01M_2013.shp {output}
+        """
 
 rule raw_land_cover_zipped:
     message: "Download land cover data as zip."
