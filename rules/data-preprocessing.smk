@@ -91,7 +91,7 @@ rule nuts_administrative_borders:
     shell:
         """
         unzip {input.zip} -d ./build
-        {PYTHON} {input.src} ./build/NUTS_2013_01M_SH/data/NUTS_RG_01M_2013.shp {output}
+        {PYTHON} {input.src} ./build/NUTS_2013_01M_SH/data/NUTS_RG_01M_2013.shp {output} {CONFIG_FILE}
         """
 
 rule raw_land_cover_zipped:
