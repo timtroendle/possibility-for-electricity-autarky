@@ -37,3 +37,8 @@ scope:
         x_max: 40  # in degrees east
         y_min: 20  # in degrees north
         y_max: 79  # in degrees north
+    layers:
+        - "adm0"
+        - "adm1"
+        - "adm2"
+        - "adm3"

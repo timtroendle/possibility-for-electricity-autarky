@@ -38,53 +38,51 @@ rule regions:
 
 
 rule regions_with_population:
-    message: "Allocate population to regions of layer {params.layer}."
+    message: "Allocate population to regions of layer {wildcards.layer}."
     input:
         regions = rules.regions.output,
         population = RAW_GRIDDED_POP_DATA
     output:
-        temp("build/regions_population.geojson")
-    params:
-        layer = "adm0"
+        temp("build/{layer}/regions-population.geojson")
     shell:
         """
-        fio cat {input.regions} --layer 1:{params.layer} | \
+        fio cat {input.regions} --layer 1:{wildcards.layer} | \
         rio zonalstats -r {input.population} --prefix 'population_' --stats sum > {output}
         """
 
 
 rule regions_with_population_and_demand:
-    message: "Allocate electricity demand to regions."
+    message: "Allocate electricity demand to regions of layer {wildcards.layer}."
     input:
         "src/spatial_demand.py",
         rules.electricity_demand_national.output,
         rules.regions_with_population.output
     output:
-        "build/regions_population_demand.geojson"
+        "build/{layer}/regions-population-demand.geojson"
     shell:
         PYTHON_SCRIPT
 
 
 rule regional_eligibility:
-    message: "Allocate eligible land to regions using {threads} threads."
+    message: "Allocate eligible land to regions of layer {wildcards.layer} using {threads} threads."
     input:
         "src/regional_eligibility.py",
         rules.regions_with_population_and_demand.output,
         rules.eligible_land.output
     output:
-        "build/regional-eligibility.geojson"
+        "build/{layer}/regional-eligibility.geojson"
     threads: config["snakemake"]["max-threads"]
     shell:
         PYTHON_SCRIPT + " {threads}"
 
 
 rule necessary_land:
-    message: "Determine fraction of land necessary to supply demand per region."
+    message: "Determine fraction of land necessary to supply demand per region of layer {wildcards.layer}."
     input:
         "src/necessary_land.py",
         rules.regional_eligibility.output
     output:
-        "build/necessary-land.geojson"
+        "build/{layer}/necessary-land.geojson"
     shell:
         # TODO this approach leads to up to 866 m^2 roof area per citizen -- way too much
         PYTHON_SCRIPT
@@ -94,7 +92,7 @@ rule necessary_land_plots:
     message: "Plot fraction of land necessary."
     input:
         "src/vis/necessary_land.py",
-        rules.necessary_land.output,
+        expand("build/{layer}/necessary-land.geojson", layer=config["scope"]["layers"]),
         rules.regions.output
     output:
         "build/necessary-land-boxplots.png",

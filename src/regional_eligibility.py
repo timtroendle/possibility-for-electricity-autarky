@@ -16,7 +16,8 @@ from conversion import area_in_squaremeters
 
 EQUAL_AREA_PROJECTION = "EPSG:3035" # projection to use to derive area sizes
 INVALID_DATA = 255
-PRECISION = 0.01 # 1%
+REL_TOLERANCE = 0.01 # 1%
+ABS_TOLERANCE = 2 # km^2
 
 
 @click.command()
@@ -96,16 +97,20 @@ def _test_allocation(path_to_output):
         [regions[eligibility.property_name] for eligibility in Eligibility]
     )
     region_size = area_in_squaremeters(regions) / 1000 / 1000
-    below_threshold = abs(total_allocated_area - region_size) < region_size * PRECISION
-    assert below_threshold.all(),\
-        dedent("""Allocated area differs more than {}% from real area. Allocated was:
+    below_rel_threshold = abs(total_allocated_area - region_size) < region_size * REL_TOLERANCE
+    below_abs_threshold = abs(total_allocated_area - region_size) < ABS_TOLERANCE
+    below_any_threshold = (below_rel_threshold | below_abs_threshold)
+    assert below_any_threshold.all(),\
+        dedent("""Allocated area differs more than {}% and more than {} km^2 from real area. Allocated was:
         {}
 
         Real area is:
         {}
 
-        """.format(PRECISION * 100, total_allocated_area[~below_threshold],
-                   region_size[~below_threshold]))
+        """.format(REL_TOLERANCE * 100,
+                   ABS_TOLERANCE,
+                   total_allocated_area[~below_any_threshold],
+                   region_size[~below_any_threshold]))
 
 
 if __name__ == "__main__":
