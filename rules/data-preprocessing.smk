@@ -45,29 +45,29 @@ rule electricity_demand_national:
         PYTHON_SCRIPT_WITH_CONFIG
 
 
-rule raw_administrative_borders_zipped:
+rule raw_gadm_administrative_borders_zipped:
     message: "Download administrative borders for {wildcards.country_code} as zip."
     output: protected("data/automatic/raw-gadm/{country_code}.zip")
     shell: "curl -sLo {output} '{URL_GADM}/{wildcards.country_code}_adm_gpkg.zip'"
 
 
-rule raw_administrative_borders:
+rule raw_gadm_administrative_borders:
     message: "Unzip administrative borders of {wildcards.country_code} as zip."
     input: "data/automatic/raw-gadm/{country_code}.zip"
     output: temp("data/automatic/raw-gadm/{country_code}_adm.gpkg")
     shell: "unzip -o {input} -d data/automatic/raw-gadm"
 
 
-rule administrative_borders:
+rule gadm_administrative_borders:
     message: "Merge administrative borders of all countries up to layer {params.max_layer_depth}."
     input:
-        "src/administrative_borders.py",
+        "src/gadm.py",
         ["data/automatic/raw-gadm/{}_adm.gpkg".format(country_code)
             for country_code in [pycountry.countries.lookup(country).alpha_3
                                  for country in config['scope']['countries']]
          ]
     params: max_layer_depth = 3
-    output: "build/administrative-borders.gpkg"
+    output: "build/gadm-administrative-borders.gpkg"
     shell:
         PYTHON + " {input} {params.max_layer_depth} {output} {CONFIG_FILE}"
 

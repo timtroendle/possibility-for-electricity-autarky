@@ -4,7 +4,7 @@ import fiona
 import shapely.geometry
 import pycountry
 
-from administrative_borders import SCHEMA, LAYER_NAME
+from gadm import SCHEMA, LAYER_NAME
 from conversion import eu_country_code_to_iso3
 from utils import Config
 

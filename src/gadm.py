@@ -1,4 +1,4 @@
-"""Module to merge and preprocess administrative borders."""
+"""Module to merge and preprocess GADM administrative borders."""
 from itertools import chain
 
 import click

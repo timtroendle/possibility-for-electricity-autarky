@@ -30,9 +30,13 @@ Gridded Population of the World v4
 
 :   The gridded population of the world data base provides an estimate of the spatial distribution of the worlds population in 2020 with a resolution of 30 arcseconds [@CIESIN:2016; @Doxsey-Whitfield:2015]. It is based on national censuses and population registers.
 
+NUTS
+
+:   Eurostat's Nomenclature of territorial units for statistics provides the basis by which Europe is divided into regions in this analysis [@eurostat:2015].
+
 GADM
 
-:   The global administrative areas database [@GADM:2015] provides the basis by which Europe is divided into regions in this analysis.
+:   The global administrative areas database [@GADM:2015] is used to amend NUTS data.
 
 Electricity demand
 
@@ -56,6 +60,16 @@ The slope in Europe is calculated from digital elevation data. The main source i
 ### Land Eligibility
 
 Based on the land cover, protected areas, and slope data, the land eligibility for renewable power plants is determined. Currently, only roof mounted PV, PV farms, and wind farms are considered. The result is a raster data set classifying each pixel whether its land can be used for roof-mounted PV, PV and wind farms, wind farms only, or not at all for renewable power provision.
+
+### Administrative areas
+
+Administrative areas as considered in this study are based on the NUTS levels 0-3. The layers of the areas are changed heuristically to conform to these goals:
+
+* NUTS 0-3 is the basis
+* minimise changes to stay close to NUTS
+* minimise standard deviation between average region size of countries by:
+    * use lower level NUTS if possible (e.g. in layer 1 use NUTS2 instead of NUTS1 for Sweden)
+    * use GADM if no lower level NUTS available
 
 ### Electricity demand distribution
 

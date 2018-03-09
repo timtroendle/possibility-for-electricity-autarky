@@ -1,112 +1,94 @@
-"""Module to determine eligible land per region."""
-from textwrap import dedent
-from multiprocessing import Pool
-from itertools import cycle
-
+"""Remixes NUTS and GADM data to form the regions of the analysis."""
 import click
-import numpy as np
-import fiona
-import rasterio
-import rasterio.mask
-from rasterio.warp import calculate_default_transform, reproject, RESAMPLING
+import pandas as pd
 import geopandas as gpd
 
-from eligible_land import Eligibility
-from conversion import area_in_squaremeters
-
-EQUAL_AREA_PROJECTION = "EPSG:3035" # projection to use to derive area sizes
-INVALID_DATA = 255
-PRECISION = 0.01 # 1%
+DRIVER = "GPKG"
 
 
 @click.command()
-@click.argument("path_to_regions")
-@click.argument("path_to_eligibility")
+@click.argument("path_to_nuts")
+@click.argument("path_to_gadm")
 @click.argument("path_to_output")
-@click.argument("threads", type=click.INT)
-def allocate_eligibility_to_regions(path_to_regions, path_to_eligibility, path_to_output, threads):
-    """Allocates eligible land to regions defined by vector data."""
-    with fiona.open(path_to_regions, "r") as regions:
-        meta = regions.meta
-        meta["driver"] = "GeoJSON"
-        for eligibility in Eligibility:
-            meta["schema"]["properties"][eligibility.property_name] = "float"
-        with Pool(threads) as pool:
-            new_regions = pool.map(
-                _allocate_eligibility_to_region,
-                zip(regions, cycle([path_to_eligibility]))
+def remix_regions(path_to_nuts, path_to_gadm, path_to_output):
+    """Remixes NUTS and GADM data to form the regions of the analysis.
+
+    Heuristic rules for remixing are the following:
+
+    * NUTS 0-3 is the basis
+    * minimise changes to stay close to NUTS
+    * minimise standard deviation between average region size of countries by:
+        * use lower level NUTS if possible (e.g. in layer 1 use NUTS2 instead of NUTS1 for Sweden)
+        * use GADM if no lower level NUTS available
+
+    The results of these rules are implemented in this function. The derivation
+    of the results can be found in `notebooks/regions.ipynb`.
+    """
+    nuts0 = gpd.read_file(path_to_nuts, layer="adm0")
+    nuts1 = gpd.read_file(path_to_nuts, layer="adm1")
+    nuts2 = gpd.read_file(path_to_nuts, layer="adm2")
+    nuts3 = gpd.read_file(path_to_nuts, layer="adm3")
+    gadm1 = gpd.read_file(path_to_gadm, layer="adm1")
+    gadm2 = gpd.read_file(path_to_gadm, layer="adm2")
+    gadm3 = gpd.read_file(path_to_gadm, layer="adm3")
+
+    mixer = _Mixer(nuts0, nuts1, nuts2, nuts3, gadm1, gadm2, gadm3)
+    mixer.remix_country("NOR", ["nuts2", "nuts3", "gadm2"])
+    mixer.remix_country("FIN", ["nuts2", "nuts3", "gadm3"])
+    mixer.remix_country("SWE", ["nuts2", "nuts3", "gadm2"])
+    mixer.remix_country("LTU", ["nuts1", "nuts3", "nuts3"])
+    mixer.remix_country("LVA", ["nuts1", "nuts3", "gadm2"])
+    mixer.remix_country("EST", ["nuts1", "nuts3", "nuts3"])
+
+    mixer.to_file(path_to_output)
+
+
+class _Mixer:
+
+    def __init__(self, nuts0, nuts1, nuts2, nuts3, gadm1, gadm2, gadm3):
+        self.__sources = {
+            "nuts0": nuts0,
+            "nuts1": nuts1,
+            "nuts2": nuts2,
+            "nuts3": nuts3,
+            "gadm1": gadm1,
+            "gadm2": gadm2,
+            "gadm3": gadm3
+        }
+        self.layers = {
+            0: nuts0,
+            1: nuts1,
+            2: nuts2,
+            3: nuts3
+        }
+        self.__crs = nuts0.crs
+
+    def remix_country(self, country_code, data_sources):
+        for layer_id in [1, 2, 3]:
+            self.layers[layer_id] = self._remix_layer(
+                country_code=country_code,
+                layer_id=layer_id,
+                data_source=data_sources[layer_id - 1]
             )
-        with fiona.open(path_to_output, "w", **meta) as output:
-            output.writerecords(new_regions)
-    _test_allocation(path_to_output)
 
-
-def _allocate_eligibility_to_region(args):
-    region = args[0].copy()
-    with rasterio.open(args[1], "r") as eligibility_raster:
-        raster_crs = eligibility_raster.crs
-        crop, crop_transform = rasterio.mask.mask(
-            eligibility_raster,
-            [region["geometry"]],
-            crop=True,
-            nodata=INVALID_DATA
+    def _remix_layer(self, country_code, layer_id, data_source):
+        layer = pd.DataFrame(self.layers[layer_id])
+        src = self.__sources[data_source]
+        layer = layer.drop(
+            layer[layer.country_code == country_code].index,
+            axis="index"
         )
-    crop, pixel_width, pixel_height = _reproject_raster(
-        crop,
-        src_crs=raster_crs,
-        src_bounds=rasterio.features.bounds(region),
-        src_transform=crop_transform
-    )
-    for eligibility in Eligibility:
-        area_size = float((crop == eligibility).sum() * pixel_width * pixel_height / 1000 / 1000)
-        region["properties"][eligibility.property_name] = area_size
-    return region
+        df = pd.concat([layer, src[src.country_code == country_code]])
+        return gpd.GeoDataFrame(df, crs=self.__crs)
 
-
-def _reproject_raster(src, src_crs, src_bounds, src_transform):
-    dst_transform, dst_width, dst_height = calculate_default_transform(
-        src_crs=src_crs,
-        dst_crs=EQUAL_AREA_PROJECTION,
-        width=src.shape[1],
-        height=src.shape[2],
-        left=src_bounds[0],
-        bottom=src_bounds[1],
-        right=src_bounds[2],
-        top=src_bounds[3]
-    )
-    result = np.zeros((dst_height, dst_width), dtype=src.dtype)
-    reproject(
-        source=src,
-        destination=result,
-        src_transform=src_transform,
-        src_crs=src_crs,
-        dst_transform=dst_transform,
-        dst_crs=EQUAL_AREA_PROJECTION,
-        resampling=RESAMPLING.nearest
-    )
-    pixel_width = abs(dst_transform[0])
-    pixel_height = abs(dst_transform[4])
-    return result, pixel_width, pixel_height
-
-
-def _test_allocation(path_to_output):
-    regions = gpd.read_file(path_to_output)
-    regions.set_index("name", inplace=True)
-    total_allocated_area = sum(
-        [regions[eligibility.property_name] for eligibility in Eligibility]
-    )
-    region_size = area_in_squaremeters(regions) / 1000 / 1000
-    below_threshold = abs(total_allocated_area - region_size) < region_size * PRECISION
-    assert below_threshold.all(),\
-        dedent("""Allocated area differs more than {}% from real area. Allocated was:
-        {}
-
-        Real area is:
-        {}
-
-        """.format(PRECISION * 100, total_allocated_area[~below_threshold],
-                   region_size[~below_threshold]))
+    def to_file(self, path_to_file):
+        for layer_id in range(4):
+            self.layers[layer_id].to_file(
+                path_to_file,
+                layer="adm{}".format(layer_id),
+                driver=DRIVER
+            )
 
 
 if __name__ == "__main__":
-    allocate_eligibility_to_regions()
+    remix_regions()

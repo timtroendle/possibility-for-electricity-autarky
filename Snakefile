@@ -25,10 +25,22 @@ rule eligible_land:
         PYTHON_SCRIPT
 
 
+rule regions:
+    message: "Form regions by remixing NUTS and GADM."
+    input:
+        "src/regions.py",
+        rules.nuts_administrative_borders.output,
+        rules.gadm_administrative_borders.output
+    output:
+        "build/regions.gpkg"
+    shell:
+        PYTHON_SCRIPT
+
+
 rule regions_with_population:
     message: "Allocate population to regions of layer {params.layer}."
     input:
-        regions = rules.administrative_borders.output,
+        regions = rules.regions.output,
         population = RAW_GRIDDED_POP_DATA
     output:
         temp("build/regions_population.geojson")
@@ -53,14 +65,14 @@ rule regions_with_population_and_demand:
         PYTHON_SCRIPT
 
 
-rule regions:
+rule regional_eligibility:
     message: "Allocate eligible land to regions using {threads} threads."
     input:
-        "src/regions.py",
+        "src/regional_eligibility.py",
         rules.regions_with_population_and_demand.output,
         rules.eligible_land.output
     output:
-        "build/regions.geojson"
+        "build/regional-eligibility.geojson"
     threads: config["snakemake"]["max-threads"]
     shell:
         PYTHON_SCRIPT + " {threads}"
@@ -70,7 +82,7 @@ rule necessary_land:
     message: "Determine fraction of land necessary to supply demand per region."
     input:
         "src/necessary_land.py",
-        rules.regions.output
+        rules.regional_eligibility.output
     output:
         "build/necessary-land.geojson"
     shell:
@@ -83,7 +95,7 @@ rule necessary_land_plots:
     input:
         "src/vis/necessary_land.py",
         rules.necessary_land.output,
-        rules.administrative_borders.output
+        rules.regions.output
     output:
         "build/necessary-land-boxplots.png",
         "build/necessary-land-map.png"
