@@ -16,8 +16,6 @@ URL_GADM = "http://biogeo.ucdavis.edu/data/gadm2.8/gpkg"
 RESOLUTION_STUDY = (1 / 3600) * 10 # 10 arcseconds
 RESOLUTION_SLOPE = (1 / 3600) * 3 # 3 arcseconds
 
-CRS_STUDY = "EPSG:4326"
-
 SRTM_X_MIN = 34 # x coordinate of CGIAR tile raster
 SRTM_X_MAX = 44
 SRTM_Y_MIN = 1 # y coordinate of CGIAR tile raster
@@ -58,7 +56,7 @@ rule raw_gadm_administrative_borders:
     shell: "unzip -o {input} -d data/automatic/raw-gadm"
 
 
-rule gadm_administrative_borders:
+rule administrative_borders_gadm:
     message: "Merge administrative borders of all countries up to layer {params.max_layer_depth}."
     input:
         "src/gadm.py",
@@ -67,7 +65,7 @@ rule gadm_administrative_borders:
                                  for country in config['scope']['countries']]
          ]
     params: max_layer_depth = 3
-    output: "build/gadm-administrative-borders.gpkg"
+    output: "build/administrative-borders-gadm.gpkg"
     shell:
         PYTHON + " {input} {params.max_layer_depth} {output} {CONFIG_FILE}"
 
@@ -80,13 +78,13 @@ rule raw_nuts_regions_zipped:
         "curl -sLo {output} '{URL_NUTS}'"
 
 
-rule nuts_administrative_borders:
+rule administrative_borders_nuts:
     message: "Normalise NUTS administrative borders."
     input:
         src = "src/nuts.py",
         zip = rules.raw_nuts_regions_zipped.output
     output:
-        "build/nuts-administrative-borders.gpkg"
+        "build/administrative-borders-nuts.gpkg"
     shadow: "full"
     shell:
         """

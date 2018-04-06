@@ -22,6 +22,7 @@ class Config(click.ParamType):
 
 def read_config(path_to_file):
     """Reads a configuration file."""
+    path_to_file = Path(path_to_file)
     if not path_to_file.exists():
         raise ValueError("Config {} does not exist.".format(path_to_file))
     with path_to_file.open('r') as stream:

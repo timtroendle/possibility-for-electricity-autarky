@@ -1,5 +1,6 @@
 snakemake:
     max-threads: 4
+crs: "EPSG:4326"
 scope:
     countries:
         - "Austria"
@@ -37,8 +38,70 @@ scope:
         x_max: 40  # in degrees east
         y_min: 20  # in degrees north
         y_max: 79  # in degrees north
-    layers:
-        - "adm0"
-        - "adm1"
-        - "adm2"
-        - "adm3"
+layers:
+    national:
+        Austria: nuts0
+        Belgium: nuts0
+        Bulgaria: nuts0
+        Croatia: nuts0
+        Cyprus: nuts0
+        Czech Republic: nuts0
+        Denmark: nuts0
+        Estonia: nuts0
+        Finland: nuts0
+        France: nuts0
+        Germany: nuts0
+        Greece: nuts0
+        Hungary: nuts0
+        Ireland: nuts0
+        Italy: nuts0
+        Latvia: nuts0
+        Lithuania: nuts0
+        Luxembourg: nuts0
+        Malta: nuts0
+        Netherlands: nuts0
+        Poland: nuts0
+        Portugal: nuts0
+        Romania: nuts0
+        Slovakia: nuts0
+        Slovenia: nuts0
+        Spain: nuts0
+        Sweden: nuts0
+        United Kingdom: nuts0
+        Norway: nuts0
+        Switzerland: nuts0
+    subnational:
+        # The link between NUTS and administrative units unfortunately is not obvious.
+        # It's not documented anywhere -- at least I could not find any information.
+        # Hence, I am using GADM here instead.
+        # Validation source: https://en.wikipedia.org/wiki/List_of_administrative_divisions_by_country
+        Austria: gadm1 # gadm1: 11 regions; wiki: 9 regions
+        Belgium: gadm1 # gadm1 and wiki match
+        Bulgaria: gadm1 # match
+        Croatia: gadm1 # match
+        Cyprus: gadm1 # gadm1: 5 regions; wiki: 6 regions
+        Czech Republic: gadm1 # match
+        Denmark: gadm1 # match
+        Estonia: gadm1 # gadm1 16 regions; wiki 15 regions
+        Finland: gadm1 # gadm1 5 regions; wiki 19 regions
+        France: gadm1 # gadm1 22 regions; wiki 13 regions (changed in 2016, gadm is outdated)
+        Germany: gadm1 # match
+        Greece: gadm1 # gadm1 8 regions; wiki 13 (14) regions
+        Hungary: gadm1 # match
+        Ireland: gadm1 # match
+        Italy: gadm1 # match
+        Latvia: gadm1 # gadm1 5 regions; wiki 119 regions
+        Lithuania: gadm1 # match
+        Luxembourg: gadm1 # gadm1: 3 regions; wiki 12 regions
+        Malta: gadm1 # gadm1: 1 region; wiki 5 regions
+        Netherlands: gadm1 # gadm1 14 regions; wiki 12 regions
+        Poland: gadm1 # match
+        Portugal: gadm1 # match
+        Romania: gadm1 # match
+        Slovakia: gadm1 # match
+        Slovenia: gadm1 # match
+        Spain: gadm1 # match
+        Sweden: gadm1 # match
+        United Kingdom: gadm1 # match
+        Norway: gadm1 # match
+        Switzerland: gadm1 # match

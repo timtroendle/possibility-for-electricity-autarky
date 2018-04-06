@@ -63,13 +63,7 @@ Based on the land cover, protected areas, and slope data, the land eligibility f
 
 ### Administrative areas
 
-Administrative areas as considered in this study are based on the NUTS levels 0-3. The layers of the areas are changed heuristically to conform to these goals:
-
-* NUTS 0-3 is the basis
-* minimise changes to stay close to NUTS
-* minimise standard deviation between average region size of countries by:
-    * use lower level NUTS if possible (e.g. in layer 1 use NUTS2 instead of NUTS1 for Sweden)
-    * use GADM if no lower level NUTS available
+Administrative areas as considered in this study are based on NUTS and GADM data. I am not using NUTS only as NUTS levels represent statistical units, not administrative ones. I am considering three levels: national, subnational, and communal. Subnational divisions are taken from GADM data.
 
 ### Electricity demand distribution
 

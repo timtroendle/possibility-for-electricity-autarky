@@ -3,12 +3,13 @@ from itertools import chain
 
 import click
 import fiona
+import fiona.transform
 import shapely.geometry
 from shapely.prepared import prep
 
 from src.utils import Config
 
-LAYER_NAME = "adm{layer_id}"
+LAYER_NAME = "gadm{layer_id}"
 SCHEMA = {
     "properties": {"country_code": "str", "name": "str",
                    "region_type": "str"},
@@ -30,18 +31,18 @@ def retrieve_administrative_borders(path_to_countries, max_layer_depths, path_to
     )
     study_area = prep(study_area) # improves performance
     with fiona.open(path_to_countries[0], "r", layer=0) as first_country:
-        crs = first_country.crs
-        driver = first_country.driver
+        src_crs = first_country.crs
+        src_driver = first_country.driver
     for layer_id in range(max_layer_depths + 1):
         print("Merging layer {}...".format(layer_id))
         with fiona.open(path_to_output,
                         "w",
-                        crs=crs,
+                        crs=config["crs"],
                         schema=SCHEMA,
-                        driver=driver,
+                        driver=src_driver,
                         layer=LAYER_NAME.format(layer_id=layer_id)) as merged_file:
             merged_file.writerecords(
-                [feature for feature in chain(
+                [_reproject(feature, src_crs, config["crs"]) for feature in chain(
                     *[_country_features(path_to_country, layer_id, study_area)
                       for path_to_country in path_to_countries])
                  ]
@@ -100,6 +101,15 @@ def _feature_name(feature):
         except KeyError:
             pass # nothing to do here
     return name
+
+
+def _reproject(feature, src_crs, dst_crs):
+    feature["geometry"] = fiona.transform.transform_geom(
+        src_crs=src_crs,
+        dst_crs=dst_crs,
+        geom=feature["geometry"]
+    )
+    return feature
 
 
 if __name__ == "__main__":

@@ -29,12 +29,12 @@ rule regions:
     message: "Form regions by remixing NUTS and GADM."
     input:
         "src/regions.py",
-        rules.nuts_administrative_borders.output,
-        rules.gadm_administrative_borders.output
+        rules.administrative_borders_nuts.output,
+        rules.administrative_borders_gadm.output
     output:
         "build/regions.gpkg"
     shell:
-        PYTHON_SCRIPT
+        PYTHON_SCRIPT + " {CONFIG_FILE}"
 
 
 rule regions_with_population:
@@ -92,7 +92,7 @@ rule necessary_land_plots:
     message: "Plot fraction of land necessary."
     input:
         "src/vis/necessary_land.py",
-        expand("build/{layer}/necessary-land.geojson", layer=config["scope"]["layers"]),
+        expand("build/{layer}/necessary-land.geojson", layer=config["layers"].keys()),
         rules.regions.output
     output:
         "build/necessary-land-boxplots.png",

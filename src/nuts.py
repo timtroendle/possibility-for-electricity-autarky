@@ -1,14 +1,16 @@
 """Preprocessing of raw NUTS data to bring it into normalised form."""
 import click
 import fiona
+import fiona.transform
 import shapely.geometry
 import pycountry
 
-from gadm import SCHEMA, LAYER_NAME
+from gadm import SCHEMA
 from conversion import eu_country_code_to_iso3
 from utils import Config
 
 OUTPUT_DRIVER = "GPKG"
+LAYER_NAME = "nuts{layer_id}"
 
 
 @click.command()
@@ -31,7 +33,7 @@ def normalise_nuts(path_to_nuts, path_to_output, config):
 def _write_layer(nuts_file, config, path_to_output, layer_id):
     with fiona.open(path_to_output,
                     "w",
-                    crs=nuts_file.crs,
+                    crs=config["crs"],
                     schema=SCHEMA,
                     driver=OUTPUT_DRIVER,
                     layer=LAYER_NAME.format(layer_id=layer_id)) as result_file:
@@ -45,11 +47,11 @@ def _layer_features(nuts_file, config, layer_id):
         new_feature["properties"]["country_code"] = eu_country_code_to_iso3(feature["properties"]["NUTS_ID"][:2])
         new_feature["properties"]["name"] = feature["properties"]["NUTS_ID"]
         new_feature["properties"]["region_type"] = None
-        new_feature["geometry"] = _all_parts_in_study_area(feature, config)
+        new_feature["geometry"] = _all_parts_in_study_area_and_crs(feature, nuts_file.crs, config)
         yield new_feature
 
 
-def _all_parts_in_study_area(feature, config):
+def _all_parts_in_study_area_and_crs(feature, src_crs, config):
     study_area = _study_area(config)
     region = _to_multi_polygon(feature["geometry"])
     if not study_area.contains(region):
@@ -57,7 +59,12 @@ def _all_parts_in_study_area(feature, config):
         new_region = shapely.geometry.MultiPolygon([polygon for polygon in region.geoms
                                                     if study_area.contains(polygon)])
         region = new_region
-    return shapely.geometry.mapping(region)
+    geometry = shapely.geometry.mapping(region)
+    return fiona.transform.transform_geom(
+        src_crs=src_crs,
+        dst_crs=config["crs"],
+        geom=geometry
+    )
 
 
 def _to_multi_polygon(geometry):

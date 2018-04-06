@@ -77,7 +77,7 @@ def _third_countries(countries):
 def _infer_layer_id(path_to_regions):
     # based on the idea, that paths are something like 'build/adm2/blabla.geojson'
     # FIXME should be a more robust approach
-    return path_to_regions.split("adm")[1][0]
+    return path_to_regions.split("/")[1]
 
 
 if __name__ == "__main__":
