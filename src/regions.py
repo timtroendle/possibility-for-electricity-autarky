@@ -7,7 +7,7 @@ import pycountry
 
 from utils import Config
 
-DRIVER = "GPKG"
+DRIVER = "GeoJSON"
 
 
 @click.command()
@@ -15,15 +15,15 @@ DRIVER = "GPKG"
 @click.argument("path_to_lau2")
 @click.argument("path_to_gadm")
 @click.argument("path_to_output")
+@click.argument("layer_name")
 @click.argument("config", type=Config())
-def remix_regions(path_to_nuts, path_to_lau2, path_to_gadm, path_to_output, config):
+def remix_regions(path_to_nuts, path_to_lau2, path_to_gadm, path_to_output, layer_name, config):
     """Remixes NUTS, LAU, and GADM data to form the regions of the analysis."""
     source_layers = _read_source_layers(path_to_nuts, path_to_lau2, path_to_gadm)
     _validate_source_layers(source_layers)
-    for layer_name in config["layers"].keys():
-        _validate_layer(config, layer_name)
-        layer = _build_layer(config["layers"][layer_name], source_layers)
-        _write_layer(layer, layer_name, path_to_output)
+    _validate_layer(config, layer_name)
+    layer = _build_layer(config["layers"][layer_name], source_layers)
+    _write_layer(layer, path_to_output)
 
 
 def _read_source_layers(path_to_nuts, path_to_lau2, path_to_gadm):
@@ -65,10 +65,9 @@ def _iso3(country_name):
     return pycountry.countries.lookup(country_name).alpha_3
 
 
-def _write_layer(gpd, layer_id, path_to_file):
+def _write_layer(gpd, path_to_file):
     gpd.to_file(
         path_to_file,
-        layer=layer_id,
         driver=DRIVER
     )
 

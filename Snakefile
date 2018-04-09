@@ -26,16 +26,16 @@ rule eligible_land:
 
 
 rule regions:
-    message: "Form regions by remixing NUTS, LAU, and GADM."
+    message: "Form regions of layer {wildcards.layer} by remixing NUTS, LAU, and GADM."
     input:
         "src/regions.py",
         rules.administrative_borders_nuts.output,
         rules.administrative_borders_lau.output,
         rules.administrative_borders_gadm.output
     output:
-        "build/regions.gpkg"
+        "build/{layer}/regions.geojson"
     shell:
-        PYTHON_SCRIPT + " {CONFIG_FILE}"
+        PYTHON_SCRIPT + " {wildcards.layer} {CONFIG_FILE}"
 
 
 rule regions_with_population:
@@ -47,7 +47,7 @@ rule regions_with_population:
         temp("build/{layer}/regions-population.geojson")
     shell:
         """
-        fio cat {input.regions} --layer 1:{wildcards.layer} | \
+        fio cat {input.regions} | \
         rio zonalstats -r {input.population} --prefix 'population_' --stats sum > {output}
         """
 
@@ -59,7 +59,7 @@ rule regions_with_population_and_demand:
         rules.electricity_demand_national.output,
         rules.regions_with_population.output
     output:
-        "build/{layer}/regions-population-demand.geojson"
+        temp("build/{layer}/regions-population-demand.geojson")
     shell:
         PYTHON_SCRIPT
 
@@ -94,7 +94,7 @@ rule necessary_land_plots:
     input:
         "src/vis/necessary_land.py",
         expand("build/{layer}/necessary-land.geojson", layer=config["layers"].keys()),
-        rules.regions.output
+        "build/national/regions.geojson"
     output:
         "build/necessary-land-boxplots.png",
         "build/necessary-land-map.png"

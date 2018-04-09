@@ -25,7 +25,7 @@ def visualise_necessary_land(paths_to_regions, path_to_countries, path_to_boxplo
     regions = [gpd.read_file(path) for path in paths_to_regions]
     for region, path_to_region in zip(regions, paths_to_regions):
         region["layer_id"] = _infer_layer_id(path_to_region)
-    countries = gpd.read_file(path_to_countries, layer="national")
+    countries = gpd.read_file(path_to_countries)
     _boxplot(regions, path_to_boxplot)
     _map(regions[-1], countries, path_to_map)
 
