@@ -26,10 +26,11 @@ rule eligible_land:
 
 
 rule regions:
-    message: "Form regions by remixing NUTS and GADM."
+    message: "Form regions by remixing NUTS, LAU, and GADM."
     input:
         "src/regions.py",
         rules.administrative_borders_nuts.output,
+        rules.administrative_borders_lau.output,
         rules.administrative_borders_gadm.output
     output:
         "build/regions.gpkg"

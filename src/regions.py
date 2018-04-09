@@ -1,4 +1,4 @@
-"""Remixes NUTS and GADM data to form the regions of the analysis."""
+"""Remixes NUTS, LAU, and GADM data to form the regions of the analysis."""
 import click
 import pandas as pd
 import geopandas as gpd
@@ -12,12 +12,13 @@ DRIVER = "GPKG"
 
 @click.command()
 @click.argument("path_to_nuts")
+@click.argument("path_to_lau2")
 @click.argument("path_to_gadm")
 @click.argument("path_to_output")
 @click.argument("config", type=Config())
-def remix_regions(path_to_nuts, path_to_gadm, path_to_output, config):
-    """Remixes NUTS and GADM data to form the regions of the analysis."""
-    source_layers = _read_source_layers(path_to_nuts, path_to_gadm)
+def remix_regions(path_to_nuts, path_to_lau2, path_to_gadm, path_to_output, config):
+    """Remixes NUTS, LAU, and GADM data to form the regions of the analysis."""
+    source_layers = _read_source_layers(path_to_nuts, path_to_lau2, path_to_gadm)
     _validate_source_layers(source_layers)
     for layer_name in config["layers"].keys():
         _validate_layer(config, layer_name)
@@ -25,11 +26,12 @@ def remix_regions(path_to_nuts, path_to_gadm, path_to_output, config):
         _write_layer(layer, layer_name, path_to_output)
 
 
-def _read_source_layers(path_to_nuts, path_to_gadm):
+def _read_source_layers(path_to_nuts, path_to_lau2, path_to_gadm):
     source_layers = {
         layer_name: gpd.read_file(path_to_nuts, layer=layer_name)
         for layer_name in fiona.listlayers(path_to_nuts)
     }
+    source_layers["lau2"] = gpd.read_file(path_to_lau2)
     source_layers.update({
         layer_name: gpd.read_file(path_to_gadm, layer=layer_name)
         for layer_name in fiona.listlayers(path_to_gadm)

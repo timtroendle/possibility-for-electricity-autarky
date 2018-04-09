@@ -17,7 +17,7 @@ from conversion import area_in_squaremeters
 EQUAL_AREA_PROJECTION = "EPSG:3035" # projection to use to derive area sizes
 INVALID_DATA = 255
 REL_TOLERANCE = 0.01 # 1%
-ABS_TOLERANCE = 2 # km^2
+ABS_TOLERANCE = 3.5 # km^2
 
 
 @click.command()

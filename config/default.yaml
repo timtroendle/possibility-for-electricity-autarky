@@ -105,3 +105,34 @@ layers:
         United Kingdom: gadm1 # match
         Norway: gadm1 # match
         Switzerland: gadm1 # match
+    municipal:
+        Austria: lau2
+        Belgium: lau2
+        Bulgaria: lau2
+        Croatia: lau2
+        Cyprus: lau2
+        Czech Republic: lau2
+        Denmark: lau2
+        Estonia: lau2
+        Finland: lau2
+        France: lau2
+        Germany: lau2
+        Greece: lau2
+        Hungary: lau2
+        Ireland: lau2
+        Italy: lau2
+        Latvia: lau2
+        Lithuania: lau2
+        Luxembourg: lau2
+        Malta: lau2
+        Netherlands: lau2
+        Poland: lau2
+        Portugal: lau2
+        Romania: lau2
+        Slovakia: lau2
+        Slovenia: lau2
+        Spain: lau2
+        Sweden: lau2
+        United Kingdom: lau2
+        Norway: lau2
+        Switzerland: lau2

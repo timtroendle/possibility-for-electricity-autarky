@@ -7,6 +7,7 @@ PYTHON_SCRIPT_WITH_CONFIG = PYTHON_SCRIPT + " {CONFIG_FILE}"
 
 URL_LOAD = "https://data.open-power-system-data.org/time_series/2017-07-09/time_series_60min_stacked.csv"
 URL_NUTS = "http://ec.europa.eu/eurostat/cache/GISCO/geodatafiles/NUTS_2013_01M_SH.zip"
+URL_LAU = "http://ec.europa.eu/eurostat/cache/GISCO/geodatafiles/COMM-01M-2013-SH.zip"
 URL_LAND_COVER = "http://due.esrin.esa.int/files/Globcover2009_V2.3_Global_.zip"
 URL_PROTECTED_AREAS = "https://www.protectedplanet.net/downloads/WDPA_Jan2018?type=shapefile"
 URL_CGIAR_TILE = "http://droppr.org/srtm/v4.1/6_5x5_TIFs/"
@@ -90,6 +91,29 @@ rule administrative_borders_nuts:
         """
         unzip {input.zip} -d ./build
         {PYTHON} {input.src} ./build/NUTS_2013_01M_SH/data/NUTS_RG_01M_2013.shp {output} {CONFIG_FILE}
+        """
+
+
+rule raw_lau_regions_zipped:
+    message: "Download LAU regions as zip."
+    output:
+        protected("data/automatic/raw-lau-regions.zip")
+    shell:
+        "curl -sLo {output} '{URL_LAU}'"
+
+
+rule administrative_borders_lau:
+    message: "Normalise LAU administrative borders."
+    input:
+        src = "src/lau.py",
+        zip = rules.raw_lau_regions_zipped.output
+    output:
+        "build/administrative-borders-lau.gpkg"
+    shadow: "full"
+    shell:
+        """
+        unzip {input.zip} -d ./build
+        {PYTHON} {input.src} ./build/COMM_01M_2013_SH/data/COMM_RG_01M_2013.shp {output} {CONFIG_FILE}
         """
 
 rule raw_land_cover_zipped:
