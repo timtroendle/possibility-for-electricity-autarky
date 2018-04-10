@@ -18,6 +18,10 @@ GMTED elevation data
 
 :   The missing globes of the SRTM elevation data makes another data set necessary for the Northern part of Europe. I am using the GMTED elevation data, which has a resolution of 7.5 arcseconds [@Danielson:2011]. It is composed of different sources and due to the low resolution I will use it only for the parts missing in the SRTM data set.
 
+ETOPO1 Global Relief Model
+
+:   Offshore wind power can be build in shallow and medium-deep water. To determine the depth of the water I am using the ETOPO1 Global Relief Model [@Amante:2009], which has a resolution of 1 arcminute.
+
 GlobCover 2009 -- land cover data
 
 :   GlobCover2009 is a land cover data set provided by the European Space Agency which determines land cover worldwide with a resolution of 10 arcseconds [@EuropeanSpaceAgency:2010].

@@ -20,10 +20,15 @@ def slope():
     return np.array([[2, 2], [2, 1], [3, 18]])
 
 
-def test_eligibility(land_cover, protected_areas, slope):
+@pytest.fixture
+def bathymetry():
+    return np.array([[20, 20], [200, -45], [30, 18]])
+
+
+def test_eligibility(land_cover, protected_areas, slope, bathymetry):
     expected_result = np.array([
-        [Eligibility.WIND_OR_PV_FARM, Eligibility.WIND_FARM],
-        [Eligibility.NOT_ELIGIBLE, Eligibility.NOT_ELIGIBLE],
-        [Eligibility.WIND_OR_PV_FARM, Eligibility.WIND_FARM]
+        [Eligibility.ONSHORE_WIND_OR_PV_FARM, Eligibility.ONSHORE_WIND_FARM],
+        [Eligibility.NOT_ELIGIBLE, Eligibility.OFFSHORE_WIND_FARM],
+        [Eligibility.ONSHORE_WIND_OR_PV_FARM, Eligibility.ONSHORE_WIND_FARM]
     ])
-    assert_array_equal(determine_eligibility(land_cover, protected_areas, slope), expected_result)
+    assert_array_equal(determine_eligibility(land_cover, protected_areas, slope, bathymetry), expected_result)

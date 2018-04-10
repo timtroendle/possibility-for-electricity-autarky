@@ -14,9 +14,10 @@ DATATYPE = np.uint8
 class Eligibility(IntEnum):
     """Categories defining land eligibility for renewable power."""
     NOT_ELIGIBLE = 0
-    ROOFTOP_PV = 150
-    WIND_OR_PV_FARM = 250
-    WIND_FARM = 80
+    ROOFTOP_PV = 250
+    ONSHORE_WIND_OR_PV_FARM = 200
+    ONSHORE_WIND_FARM = 150
+    OFFSHORE_WIND_FARM = 80
 
     @property
     def property_name(self):
@@ -73,8 +74,10 @@ class ProtectedArea(IntEnum):
 @click.argument("path_to_land_cover")
 @click.argument("path_to_protected_areas")
 @click.argument("path_to_slope")
+@click.argument("path_to_bathymetry")
 @click.argument("path_to_result")
-def determine_eligible_land(path_to_land_cover, path_to_protected_areas, path_to_slope, path_to_result):
+def determine_eligible_land(path_to_land_cover, path_to_protected_areas, path_to_slope,
+                            path_to_bathymetry, path_to_result):
     """Determines eligibility of land for renewables."""
     with rasterio.open(path_to_land_cover) as src:
         raster_affine = src.affine
@@ -84,26 +87,31 @@ def determine_eligible_land(path_to_land_cover, path_to_protected_areas, path_to
         slope = src.read(1)
     with rasterio.open(path_to_protected_areas) as src:
         protected_areas = src.read(1)
-    eligibility = determine_eligibility(land_cover, protected_areas, slope)
+    with rasterio.open(path_to_bathymetry) as src:
+        bathymetry = src.read(1)
+    eligibility = determine_eligibility(land_cover, protected_areas, slope, bathymetry)
     with rasterio.open(path_to_result, 'w', driver='GTiff', height=eligibility.shape[0],
                        width=eligibility.shape[1], count=1, dtype=DATATYPE,
                        crs=crs, transform=raster_affine) as new_geotiff:
         new_geotiff.write(eligibility, 1)
 
 
-def determine_eligibility(land_cover, protected_areas, slope):
+def determine_eligibility(land_cover, protected_areas, slope, bathymetry):
     eligibility = np.ones_like(land_cover, dtype=DATATYPE) * Eligibility.NOT_ELIGIBLE
     eligibility[land_cover == GlobCover.ARTIFICAL_SURFACES_AND_URBAN_AREAS] = \
         Eligibility.ROOFTOP_PV
     eligibility[(np.isin(land_cover, FARM + VEGETATION + BARE)) &
                 (protected_areas == ProtectedArea.NOT_PROTECTED) &
-                (slope <= MAX_SLOPE_PV)] = Eligibility.WIND_OR_PV_FARM
+                (slope <= MAX_SLOPE_PV)] = Eligibility.ONSHORE_WIND_OR_PV_FARM
     eligibility[(np.isin(land_cover, FARM + VEGETATION + BARE)) &
                 (protected_areas == ProtectedArea.NOT_PROTECTED) &
-                (slope <= MAX_SLOPE_WIND) & (slope > MAX_SLOPE_PV)] = Eligibility.WIND_FARM
+                (slope <= MAX_SLOPE_WIND) & (slope > MAX_SLOPE_PV)] = Eligibility.ONSHORE_WIND_FARM
     eligibility[(np.isin(land_cover, FOREST)) &
                 (protected_areas == ProtectedArea.NOT_PROTECTED) &
-                (slope <= MAX_SLOPE_WIND)] = Eligibility.WIND_FARM
+                (slope <= MAX_SLOPE_WIND)] = Eligibility.ONSHORE_WIND_FARM
+    eligibility[(land_cover == GlobCover.WATER_BODIES) &
+                (protected_areas == ProtectedArea.NOT_PROTECTED) &
+                (bathymetry > -50)] = Eligibility.OFFSHORE_WIND_FARM
     return eligibility
 
 

@@ -12,8 +12,8 @@ from src.conversion import watt_to_watthours
 MAX_YIELD = {
     Eligibility.NOT_ELIGIBLE: 0,
     Eligibility.ROOFTOP_PV: 20,
-    Eligibility.WIND_OR_PV_FARM: 20,
-    Eligibility.WIND_FARM: 2
+    Eligibility.ONSHORE_WIND_OR_PV_FARM: 20,
+    Eligibility.ONSHORE_WIND_FARM: 2
 }
 """Max yield in [W/m^2] taken from MacKay 2009.
 

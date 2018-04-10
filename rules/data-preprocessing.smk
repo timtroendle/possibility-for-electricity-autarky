@@ -13,6 +13,7 @@ URL_PROTECTED_AREAS = "https://www.protectedplanet.net/downloads/WDPA_Jan2018?ty
 URL_CGIAR_TILE = "http://droppr.org/srtm/v4.1/6_5x5_TIFs/"
 URL_GMTED_TILE = "https://edcintl.cr.usgs.gov/downloads/sciweb1/shared/topo/downloads/GMTED/Global_tiles_GMTED/075darcsec/mea/"
 URL_GADM = "http://biogeo.ucdavis.edu/data/gadm2.8/gpkg"
+URL_BATHYMETRIC = "https://www.ngdc.noaa.gov/mgg/global/relief/ETOPO1/data/bedrock/grid_registered/georeferenced_tiff/ETOPO1_Bed_g_geotiff.zip"
 
 RESOLUTION_STUDY = (1 / 3600) * 10 # 10 arcseconds
 RESOLUTION_SLOPE = (1 / 3600) * 3 # 3 arcseconds
@@ -206,6 +207,19 @@ rule raw_gmted_elevation_data:
         "rio merge {input} {output} --force-overwrite"
 
 
+rule raw_bathymetry_zipped:
+    message: "Download bathymetric data as zip."
+    output: protected("data/automatic/raw-bathymetric.zip")
+    shell: "curl -sLo {output} '{URL_BATHYMETRIC}'"
+
+
+rule raw_bathymetry:
+    message: "Extract bathymetric data from zip."
+    input: rules.raw_bathymetry_zipped.output
+    output: temp("build/ETOPO1_Bed_g_geotiff.tif")
+    shell: "unzip {input} -d ./build/"
+
+
 rule elevation_in_europe:
     message: "Merge SRTM and GMTED elevation data and warp/clip to Europe using {threads} threads."
     input:
@@ -290,4 +304,17 @@ rule protected_areas_in_europe:
         fio collect --record-buffered | \
         rio rasterize --like {input.land_cover} \
         --default-value 255 --all_touched -f "GTiff" --co dtype=uint8 -o {output}
+        """
+
+
+rule bathymetry_in_europe:
+    message: "Clip bathymetric data to study area and warp to study resolution."
+    input:
+        bathymetry = rules.raw_bathymetry.output,
+        reference = rules.land_cover_in_europe.output
+    output:
+        "build/bathymetry-in-europe.tif"
+    shell:
+        """
+        rio warp {input.bathymetry} -o {output} --like {input.reference} --resampling min
         """

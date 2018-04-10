@@ -14,12 +14,13 @@ rule all:
 
 rule eligible_land:
     message:
-        "Determine land eligibility for renewables based on land cover, slope, and protected areas."
+        "Determine land eligibility for renewables based on land cover, slope, bathymetry, and protected areas."
     input:
         "src/eligible_land.py",
         rules.land_cover_in_europe.output,
         rules.protected_areas_in_europe.output,
-        rules.slope_in_europe.output
+        rules.slope_in_europe.output,
+        rules.bathymetry_in_europe.output
     output:
         "build/eligible-land.tif"
     shell:
