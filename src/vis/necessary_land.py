@@ -31,10 +31,15 @@ def visualise_necessary_land(paths_to_regions, path_to_countries, path_to_boxplo
 
 
 def _boxplot(regions, path_to_plot):
+    data = pd.concat([pd.DataFrame(gdf) for gdf in regions])
+    data_eu = data.copy()
+    data_eu["country_code"] = "EU"
+    data = pd.concat([data, data_eu])
+
     fig = plt.figure(figsize=(8, 6))
     ax = fig.add_subplot(111)
     sns.boxplot(
-        data=pd.concat([pd.DataFrame(gdf) for gdf in regions]),
+        data=data,
         x="country_code",
         y="fraction_land_necessary",
         hue="layer_id",
