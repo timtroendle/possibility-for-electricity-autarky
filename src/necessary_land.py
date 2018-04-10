@@ -32,6 +32,7 @@ def determine_necessary_land(path_to_regions, path_to_output):
         eligibility: regions[eligibility.property_name] * MAX_YIELD[eligibility] * 1e6
         for eligibility in Eligibility
     })
+    max_yield[Eligibility.ROOFTOP_PV] = max_yield[Eligibility.ROOFTOP_PV] * regions["rooftop_share_mean"]
     regions["max_yield_twh_per_year"] = watt_to_watthours(
         max_yield.sum(axis=1),
         timedelta(days=365)

@@ -26,6 +26,7 @@ Don't forget to activate the environment. To see what you can do now, run:
 Whenever possible, data is retrieved automatically. As this is not always possible, you will need to download the following data sets manually:
 
 * [Gridded Population of the World (GPW), v4, 2020](http://sedac.ciesin.columbia.edu/data/set/gpw-v4-population-count), to be placed in `./data/gpw-v4-population-count-2020`
+* [European Settlement Map 2012, Release 2017, 100m, class50](https://land.copernicus.eu/pan-european/GHSL/european-settlement-map), to be placed in `./data/esm-100m-2017/ESM_class50_100m.tif`
 
 ## Run the analysis
 

@@ -22,6 +22,10 @@ GlobCover 2009 -- land cover data
 
 :   GlobCover2009 is a land cover data set provided by the European Space Agency which determines land cover worldwide with a resolution of 10 arcseconds [@EuropeanSpaceAgency:2010].
 
+European Settlement Map 2012, Release 2017
+
+:   European Settlement Map is a spatial raster data set that maps settlements in Europe. It is provided by JRC in a resolution of 2.5m [@Ferri:2017]. In here, I am using the statistical summary provided at 100m resolution to identify buildings.
+
 World Database on Protected Areas
 
 :   The world database on protected areas [@UNEP-WCMC:2017] maps areas that are protected by national law. It is provided as a vector database.
@@ -88,6 +92,8 @@ In conclusion, this means that Corsica and the Balearic Islands are missing in t
 ### Regions
 
 Using the electricity demand distribution and the land eligibility raster data set, a final vector data base of all regions and their necessary attributes can be formed. For that, the eligible land categories are counted and associated to their regions.
+
+Additionally, I am using the European Settlement Map to identify the share of rooftop areas in each region. Really what I am doing is identifying buildings as the map has no information on the type of the rooftop or more generally the suitability for pv. This step is hence an upper bound for rooftop pv potential estimation.
 
 ### Necessary land
 
