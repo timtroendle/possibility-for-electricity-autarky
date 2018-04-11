@@ -15,6 +15,8 @@ URL_GMTED_TILE = "https://edcintl.cr.usgs.gov/downloads/sciweb1/shared/topo/down
 URL_GADM = "http://biogeo.ucdavis.edu/data/gadm2.8/gpkg"
 URL_BATHYMETRIC = "https://www.ngdc.noaa.gov/mgg/global/relief/ETOPO1/data/bedrock/grid_registered/georeferenced_tiff/ETOPO1_Bed_g_geotiff.zip"
 
+RAW_SETTLEMENT_DATA = "data/esm-100m-2017/ESM_class50_100m.tif"
+
 RESOLUTION_STUDY = (1 / 3600) * 10 # 10 arcseconds
 RESOLUTION_SLOPE = (1 / 3600) * 3 # 3 arcseconds
 
@@ -304,6 +306,20 @@ rule protected_areas_in_europe:
         fio collect --record-buffered | \
         rio rasterize --like {input.land_cover} \
         --default-value 255 --all_touched -f "GTiff" --co dtype=uint8 -o {output}
+        """
+
+
+rule rooftop_area:
+    message: "Warp rooftop area to CRS of study."
+    input:
+        settlements = RAW_SETTLEMENT_DATA,
+        reference = rules.land_cover_in_europe.output
+    output: "build/rooftop-area.tif"
+    threads: config["snakemake"]["max-threads"]
+    shell:
+        """
+        rio warp {input.settlements} -o {output} \
+        --like {input.reference} --threads {threads} --resampling bilinear --co compress=LZW
         """
 
 

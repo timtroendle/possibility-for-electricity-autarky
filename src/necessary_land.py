@@ -13,7 +13,8 @@ MAX_YIELD = {
     Eligibility.NOT_ELIGIBLE: 0,
     Eligibility.ROOFTOP_PV: 20,
     Eligibility.ONSHORE_WIND_OR_PV_FARM: 20,
-    Eligibility.ONSHORE_WIND_FARM: 2
+    Eligibility.ONSHORE_WIND_FARM: 2,
+    Eligibility.OFFSHORE_WIND_FARM: 2
 }
 """Max yield in [W/m^2] taken from MacKay 2009.
 
@@ -32,7 +33,6 @@ def determine_necessary_land(path_to_regions, path_to_output):
         eligibility: regions[eligibility.property_name] * MAX_YIELD[eligibility] * 1e6
         for eligibility in Eligibility
     })
-    max_yield[Eligibility.ROOFTOP_PV] = max_yield[Eligibility.ROOFTOP_PV] * regions["rooftop_share_mean"]
     regions["max_yield_twh_per_year"] = watt_to_watthours(
         max_yield.sum(axis=1),
         timedelta(days=365)

@@ -1,7 +1,6 @@
 PYTHON_SCRIPT = "PYTHONPATH=./ python {input} {output}"
 
 RAW_GRIDDED_POP_DATA = "data/gpw-v4-population-count-2020/gpw-v4-population-count_2020.tif"
-RAW_SETTLEMENT_DATA = "data/esm-100m-2017/ESM_class50_100m.tif"
 CONFIG_FILE = "config/default.yaml"
 
 configfile: CONFIG_FILE
@@ -79,25 +78,24 @@ rule regional_eligibility:
         PYTHON_SCRIPT + " {threads}"
 
 
-rule regional_rooftop_share:
+rule regional_eligibility_rooftop_correction:
     message: "Determine share of roof top area in each region of layer {wildcards.layer}."
     input:
-        regions = rules.regional_eligibility.output,
-        settlements = RAW_SETTLEMENT_DATA
+        "src/rooftop_correction.py",
+        rules.rooftop_area.output,
+        rules.eligible_land.output,
+        rules.regional_eligibility.output
     output:
-        "build/{layer}/regional-rooftop-share.geojson"
+        "build/{layer}/regional-eligibility-rooftop-corrected.geojson"
     shell:
-        """
-        fio cat {input.regions} | \
-        rio zonalstats -r {input.settlements} --prefix 'rooftop_share_' --stats mean > {output}
-        """
+        PYTHON_SCRIPT
 
 
 rule necessary_land:
     message: "Determine fraction of land necessary to supply demand per region of layer {wildcards.layer}."
     input:
         "src/necessary_land.py",
-        rules.regional_rooftop_share.output
+        rules.regional_eligibility_rooftop_correction.output
     output:
         "build/{layer}/necessary-land.geojson"
     shell:
