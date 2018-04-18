@@ -34,10 +34,10 @@ scope:
         - "Norway"
         - "Switzerland"
     bounds:
-        x_min: -12 # in degrees east
-        x_max: 40  # in degrees east
-        y_min: 20  # in degrees north
-        y_max: 79  # in degrees north
+        x_min: -16.2 # in degrees east
+        x_max: 37  # in degrees east
+        y_min: 30  # in degrees north
+        y_max: 75  # in degrees north
 layers:
     national:
         Austria: nuts0

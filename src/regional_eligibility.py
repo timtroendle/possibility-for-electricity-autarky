@@ -5,6 +5,7 @@ from itertools import cycle
 
 import click
 import numpy as np
+from shapely.geometry import shape
 import fiona
 import rasterio
 import rasterio.mask
@@ -33,9 +34,15 @@ def allocate_eligibility_to_regions(path_to_regions, path_to_eligibility, path_t
         for eligibility in Eligibility:
             meta["schema"]["properties"][eligibility.property_name] = "float"
         with Pool(threads) as pool:
+            # start with largest (=slowest) region to optimise the multi processing
+            sorted_regions = sorted(
+                regions,
+                key=lambda region: shape(region["geometry"]).area,
+                reverse=True
+            )
             new_regions = pool.map(
                 _allocate_eligibility_to_region,
-                zip(regions, cycle([path_to_eligibility]))
+                zip(sorted_regions, cycle([path_to_eligibility]))
             )
         with fiona.open(path_to_output, "w", **meta) as output:
             output.writerecords(new_regions)
@@ -92,10 +99,8 @@ def _reproject_raster(src, src_crs, src_bounds, src_transform):
 
 def _test_allocation(path_to_output):
     regions = gpd.read_file(path_to_output)
-    regions.set_index("name", inplace=True)
-    total_allocated_area = sum(
-        [regions[eligibility.property_name] for eligibility in Eligibility]
-    )
+    total_allocated_area = regions.loc[:, [eligibility.property_name
+                                           for eligibility in Eligibility]].sum(axis="columns")
     region_size = area_in_squaremeters(regions) / 1000 / 1000
     below_rel_threshold = abs(total_allocated_area - region_size) < region_size * REL_TOLERANCE
     below_abs_threshold = abs(total_allocated_area - region_size) < ABS_TOLERANCE

@@ -65,7 +65,20 @@ rule regions_with_population_and_demand:
         PYTHON_SCRIPT
 
 
-rule regional_eligibility:
+rule eez_eligibility:
+    message: "Allocate eligible land to exclusive economic zones using {threads} threads."
+    input:
+        "src/regional_eligibility.py",
+        rules.eez_in_europe.output,
+        rules.eligible_land.output
+    output:
+        "build/eez-eligibility.geojson"
+    threads: config["snakemake"]["max-threads"]
+    shell:
+        PYTHON_SCRIPT + " {threads}"
+
+
+rule regional_land_eligibility:
     message: "Allocate eligible land to regions of layer {wildcards.layer} using {threads} threads."
     input:
         "src/regional_eligibility.py",
@@ -84,7 +97,7 @@ rule regional_eligibility_rooftop_correction:
         "src/rooftop_correction.py",
         rules.rooftop_area.output,
         rules.eligible_land.output,
-        rules.regional_eligibility.output
+        rules.regional_land_eligibility.output
     output:
         "build/{layer}/regional-eligibility-rooftop-corrected.geojson"
     shell:

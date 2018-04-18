@@ -16,6 +16,7 @@ URL_GADM = "http://biogeo.ucdavis.edu/data/gadm2.8/gpkg"
 URL_BATHYMETRIC = "https://www.ngdc.noaa.gov/mgg/global/relief/ETOPO1/data/bedrock/grid_registered/georeferenced_tiff/ETOPO1_Bed_g_geotiff.zip"
 
 RAW_SETTLEMENT_DATA = "data/esm-100m-2017/ESM_class50_100m.tif"
+RAW_EEZ_DATA = "data/World_EEZ_v10_20180221/eez_v10.shp"
 
 RESOLUTION_STUDY = (1 / 3600) * 10 # 10 arcseconds
 RESOLUTION_SLOPE = (1 / 3600) * 3 # 3 arcseconds
@@ -333,4 +334,19 @@ rule bathymetry_in_europe:
     shell:
         """
         rio warp {input.bathymetry} -o {output} --like {input.reference} --resampling min
+        """
+
+
+rule eez_in_europe:
+    message: "Clip exclusive economic zones to study area."
+    input: RAW_EEZ_DATA
+    output: "build/eez-in-europe.geojson"
+    params:
+        bounds="{x_min},{y_min},{x_max},{y_max}".format(**config["scope"]["bounds"]),
+        countries=",".join(["'{}'".format(country) for country in config["scope"]["countries"]])
+    shell:
+        """
+        fio cat --bbox {params.bounds} {input}\
+        | fio filter "f.properties.Territory1 in [{params.countries}]"\
+        | fio collect > {output}
         """
