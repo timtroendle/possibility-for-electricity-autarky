@@ -311,7 +311,7 @@ rule protected_areas_in_europe:
 
 
 rule rooftop_area:
-    message: "Warp rooftop area to CRS of study."
+    message: "Warp rooftop area to CRS of study using {threads} threads."
     input:
         settlements = RAW_SETTLEMENT_DATA,
         reference = rules.land_cover_in_europe.output

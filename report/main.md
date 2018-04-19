@@ -46,6 +46,10 @@ GADM
 
 :   The global administrative areas database [@GADM:2015] is used to amend NUTS data.
 
+Exclusive Economic Zones
+
+:   The exclusive economic zones determine sovereignty of nations over maritime areas [@Claus:2018].
+
 Electricity demand
 
 :   ENTSO-e provides historical load time series for most countries in Europe with a resolution of 1 hour. In this analysis I will use the processed version provided by @OpenPowerSystemData:2017.
@@ -97,7 +101,11 @@ In conclusion, this means that Corsica and the Balearic Islands are missing in t
 
 Using the electricity demand distribution and the land eligibility raster data set, a final vector data base of all regions and their necessary attributes can be formed. For that, the eligible land categories are counted and associated to their regions.
 
-Additionally, I am using the European Settlement Map to identify the share of rooftop areas in each region. Really what I am doing is identifying buildings as the map has no information on the type of the rooftop or more generally the suitability for pv. This step is hence an upper bound for rooftop pv potential estimation.
+Both offshore wind and rooftop pv need special treatments. That's first because the regions do not include maritime regions and hence ignore offshore wind potential. And second, because the land cover data set identifies urban areas, but its resolution is too coarse to identify rooftop areas. Large fraction of urban areas are not rooftop areas though, but parks, streets, or water areas. Without special treatment, using land cover data alone would hence lead to an overestimation of rooftop pv potential.
+
+To handle offshore wind, I am using the Economic Exclusive Zones (EEZ) to determine how much offshore wind potential each region has. EEZ are national sovereignty, so there is no correct way to allocate shares of maritime regions to subnational regions. In here, I choose a simple approach: I allocate offshore wind potential to all regions that share a coast with the EEZ. The share is proportional to the length of the shared coast. This simple approach ignores spatial distribution within the EEZs. For example, if there are two regions sharing a coast with an EEZ and both coast lengths are the same, I will allocate 50% of the offshore wind potential to each region in any case. That is true even if one region has all its coast protected and the other not.
+
+To handle rooftop pv, I am using the European Settlement Map to identify the share of rooftop areas in each region. Really what I am doing is identifying buildings as the map has no information on the type of the rooftop or more generally the suitability for pv. This step is hence still an upper bound for rooftop pv potential.
 
 ### Necessary land
 
