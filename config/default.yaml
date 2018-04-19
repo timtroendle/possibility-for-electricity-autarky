@@ -31,7 +31,12 @@ scope:
         - "Spain"
         - "Sweden"
         - "United Kingdom"
+        - "Albania"
+        - "Bosnia and Herzegovina"
+        - "Macedonia, Republic of"
+        - "Montenegro"
         - "Norway"
+        - "Serbia"
         - "Switzerland"
     bounds:
         x_min: -16.2 # in degrees east
@@ -68,7 +73,12 @@ layers:
         Spain: nuts0
         Sweden: nuts0
         United Kingdom: nuts0
+        Albania: gadm0
+        Bosnia and Herzegovina: gadm0
+        Macedonia, Republic of: gadm0
+        Montenegro: gadm0
         Norway: nuts0
+        Serbia: gadm0
         Switzerland: nuts0
     subnational:
         # The link between NUTS and administrative units unfortunately is not obvious.
@@ -103,7 +113,12 @@ layers:
         Spain: gadm1 # match
         Sweden: gadm1 # match
         United Kingdom: gadm1 # match
+        Albania: gadm1 # match
+        Bosnia and Herzegovina: gadm1 # match
+        Macedonia, Republic of: gadm1 # gadm1 85 regions; wiki 8 regions
+        Montenegro: gadm1 # match
         Norway: gadm1 # match
+        Serbia: gadm1 # gadm1 25 regions; wiki 5 regions
         Switzerland: gadm1 # match
     municipal:
         Austria: lau2
@@ -134,5 +149,10 @@ layers:
         Spain: lau2
         Sweden: lau2
         United Kingdom: lau2
+        Albania: gadm3
+        Bosnia and Herzegovina: gadm3
+        Macedonia, Republic of: lau2
+        Montenegro: gadm1 # same as subnational
         Norway: lau2
+        Serbia: lau2
         Switzerland: lau2
