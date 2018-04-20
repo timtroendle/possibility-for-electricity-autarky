@@ -21,6 +21,7 @@ MAX_YIELD = {
 This is not installed power, but delivered power on average. These numbers are valid
 for UK only and slightly outdated.
 """
+ZERO_DEMAND = 0.000001
 
 
 @click.command()
@@ -39,6 +40,7 @@ def determine_necessary_land(path_to_regions, path_to_output):
     ).div(1e12)
     regions["fraction_land_necessary"] = (regions["demand_twh_per_year"] /
                                           regions["max_yield_twh_per_year"])
+    regions.loc[regions["demand_twh_per_year"] <= ZERO_DEMAND, "fraction_land_necessary"] = 0.0 # nan otherwise
     regions.to_file(path_to_output, driver='GeoJSON')
 
 

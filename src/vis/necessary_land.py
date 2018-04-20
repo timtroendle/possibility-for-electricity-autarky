@@ -26,29 +26,29 @@ def visualise_necessary_land(paths_to_regions, path_to_countries, path_to_boxplo
     for region, path_to_region in zip(regions, paths_to_regions):
         region["layer_id"] = _infer_layer_id(path_to_region)
     countries = gpd.read_file(path_to_countries)
-    _boxplot(regions, path_to_boxplot)
+    _boxplot([regions[0], regions[-1]], path_to_boxplot)
     _map(regions[-1], countries, path_to_map)
 
 
 def _boxplot(regions, path_to_plot):
     data = pd.concat([pd.DataFrame(gdf) for gdf in regions])
     data_eu = data.copy()
-    data_eu["country_code"] = "EU"
+    data_eu["country_code"] = "EUR"
     data = pd.concat([data, data_eu])
 
-    fig = plt.figure(figsize=(8, 6))
+    fig = plt.figure(figsize=(8, 10))
     ax = fig.add_subplot(111)
     sns.boxplot(
         data=data,
-        x="country_code",
-        y="fraction_land_necessary",
+        x="fraction_land_necessary",
+        y="country_code",
         hue="layer_id",
+        order=data.groupby("country_code").fraction_land_necessary.quantile(0.75).sort_values().index,
         ax=ax
     )
-    plt.ylabel("fraction land necessary")
-    plt.xlabel("country code")
-    ax.set_yscale('log')
-    fig.autofmt_xdate()
+    plt.xlabel("fraction land necessary")
+    plt.ylabel("country code")
+    ax.set_xscale('log')
     fig.savefig(path_to_plot, dpi=300)
 
 
