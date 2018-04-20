@@ -126,7 +126,7 @@ rule necessary_land:
         "build/{layer}/necessary-land.geojson"
     shell:
         # TODO this approach leads to up to 866 m^2 roof area per citizen -- way too much
-        PYTHON_SCRIPT
+        PYTHON_SCRIPT + " {CONFIG_FILE}"
 
 
 rule necessary_land_plots:
@@ -142,13 +142,25 @@ rule necessary_land_plots:
         PYTHON_SCRIPT
 
 
+rule potential_plot:
+    message: "Plot potentials of renewable power."
+    input:
+        "src/vis/potentials.py",
+        "build/national/regional-eligibility-rooftop-corrected.geojson"
+    output:
+        "build/potentials.png"
+    shell:
+        PYTHON_SCRIPT + " {CONFIG_FILE}"
+
+
 rule paper:
     message: "Compile report."
     input:
         "report/literature.bib",
         "report/main.md",
         "report/pandoc-metadata.yml",
-        rules.necessary_land_plots.output
+        rules.necessary_land_plots.output,
+        rules.potential_plot.output
     output:
         "build/paper.pdf"
     shell:

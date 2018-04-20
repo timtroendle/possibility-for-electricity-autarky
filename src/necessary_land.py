@@ -5,33 +5,22 @@ import click
 import pandas as pd
 import geopandas as gpd
 
+from src.utils import Config
 from src.eligible_land import Eligibility
 from src.conversion import watt_to_watthours
 
-
-MAX_YIELD = {
-    Eligibility.NOT_ELIGIBLE: 0,
-    Eligibility.ROOFTOP_PV: 20,
-    Eligibility.ONSHORE_WIND_OR_PV_FARM: 20,
-    Eligibility.ONSHORE_WIND_FARM: 2,
-    Eligibility.OFFSHORE_WIND_FARM: 2
-}
-"""Max yield in [W/m^2] taken from MacKay 2009.
-
-This is not installed power, but delivered power on average. These numbers are valid
-for UK only and slightly outdated.
-"""
 ZERO_DEMAND = 0.000001
 
 
 @click.command()
 @click.argument("path_to_regions")
 @click.argument("path_to_output")
-def determine_necessary_land(path_to_regions, path_to_output):
+@click.argument("config", type=Config())
+def determine_necessary_land(path_to_regions, path_to_output, config):
     """Determines the fraction of land needed in each region to fulfill the demand."""
     regions = gpd.read_file(path_to_regions)
     max_yield = pd.DataFrame({
-        eligibility: regions[eligibility.property_name] * MAX_YIELD[eligibility] * 1e6
+        eligibility: regions[eligibility.property_name] * _max_yield(config, eligibility) * 1e6
         for eligibility in Eligibility
     })
     regions["max_yield_twh_per_year"] = watt_to_watthours(
@@ -42,6 +31,18 @@ def determine_necessary_land(path_to_regions, path_to_output):
                                           regions["max_yield_twh_per_year"])
     regions.loc[regions["demand_twh_per_year"] <= ZERO_DEMAND, "fraction_land_necessary"] = 0.0 # nan otherwise
     regions.to_file(path_to_output, driver='GeoJSON')
+
+
+def _max_yield(config, eligibility):
+    specific_energy_yield = config["parameters"]["specific-energy-yield"]
+    return {
+        Eligibility.NOT_ELIGIBLE: 0,
+        Eligibility.ROOFTOP_PV: specific_energy_yield["rooftop-pv"],
+        Eligibility.ONSHORE_WIND_OR_PV_FARM: max(specific_energy_yield["pv-farm"],
+                                                 specific_energy_yield["onshore-wind"]),
+        Eligibility.ONSHORE_WIND_FARM: specific_energy_yield["onshore-wind"],
+        Eligibility.OFFSHORE_WIND_FARM: specific_energy_yield["offshore-wind"]
+    }[eligibility]
 
 
 if __name__ == "__main__":

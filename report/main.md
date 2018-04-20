@@ -113,6 +113,8 @@ Finally the fraction of the eligible land that is necessary to supply the electr
 
 # Results
 
+![Potential of renewable power technologies to fulfil national demand.](../build/potentials.png){#fig:potentials .class}
+
 ![Ranges of fraction of land necessary to fulfil demand in different countries.](../build/necessary-land-boxplots.png){#fig:necessary-land-boxplots .class}
 
 ![Regions with sufficient yearly aggregated renewable power (green) and with insufficient power (red).](../build/necessary-land-map.png){#fig:necessary-land-map .class}

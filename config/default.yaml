@@ -156,3 +156,11 @@ layers:
         Norway: lau2
         Serbia: lau2
         Switzerland: lau2
+parameters:
+    specific-energy-yield:
+        # This is not installed power, but delivered power on average. The numbers are valid
+        # for UK only and slightly outdated.
+        rooftop-pv: 20 # [W/m^2] taken from MacKay 2009
+        pv-farm: 20 # [W/m^2] taken from MacKay 2009
+        onshore-wind: 2 # [W/m^2] taken from MacKay 2009
+        offshore-wind: 2 # [W/m^2] taken from MacKay 2009
