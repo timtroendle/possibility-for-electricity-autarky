@@ -14,6 +14,9 @@ URL_CGIAR_TILE = "http://droppr.org/srtm/v4.1/6_5x5_TIFs/"
 URL_GMTED_TILE = "https://edcintl.cr.usgs.gov/downloads/sciweb1/shared/topo/downloads/GMTED/Global_tiles_GMTED/075darcsec/mea/"
 URL_GADM = "http://biogeo.ucdavis.edu/data/gadm2.8/gpkg"
 URL_BATHYMETRIC = "https://www.ngdc.noaa.gov/mgg/global/relief/ETOPO1/data/bedrock/grid_registered/georeferenced_tiff/ETOPO1_Bed_g_geotiff.zip"
+URL_WIND_CP = "https://www.renewables.ninja/static/downloads/ninja_europe_wind_v1.1.zip"
+URL_PV_CP = "https://www.renewables.ninja/static/downloads/ninja_europe_pv_v1.1.zip"
+
 
 RAW_SETTLEMENT_DATA = "data/esm-100m-2017/ESM_class50_100m.tif"
 RAW_EEZ_DATA = "data/World_EEZ_v10_20180221/eez_v10.shp"
@@ -221,6 +224,64 @@ rule raw_bathymetry:
     input: rules.raw_bathymetry_zipped.output
     output: temp("build/ETOPO1_Bed_g_geotiff.tif")
     shell: "unzip {input} -d ./build/"
+
+
+rule raw_wind_capacity_factors_zipped:
+    message: "Download wind capacity factors as zip."
+    output: protected("data/automatic/raw-wind-capacity-factors.zip")
+    shell: "curl -sLo {output} '{URL_WIND_CP}'"
+
+
+rule raw_pv_capacity_factors_zipped:
+    message: "Download pv capacity factors as zip."
+    output: protected("data/automatic/raw-pv-capacity-factors.zip")
+    shell: "curl -sLo {output} '{URL_PV_CP}'"
+
+
+rule raw_wind_capacity_factors:
+    message: "Extract wind capacity factors from zip."
+    input: rules.raw_wind_capacity_factors_zipped.output
+    shadow: "full"
+    output: temp("build/ninja_europe_wind_v1/ninja_wind_europe_v1.1_current_on-offshore.csv")
+    shell: "unzip {input} -d ./build/ninja_europe_wind_v1"
+
+
+rule raw_pv_capacity_factors:
+    message: "Extract pv capacity factors from zip."
+    input: rules.raw_pv_capacity_factors_zipped.output
+    shadow: "full"
+    output: temp("build/ninja_europe_pv_v1/ninja_pv_europe_v1.1_sarah.csv")
+    shell: "unzip {input} -d ./build/ninja_europe_pv_v1"
+
+
+rule wind_capacity_factors:
+    message: "Determine capacity factors for wind on- and offshore."
+    input:
+        rules.raw_wind_capacity_factors.output
+    output:
+        onshore = "build/capacity-factors-onshore.csv",
+        offshore = "build/capacity-factors-offshore.csv"
+    run:
+        import pandas as pd
+
+        data = pd.read_csv(input[0], parse_dates=True, index_col=0)
+        onshore = data.loc[:, [col for col in data.columns if "ON" in col]]
+        offshore = data.loc[:, [col for col in data.columns if "OFF" in col]]
+        onshore.rename(columns=lambda name: name[:2]).mean().to_csv(output.onshore)
+        offshore.rename(columns=lambda name: name[:2]).mean().to_csv(output.offshore)
+
+
+rule pv_capacity_factors:
+    message: "Determine pv capacity factors for pv."
+    input:
+        rules.raw_pv_capacity_factors.output
+    output:
+        "build/capacity-factors-pv.csv"
+    run:
+        import pandas as pd
+
+        cps = pd.read_csv(input[0], parse_dates=True, index_col=0)
+        cps.mean().to_csv(output[0])
 
 
 rule elevation_in_europe:

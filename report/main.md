@@ -54,6 +54,9 @@ Electricity demand
 
 :   ENTSO-e provides historical load time series for most countries in Europe with a resolution of 1 hour. In this analysis I will use the processed version provided by @OpenPowerSystemData:2017.
 
+Capacity factors PV and wind
+
+:   National capacity factors for PV and wind for each hour of the year for the years between 1985-2015 and 1980-2016 are taken from renewable.ninja [@Pfenninger:2016; @Staffell:2016].
 
 ## Analysis steps
 
