@@ -23,7 +23,7 @@ def potentials(path_to_regions, path_to_plot, config):
 
     data = pd.Series(
         index=pd.MultiIndex.from_product([
-            list(regions.country_code.unique()) + ["EUR"],
+            regions.country_code.unique(),
             ["rooftop-pv", "pv-farm", "onshore wind", "offshore wind"]
         ], names=["country_code", "tech"]),
         name="normed yield"
@@ -45,7 +45,6 @@ def potentials(path_to_regions, path_to_plot, config):
     )
     ax.axhline(1, color="r", linewidth=0.75, label="national demand")
     ax.set_ylabel("yield relative to national demand [-]")
-    plt.ylim(0.05,)
     fig.savefig(path_to_plot, dpi=300)
 
 
