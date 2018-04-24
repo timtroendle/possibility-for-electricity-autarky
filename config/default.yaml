@@ -157,10 +157,14 @@ layers:
         Serbia: lau2
         Switzerland: lau2
 parameters:
-    specific-energy-yield:
-        # This is not installed power, but delivered power on average. The numbers are valid
-        # for UK only and slightly outdated.
-        rooftop-pv: 20 # [W/m^2] taken from MacKay 2009
-        pv-farm: 20 # [W/m^2] taken from MacKay 2009
-        onshore-wind: 2 # [W/m^2] taken from MacKay 2009
-        offshore-wind: 2 # [W/m^2] taken from MacKay 2009
+    maximum-installable-power-density: # this is not the yield, but the density of installed power
+        rooftop-pv: 160 # [W/m^2] from (NREL, 2016)
+        pv-farm: 160 # [W/m^2] from (NREL, 2016)
+        onshore-wind: 8 # [W/m^2] from (European Environment Agency, 2009)
+        offshore-wind: 15 # [W/m^2] from (European Environment Agency, 2009)
+    onshore-capacity-factor-replacement: # replace missing onshore cp from country_code
+        Albania: Greece
+        Bosnia and Herzegovina: Croatia
+        Malta: Italy
+        Montenegro: Croatia
+        Serbia: Romania

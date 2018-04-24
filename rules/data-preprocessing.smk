@@ -242,46 +242,16 @@ rule raw_wind_capacity_factors:
     message: "Extract wind capacity factors from zip."
     input: rules.raw_wind_capacity_factors_zipped.output
     shadow: "full"
-    output: temp("build/ninja_europe_wind_v1/ninja_wind_europe_v1.1_current_on-offshore.csv")
-    shell: "unzip {input} -d ./build/ninja_europe_wind_v1"
+    output: temp("build/ninja_wind_europe_v1.1_current_on-offshore.csv")
+    shell: "unzip {input} -d ./build"
 
 
 rule raw_pv_capacity_factors:
     message: "Extract pv capacity factors from zip."
     input: rules.raw_pv_capacity_factors_zipped.output
     shadow: "full"
-    output: temp("build/ninja_europe_pv_v1/ninja_pv_europe_v1.1_sarah.csv")
-    shell: "unzip {input} -d ./build/ninja_europe_pv_v1"
-
-
-rule wind_capacity_factors:
-    message: "Determine capacity factors for wind on- and offshore."
-    input:
-        rules.raw_wind_capacity_factors.output
-    output:
-        onshore = "build/capacity-factors-onshore.csv",
-        offshore = "build/capacity-factors-offshore.csv"
-    run:
-        import pandas as pd
-
-        data = pd.read_csv(input[0], parse_dates=True, index_col=0)
-        onshore = data.loc[:, [col for col in data.columns if "ON" in col]]
-        offshore = data.loc[:, [col for col in data.columns if "OFF" in col]]
-        onshore.rename(columns=lambda name: name[:2]).mean().to_csv(output.onshore)
-        offshore.rename(columns=lambda name: name[:2]).mean().to_csv(output.offshore)
-
-
-rule pv_capacity_factors:
-    message: "Determine pv capacity factors for pv."
-    input:
-        rules.raw_pv_capacity_factors.output
-    output:
-        "build/capacity-factors-pv.csv"
-    run:
-        import pandas as pd
-
-        cps = pd.read_csv(input[0], parse_dates=True, index_col=0)
-        cps.mean().to_csv(output[0])
+    output: temp("build/ninja_pv_europe_v1.1_sarah.csv")
+    shell: "unzip {input} -d ./build"
 
 
 rule elevation_in_europe:

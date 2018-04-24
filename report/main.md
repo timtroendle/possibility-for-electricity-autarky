@@ -112,7 +112,16 @@ To handle rooftop pv, I am using the European Settlement Map to identify the sha
 
 ### Necessary land
 
-Finally the fraction of the eligible land that is necessary to supply the electricity demand can be assessed. For that I am using assumptions on the annual energy yield per squaremeter of PV and wind to determine the annual energy yield per region. This can then be compared to the electrical energy demand in the region to determine the fraction of eligible land necessary to supply the demand.
+Finally the fraction of the eligible land that is necessary to supply the electricity demand can be assessed. For that I am using two things:
+
+* national capacity factors,
+* and assumptions on maximal density of installable power per technology.
+
+I am using the national capacity factors from renewables.ninja for all regions of a given country. Where national capacity factors for onshore wind are missing, I am using the ones from neighbouring countries. Where national capacity factors for offshore wind are missing, I am using the ones from onshore wind.
+
+The assumptions on maximal density of installable power per technology are taken from the literature [@Gagnon:2016; @EuropeanEnvironmentAgency:2009] and determine which capacity of a certain technology can be installed per land area.
+
+Using these factors together with the eligible land estimation of all steps before lets me determine the annual energy yield per region. This can then be compared to the electrical energy demand in the region to determine the fraction of eligible land necessary to supply the demand.
 
 # Results
 

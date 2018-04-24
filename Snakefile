@@ -6,6 +6,7 @@ CONFIG_FILE = "config/default.yaml"
 configfile: CONFIG_FILE
 include: "rules/data-preprocessing.smk"
 
+
 rule all:
     message: "Run entire analysis and compile report."
     input: "build/paper.pdf"
@@ -117,11 +118,24 @@ rule regional_eligibility_rooftop_correction:
         PYTHON_SCRIPT
 
 
+rule renewable_capacity_factors:
+    message: "Merge all renewable capacity factors and replace missing."
+    input:
+        "src/renewable_capacity_factors.py",
+        rules.raw_wind_capacity_factors.output,
+        rules.raw_pv_capacity_factors.output
+    output:
+        "build/national-capacity-factors.csv"
+    shell:
+        PYTHON_SCRIPT + " {CONFIG_FILE}"
+
+
 rule necessary_land:
     message: "Determine fraction of land necessary to supply demand per region of layer {wildcards.layer}."
     input:
         "src/necessary_land.py",
-        rules.regional_eligibility_rooftop_correction.output
+        rules.regional_eligibility_rooftop_correction.output,
+        rules.renewable_capacity_factors.output
     output:
         "build/{layer}/necessary-land.geojson"
     shell:
@@ -146,7 +160,8 @@ rule potential_plot:
     message: "Plot potentials of renewable power."
     input:
         "src/vis/potentials.py",
-        "build/national/regional-eligibility-rooftop-corrected.geojson"
+        "build/national/regional-eligibility-rooftop-corrected.geojson",
+        rules.renewable_capacity_factors.output
     output:
         "build/potentials.png"
     shell:
