@@ -52,7 +52,7 @@ Exclusive Economic Zones
 
 Electricity demand
 
-:   ENTSO-e provides historical load time series for most countries in Europe with a resolution of 1 hour. In this analysis I will use the processed version provided by @OpenPowerSystemData:2017.
+:   ENTSO-e provides historical load time series for most countries in Europe with a resolution of 1 hour. In this analysis I will use the processed version provided by @OpenPowerSystemData:2018.
 
 Capacity factors PV and wind
 
