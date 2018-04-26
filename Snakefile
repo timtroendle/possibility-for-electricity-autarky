@@ -151,7 +151,8 @@ rule necessary_land_plots:
         "build/national/regions.geojson"
     output:
         "build/necessary-land-boxplots.png",
-        "build/necessary-land-map.png"
+        "build/necessary-land-map.png",
+        "build/necessary-land-correlations.png"
     shell:
         PYTHON_SCRIPT
 
