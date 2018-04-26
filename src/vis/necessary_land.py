@@ -22,6 +22,7 @@ def visualise_necessary_land(paths_to_regions, path_to_countries, path_to_boxplo
     * red/green map
     """
     sns.set_context('paper')
+    paths_to_regions = [paths_to_regions[0], paths_to_regions[-1]] # use only first and last
     regions = [gpd.read_file(path) for path in paths_to_regions]
     for region, path_to_region in zip(regions, paths_to_regions):
         region["layer_id"] = _infer_layer_id(path_to_region)
@@ -46,9 +47,10 @@ def _boxplot(regions, path_to_plot):
         order=data.groupby("country_code").fraction_land_necessary.quantile(0.75).sort_values().index,
         ax=ax
     )
-    plt.xlabel("fraction land necessary")
-    plt.ylabel("country code")
+    ax.set_xlabel("fraction land necessary")
+    ax.set_ylabel("country code")
     ax.set_xscale('log')
+    ax.axvline(1, color="r", linewidth=0.75)
     fig.savefig(path_to_plot, dpi=300)
 
 
@@ -67,10 +69,10 @@ def _map(regions, countries, path_to_plot):
     )
     countries.plot(color='white', edgecolor='black', linewidth=0.4, ax=ax)
     regions.plot(column='sufficient_supply', linewidth=0.1, ax=ax, cmap=cmap, vmax=2)
-    plt.xlim(-15, 30)
-    plt.ylim(30, 70)
-    plt.xticks([])
-    plt.yticks([])
+    ax.set_xlim(-15, 30)
+    ax.set_ylim(30, 70)
+    ax.set_xticks([])
+    ax.set_yticks([])
     fig.savefig(path_to_plot, dpi=300)
 
 
