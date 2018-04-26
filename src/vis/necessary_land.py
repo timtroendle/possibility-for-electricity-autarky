@@ -8,7 +8,6 @@ import seaborn as sns
 
 from src.conversion import area_in_squaremeters
 
-BERLIN_MUNICIPALITY_ID = "DE110001000001"
 LAND_THRESHOLD = 0.3 # fraction of land that can be used for energy farming
 
 
@@ -27,13 +26,12 @@ def visualise_necessary_land(paths_to_regions, path_to_countries, path_to_boxplo
     * plot of correlation of region features to necessary land
     """
     sns.set_context('paper')
-    paths_to_regions = [paths_to_regions[0], paths_to_regions[-1]] # only use first and last
     regions = [gpd.read_file(path) for path in paths_to_regions]
     for region, path_to_region in zip(regions, paths_to_regions):
         region["layer_id"] = _infer_layer_id(path_to_region)
     countries = gpd.read_file(path_to_countries)
     _boxplot([regions[0], regions[-1]], path_to_boxplot)
-    _correlation(regions[-1], path_to_correlation)
+    _correlation(regions, path_to_correlation)
     _map(regions[-1], countries, path_to_map)
 
 
@@ -82,14 +80,22 @@ def _map(regions, countries, path_to_plot):
     fig.savefig(path_to_plot, dpi=300)
 
 
-def _correlation(regions, path_to_plot):
-    regions["area_km2"] = area_in_squaremeters(regions) / 1e6
-    regions["population_density"] = regions["population_sum"] / regions["area_km2"]
-    berlin = regions.set_index("name").loc[BERLIN_MUNICIPALITY_ID]
+def _correlation(region_sets, path_to_plot):
     fig = plt.figure(figsize=(8, 5))
     ax1 = fig.add_subplot(121)
-    sns.regplot(data=regions, x="area_km2", y="fraction_land_necessary", ax=ax1)
+    for region_set in reversed(region_sets):
+        layer_id = region_set["layer_id"][0]
+        region_set["area_km2"] = area_in_squaremeters(region_set) / 1e6
+        sns.regplot(
+            data=region_set,
+            x="area_km2",
+            y="fraction_land_necessary",
+            label=layer_id,
+            fit_reg=False,
+            ax=ax1
+        )
     ax1.axhline(1, color="r", linewidth=0.75)
+    berlin = region_sets[1].set_index("name").loc["Berlin"]
     ax1.plot(
         [berlin.area_km2], [berlin.fraction_land_necessary],
         color="red", marker="o", markersize=6
@@ -101,10 +107,22 @@ def _correlation(regions, path_to_plot):
     ax1.set_xlim(0.1,)
     ax1.set_ylim(0, 2)
     ax1.set_xscale("log")
+    ax1.legend()
 
     ax2 = fig.add_subplot(122, sharey=ax1)
-    sns.regplot(data=regions, x="population_density", y="fraction_land_necessary", ax=ax2)
+    for region_set in reversed(region_sets):
+        layer_id = region_set["layer_id"][0]
+        region_set["population_density"] = region_set["population_sum"] / region_set["area_km2"]
+        sns.regplot(
+            data=region_set,
+            x="population_density",
+            y="fraction_land_necessary",
+            label=layer_id,
+            fit_reg=False,
+            ax=ax2
+        )
     ax2.axhline(1, color="r", linewidth=0.75)
+    berlin = region_sets[1].set_index("name").loc["Berlin"]
     ax2.plot(
         [berlin.population_density], [berlin.fraction_land_necessary],
         color="red", marker="o", markersize=6
@@ -115,8 +133,9 @@ def _correlation(regions, path_to_plot):
     ax2.set_xlim(0.1,)
     ax2.set_ylim(0, 2)
     ax2.set_xscale("log")
+    ax2.legend()
 
-    fig.savefig(path_to_plot)
+    fig.savefig(path_to_plot, dpi=300)
 
 
 def _third_countries(countries):
