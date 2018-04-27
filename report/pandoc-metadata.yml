@@ -2,14 +2,19 @@
 title: Potential of renewable power in electrically autarkic regions in Europe
 author:
     - Tim Tröndle
+    - Stefan Pfenninger
+    - Johan Lilliestam
 institute: ETH Zürich
 tags:
     - 'reproducible-science'
     - 'electricity autarky'
-    - 'renewable power'
+    - 'renewable energy'
+    - 'geographical scale'
+    - 'land eligibility'
+    - 'land use'
     - 'Europe'
 abstract: |
-    Renewable power's primary energy source is local. Hence, a transition to a renewable power system provides regions the opportunity to become electrically autarkic. We investigate this opportunity for Europe as a whole, but also for nations, regions, and municipalities in Europe. Electricity autarky is only possible when the technical potential of renewable power exceeds the local demand. We determine the technical potential of rooftop PV, PV farms, and on- and offshore wind power through an analysis of land eligibility. Land cover, elevation and slope, and protected areas determine the eligibility of land for renewable power generation. In line with previous analyses we find that the technical potential of renewable power exceeds the demand several times on the European and also the national level. The situation is different for European subnational regions, and in particular for European municipalities, where in many cases the demand exceeds the technical potential. To reach electricity autarky in these areas, local authorities of rural areas would need to lower barriers for biodiversity protection and agree to high densities of renewable power plants. Local authorities in urban areas would often need to give up the idea of electricity autarky and accept power imports from their neighbours.
+    Because the potential for renewable electricity is distributed across the continent, there are frequent calls for electricity autarky on national or local levels. We investigate to which extent electricity autarky on different levels is possible in Europe, from the continental, to the national, regional/state, and municipal levels, assuming that electricity autarky is only possible when the technical potential of renewable electricity exceeds local demand. We determine the technical potential of rooftop PV, PV farms, and on- and offshore wind power through an analysis of land eligibility, considering land cover, elevation, and protected areas as determinants of land eligibility for renewable electricity generation. In line with previous analyses we find that the technical potential of renewable electricity is larger than the demand on the European and the national levels. For subnational autarky, the situation is different: here, the demand exceeds the technical potential in many places, an effect that is stronger the smaller the autarkic regions become. To reach electricity autarky in subnational regions, local authorities would need to lower barriers for environmental protection and agree to utilise currently protected areas for electricity generation, and to use very large fractions or all of available land for renewable electricity generation. Our findings show that electricity autarky below the national level is likely not feasible all over Europe.
 bibliography:
     - 'literature.bib'
 csl: 'energy-policy.csl'
