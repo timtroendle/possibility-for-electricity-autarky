@@ -26,7 +26,6 @@ def allocate_eezs(path_to_regions, path_to_eezs, path_to_output, threads):
     """Divide eez and allocate their parts and eligibilities to administrative regions."""
     regions = gpd.read_file(path_to_regions)
     eezs = gpd.read_file(path_to_eezs)
-    regions[OFFSHORE_ELIGIBILITY] = 0 # remove sweetwater false positives
     with Pool(threads) as pool:
         allocated_eligibilities = pool.map(
             _allocate_eez_eligibility,

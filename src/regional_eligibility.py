@@ -44,9 +44,10 @@ def allocate_eligibility_to_regions(path_to_regions, path_to_eligibility, path_t
                 _allocate_eligibility_to_region,
                 zip(sorted_regions, cycle([path_to_eligibility]))
             )
+        new_regions = _remove_offshore(new_regions)
         with fiona.open(path_to_output, "w", **meta) as output:
             output.writerecords(new_regions)
-    _test_allocation(path_to_output)
+    _test_land_allocation(path_to_output)
 
 
 def _allocate_eligibility_to_region(args):
@@ -97,10 +98,23 @@ def _reproject_raster(src, src_crs, src_bounds, src_transform):
     return result, pixel_width, pixel_height
 
 
-def _test_allocation(path_to_output):
+def _remove_offshore(regions):
+    # There is sometimes offshore eligibility inside these land regions.
+    # This should not be possible, hence I am resetting them here to not eligible.
+    for region in regions:
+        offshore_potential = region["properties"][Eligibility.OFFSHORE_WIND_FARM.property_name]
+        not_eligible = region["properties"][Eligibility.NOT_ELIGIBLE.property_name]
+        region["properties"][Eligibility.OFFSHORE_WIND_FARM.property_name] = 0.0
+        region["properties"][Eligibility.NOT_ELIGIBLE.property_name] = not_eligible + offshore_potential
+    return regions
+
+
+def _test_land_allocation(path_to_output):
+    eligibilities = [eligibility for eligibility in Eligibility
+                     if eligibility is not Eligibility.OFFSHORE_WIND_FARM]
     regions = gpd.read_file(path_to_output)
     total_allocated_area = regions.loc[:, [eligibility.property_name
-                                           for eligibility in Eligibility]].sum(axis="columns")
+                                           for eligibility in eligibilities]].sum(axis="columns")
     region_size = area_in_squaremeters(regions) / 1000 / 1000
     below_rel_threshold = abs(total_allocated_area - region_size) < region_size * REL_TOLERANCE
     below_abs_threshold = abs(total_allocated_area - region_size) < ABS_TOLERANCE

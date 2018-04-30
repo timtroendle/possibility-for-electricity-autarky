@@ -5,6 +5,7 @@ import rasterio
 from rasterstats import zonal_stats
 
 from eligible_land import Eligibility
+from regional_eligibility import _test_land_allocation
 
 NO_DATA_VALUE = -1
 
@@ -41,6 +42,7 @@ def rooftop_correction(path_to_rooftop_area_share, path_to_eligibility, path_to_
 
     with fiona.open(path_to_output, "w", **meta) as dst:
         dst.writerecords(new_features)
+    _test_land_allocation(path_to_output)
 
 
 def _update_feature(feature, avg_rooftop_share):
@@ -49,7 +51,11 @@ def _update_feature(feature, avg_rooftop_share):
     feature = feature.copy()
     feature["properties"]["urban_rooftop_area_share"] = avg_rooftop_share
     total_urban_area = feature["properties"][Eligibility.ROOFTOP_PV.property_name]
-    feature["properties"][Eligibility.ROOFTOP_PV.property_name] = total_urban_area * avg_rooftop_share
+    total_unusable_area = feature["properties"][Eligibility.NOT_ELIGIBLE.property_name]
+    rooftop_area = total_urban_area * avg_rooftop_share
+    other_urban_area = total_urban_area * (1 - avg_rooftop_share)
+    feature["properties"][Eligibility.ROOFTOP_PV.property_name] = rooftop_area
+    feature["properties"][Eligibility.NOT_ELIGIBLE.property_name] = total_unusable_area + other_urban_area
     return feature
 
 
