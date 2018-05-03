@@ -20,6 +20,7 @@ URL_PV_CP = "https://www.renewables.ninja/static/downloads/ninja_europe_pv_v1.1.
 
 RAW_SETTLEMENT_DATA = "data/esm-100m-2017/ESM_class50_100m.tif"
 RAW_EEZ_DATA = "data/World_EEZ_v10_20180221/eez_v10.shp"
+RAW_INDUSTRY_DATA = "data/electricity-intensive-industry/energy-intensive-industries.xlsx"
 
 RESOLUTION_STUDY = (1 / 3600) * 10 # 10 arcseconds
 RESOLUTION_SLOPE = (1 / 3600) * 3 # 3 arcseconds
@@ -381,3 +382,14 @@ rule eez_in_europe:
         | fio filter "f.properties.Territory1 in [{params.countries}]"\
         | fio collect > {output}
         """
+
+
+rule industry:
+    message: "Preprocess data on electricity intensive industry."
+    input:
+        "src/industry.py",
+        RAW_INDUSTRY_DATA
+    output:
+        "build/industrial-load.geojson"
+    shell:
+        PYTHON_SCRIPT

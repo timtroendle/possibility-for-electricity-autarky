@@ -36,3 +36,57 @@ def eu_country_code_to_iso3(eu_country_code):
     else:
         iso2 = eu_country_code
     return pycountry.countries.lookup(iso2).alpha_3
+
+
+def coordinate_string_to_decimal(coordinate_string):
+    """Converts a coordinate string to decimal coordinates in degrees (easting, northing).
+
+    A coordinate string looks something like this "48°18'N 14°17'E" hence is given in degrees,
+    arcminutes, and potentially arcseconds. It may as well be given in decimals.
+
+    The function would return the coordinates in decimal degrees easting and northing, so for
+    the example given above that would be (14.283333, 48.300000).
+    """
+    lat, long = _separate_lat_and_long(coordinate_string)
+    easting = _to_decimal_degree(*_split_coordinate(long))
+    northing = _to_decimal_degree(*_split_coordinate(lat))
+    return easting, northing
+
+
+def _separate_lat_and_long(coordinate_string):
+    coordinate_string = coordinate_string.replace(",", "")
+    assert "N" in coordinate_string, coordinate_string
+    length_of_lat = coordinate_string.find("N") + 1
+    lat = coordinate_string[:length_of_lat].strip()
+    long = coordinate_string[length_of_lat:].strip()
+    assert lat[-1] == "N", lat
+    assert long[-1] in ["E", "O", "W"], long
+    return lat, long
+
+
+def _split_coordinate(coordinate_string):
+    coordinate_string = coordinate_string.replace("′", "'")
+    if "°" in coordinate_string: # coordinates are given in arcminutes
+        degrees, residual = coordinate_string.split("°")
+        if "'" in residual:
+            arcminutes, residual = residual.split("'")
+        else:
+            arcminutes = 0.0
+        if '"' in residual:
+            arcseconds, residual = residual.split('"')
+        else:
+            arcseconds = 0.0
+    else: # coordinates are given in decimals already
+        degrees = coordinate_string[:-1]
+        residual = coordinate_string[-1]
+        arcminutes = 0.0
+        arcseconds = 0.0
+    degrees, arcminutes, arcseconds = [float(value) for value in (degrees, arcminutes, arcseconds)]
+    if "W" in residual:
+        # longitude given in westings instead of eastings
+        degrees, arcminutes, arcseconds = [- value for value in (degrees, arcminutes, arcseconds)]
+    return degrees, arcminutes, arcseconds
+
+
+def _to_decimal_degree(degrees, arcminutes, arcseconds):
+    return degrees + arcminutes / 60 + arcseconds / 3600
