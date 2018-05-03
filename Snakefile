@@ -59,6 +59,7 @@ rule regions_with_population_and_demand:
     input:
         "src/spatial_demand.py",
         rules.electricity_demand_national.output,
+        rules.industry.output,
         rules.regions_with_population.output
     output:
         temp("build/{layer}/regions-population-demand.geojson")

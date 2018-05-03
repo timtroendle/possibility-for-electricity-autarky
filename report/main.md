@@ -138,7 +138,7 @@ For chloralkali plants, we assume the lowest electricity intensity in the range 
 
 ### Electricity demand distribution
 
-The electricity demand of each autarkic region is determined using the national electricity demand data, the gridded population data, and the administrative areas data set. In a first step, the gridded population is mapped to the regions to determine the local population. After that, the national electricity demand is allocated to the regions proportional to the local population.
+The electricity demand of each autarkic region is determined using the national electricity demand data, industrial demand data, the gridded population data, and the administrative areas data set. In a first step, the gridded population is mapped to the regions to determine the local population. After that, industrial demand is allocated to the regions in which they are located. Finally, the national non-industrial electricity demand is allocated to the regions proportional to the local population.
 
 For France, Spain, and Portugal, the geographical perimeter of the load data is of importance in particular to understand whether their islands are included or not. ENTSO-e has enquired the national transmission grid operators in this regard [@entso-e:2016] and from the document the following can be derived on the geographical perimeter of the load data:
 
