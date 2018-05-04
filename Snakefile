@@ -1,3 +1,4 @@
+PYTHON = "PYTHONPATH=./ python"
 PYTHON_SCRIPT = "PYTHONPATH=./ python {input} {output}"
 
 RAW_GRIDDED_POP_DATA = "data/gpw-v4-population-count-2020/gpw-v4-population-count_2020.tif"
@@ -70,27 +71,27 @@ rule regions_with_population_and_demand:
 rule eez_eligibility:
     message: "Allocate eligible land to exclusive economic zones using {threads} threads."
     input:
-        "src/regional_eligibility.py",
-        rules.eez_in_europe.output,
-        rules.eligible_land.output
+        src = "src/regional_eligibility.py",
+        regions = rules.eez_in_europe.output,
+        eligibility = rules.eligible_land.output
     output:
         "build/eez-eligibility.geojson"
     threads: config["snakemake"]["max-threads"]
     shell:
-        PYTHON_SCRIPT + " {threads}"
+        PYTHON + " {input.src} offshore {input.regions} {input.eligibility} {output} {threads}"
 
 
 rule regional_land_eligibility:
     message: "Allocate eligible land to regions of layer {wildcards.layer} using {threads} threads."
     input:
-        "src/regional_eligibility.py",
-        rules.regions_with_population_and_demand.output,
-        rules.eligible_land.output
+        src = "src/regional_eligibility.py",
+        regions = rules.regions_with_population_and_demand.output,
+        eligibility = rules.eligible_land.output
     output:
         "build/{layer}/regional-land-eligibility.geojson"
     threads: config["snakemake"]["max-threads"]
     shell:
-        PYTHON_SCRIPT + " {threads}"
+        PYTHON + " {input.src} land {input.regions} {input.eligibility} {output} {threads}"
 
 
 rule regional_eligibility:

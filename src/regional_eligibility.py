@@ -21,13 +21,41 @@ REL_TOLERANCE = 0.01 # 1%
 ABS_TOLERANCE = 3.5 # km^2
 
 
-@click.command()
+@click.group()
+def regional_eligibility():
+    pass
+
+
+@regional_eligibility.command()
 @click.argument("path_to_regions")
 @click.argument("path_to_eligibility")
 @click.argument("path_to_output")
 @click.argument("threads", type=click.INT)
-def allocate_eligibility_to_regions(path_to_regions, path_to_eligibility, path_to_output, threads):
-    """Allocates eligible land to regions defined by vector data."""
+def land(path_to_regions, path_to_eligibility, path_to_output, threads):
+    """Allocates eligible land to regions defined by vector data.
+
+    Land is assumed to be land mass only, i.e. no maritime areas. Should any offshore
+    eligibility be found, it is assumed to be wrong and converted to not eligible land.
+    """
+    _allocation_eligibility_to_regions(path_to_regions, path_to_eligibility, path_to_output,
+                                       threads, offshore=False)
+
+
+@regional_eligibility.command()
+@click.argument("path_to_regions")
+@click.argument("path_to_eligibility")
+@click.argument("path_to_output")
+@click.argument("threads", type=click.INT)
+def offshore(path_to_regions, path_to_eligibility, path_to_output, threads):
+    """Allocates eligible land to regions defined by vector data.
+
+    Regions are assumed to be maritime/offshore regions.
+    """
+    _allocation_eligibility_to_regions(path_to_regions, path_to_eligibility, path_to_output,
+                                       threads, offshore=True)
+
+
+def _allocation_eligibility_to_regions(path_to_regions, path_to_eligibility, path_to_output, threads, offshore):
     with fiona.open(path_to_regions, "r") as regions:
         meta = regions.meta
         meta["driver"] = "GeoJSON"
@@ -44,10 +72,11 @@ def allocate_eligibility_to_regions(path_to_regions, path_to_eligibility, path_t
                 _allocate_eligibility_to_region,
                 zip(sorted_regions, cycle([path_to_eligibility]))
             )
-        new_regions = _remove_offshore(new_regions)
+        if not offshore:
+            new_regions = _remove_offshore(new_regions)
         with fiona.open(path_to_output, "w", **meta) as output:
             output.writerecords(new_regions)
-    _test_land_allocation(path_to_output)
+    _test_allocation(path_to_output, offshore)
 
 
 def _allocate_eligibility_to_region(args):
@@ -99,7 +128,7 @@ def _reproject_raster(src, src_crs, src_bounds, src_transform):
 
 
 def _remove_offshore(regions):
-    # There is sometimes offshore eligibility inside these land regions.
+    # There is sometimes offshore eligibility inside land regions.
     # This should not be possible, hence I am resetting them here to not eligible.
     for region in regions:
         offshore_potential = region["properties"][Eligibility.OFFSHORE_WIND_FARM.property_name]
@@ -110,8 +139,13 @@ def _remove_offshore(regions):
 
 
 def _test_land_allocation(path_to_output):
-    eligibilities = [eligibility for eligibility in Eligibility
-                     if eligibility is not Eligibility.OFFSHORE_WIND_FARM]
+    _test_allocation(path_to_output, offshore=False)
+
+
+def _test_allocation(path_to_output, offshore):
+    eligibilities = [eligibility for eligibility in Eligibility]
+    if offshore is False:
+        eligibilities.remove(Eligibility.OFFSHORE_WIND_FARM)
     regions = gpd.read_file(path_to_output)
     total_allocated_area = regions.loc[:, [eligibility.property_name
                                            for eligibility in eligibilities]].sum(axis="columns")
@@ -133,4 +167,4 @@ def _test_land_allocation(path_to_output):
 
 
 if __name__ == "__main__":
-    allocate_eligibility_to_regions()
+    regional_eligibility()
