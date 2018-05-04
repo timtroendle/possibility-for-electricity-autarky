@@ -3,7 +3,6 @@ import click
 import pandas as pd
 import geopandas as gpd
 import matplotlib.pyplot as plt
-import matplotlib.colors
 import seaborn as sns
 
 from src.conversion import area_in_squaremeters
@@ -59,12 +58,9 @@ def _boxplot(region_sets, path_to_plot):
 
 
 def _map(regions, countries, path_to_plot):
-    regions["sufficient_supply"] = 0
-    regions.loc[regions["fraction_land_necessary"] <= LAND_THRESHOLD, "sufficient_supply"] = 1
-    regions.loc[regions["fraction_land_necessary"] > LAND_THRESHOLD, "sufficient_supply"] = 2
-    levels = [0, 1, 2, 3]
-    colors = ['grey', 'green', 'red']
-    cmap, norm = matplotlib.colors.from_levels_and_colors(levels, colors)
+    winners = regions[regions["fraction_land_necessary"] <= LAND_THRESHOLD]
+    loosers = regions[regions["fraction_land_necessary"] > LAND_THRESHOLD]
+    invalids = regions[~regions.isin(pd.concat([winners, loosers]))].dropna()
 
     fig = plt.figure(figsize=(10, 10))
     ax = fig.add_subplot(111)
@@ -72,7 +68,10 @@ def _map(regions, countries, path_to_plot):
         color='grey', edgecolor='black', linewidth=0.4, ax=ax, alpha=0.2
     )
     countries.plot(color='white', edgecolor='black', linewidth=0.4, ax=ax)
-    regions.plot(column='sufficient_supply', linewidth=0.1, ax=ax, cmap=cmap, vmax=2)
+    winners.plot(color="green", linewidth=0.1, ax=ax)
+    loosers.plot(color="red", linewidth=0.1, ax=ax)
+    if not invalids.empty:
+        invalids.plot(color="grey", linewidth=0.1, ax=ax)
     ax.set_xlim(-15, 30)
     ax.set_ylim(30, 70)
     ax.set_xticks([])
