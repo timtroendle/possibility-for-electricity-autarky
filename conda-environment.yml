@@ -6,6 +6,7 @@ dependencies:
   - python=3.6
   - numpy=1.13.3
   - pandas=0.20.3
+  - gdal=2.1
   - matplotlib=2.2
   - seaborn=0.8.1
   - pandoc=2.1.1
