@@ -26,17 +26,17 @@ def visualise_necessary_land(paths_to_regions, path_to_countries, path_to_boxplo
     * plot of correlation of region features to necessary land
     """
     sns.set_context('paper')
-    regions = [gpd.read_file(path) for path in paths_to_regions]
-    for region, path_to_region in zip(regions, paths_to_regions):
+    region_sets = [gpd.read_file(path) for path in paths_to_regions]
+    for region, path_to_region in zip(region_sets, paths_to_regions):
         region["layer_id"] = _infer_layer_id(path_to_region)
     countries = gpd.read_file(path_to_countries)
-    _boxplot([regions[0], regions[-1]], path_to_boxplot)
-    _correlation(regions, path_to_correlation)
-    _map(regions[-1], countries, path_to_map)
+    _boxplot([region_sets[0], region_sets[-1]], path_to_boxplot)
+    _correlation(region_sets, path_to_correlation)
+    _map(region_sets[-1], countries, path_to_map)
 
 
-def _boxplot(regions, path_to_plot):
-    data = pd.concat([pd.DataFrame(gdf) for gdf in regions])
+def _boxplot(region_sets, path_to_plot):
+    data = pd.concat([pd.DataFrame(gdf) for gdf in region_sets])
     data_eu = data.copy()
     data_eu["country_code"] = "EUR"
     data = pd.concat([data, data_eu])
