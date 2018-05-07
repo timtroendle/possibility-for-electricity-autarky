@@ -62,7 +62,7 @@ def _map(regions, countries, path_to_plot):
     loosers = regions[regions["fraction_land_necessary"] > LAND_THRESHOLD]
     invalids = regions[~regions.isin(pd.concat([winners, loosers]))].dropna()
 
-    fig = plt.figure(figsize=(10, 10))
+    fig = plt.figure(figsize=(16, 16))
     ax = fig.add_subplot(111)
     _third_countries(countries).plot(
         color='grey', edgecolor='black', linewidth=0.4, ax=ax, alpha=0.2
