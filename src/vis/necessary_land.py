@@ -8,6 +8,8 @@ import seaborn as sns
 from src.conversion import area_in_squaremeters
 
 LAND_THRESHOLD = 0.3 # fraction of land that can be used for energy farming
+GREEN = "#679436"
+RED = "#A01914"
 
 
 @click.command()
@@ -68,8 +70,8 @@ def _map(regions, countries, path_to_plot):
         color='grey', edgecolor='black', linewidth=0.4, ax=ax, alpha=0.2
     )
     countries.plot(color='white', edgecolor='black', linewidth=0.4, ax=ax)
-    winners.plot(color="green", linewidth=0.1, ax=ax)
-    loosers.plot(color="red", linewidth=0.1, ax=ax)
+    winners.plot(color=GREEN, linewidth=0.1, ax=ax)
+    loosers.plot(color=RED, linewidth=0.1, ax=ax)
     if not invalids.empty:
         invalids.plot(color="grey", linewidth=0.1, ax=ax)
     ax.set_xlim(-15, 30)
