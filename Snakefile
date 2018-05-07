@@ -171,6 +171,18 @@ rule potential_plot:
         PYTHON_SCRIPT + " {CONFIG_FILE}"
 
 
+rule kassel_plot:
+    message: "Plot the map of land necessary for Germany and point to Kassel."
+    input:
+        "src/vis/kassel.py",
+        "build/municipal/necessary-land.geojson",
+        "build/national/regions.geojson"
+    output:
+        "build/kassel-map.png"
+    shell:
+        PYTHON_SCRIPT
+
+
 rule paper:
     message: "Compile report."
     input:
