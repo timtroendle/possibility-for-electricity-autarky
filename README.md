@@ -41,6 +41,8 @@ To generate a PDF of the dependency graph of all steps, run:
 
     snakemake --rulegraph | dot -Tpdf > dag.pdf
 
+(needs `dot`: `conda install graphviz`).
+
 ## Run the tests
 
     snakemake test

@@ -41,29 +41,32 @@ rule regions:
         PYTHON_SCRIPT + " {wildcards.layer} {CONFIG_FILE}"
 
 
-rule regions_with_population:
+rule population:
     message: "Allocate population to regions of layer {wildcards.layer}."
     input:
         regions = rules.regions.output,
         population = RAW_GRIDDED_POP_DATA
     output:
-        temp("build/{layer}/regions-population.geojson")
+        "build/{layer}/population.csv"
     shell:
         """
         fio cat {input.regions} | \
-        rio zonalstats -r {input.population} --prefix 'population_' --stats sum > {output}
+        rio zonalstats -r {input.population} --prefix 'population_' --stats sum | \
+        sed -e 's/nan/0.0/g' | # some regions are so small, they contain no pixel
+        python src/geojson_to_csv.py -a name -a population_sum > {output}
         """
 
 
-rule regions_with_population_and_demand:
+rule demand:
     message: "Allocate electricity demand to regions of layer {wildcards.layer}."
     input:
         "src/spatial_demand.py",
         rules.electricity_demand_national.output,
         rules.industry.output,
-        rules.regions_with_population.output
+        rules.regions.output,
+        rules.population.output
     output:
-        temp("build/{layer}/regions-population-demand.geojson")
+        "build/{layer}/demand.csv"
     shell:
         PYTHON_SCRIPT
 
@@ -85,10 +88,10 @@ rule regional_land_eligibility:
     message: "Allocate eligible land to regions of layer {wildcards.layer} using {threads} threads."
     input:
         src = "src/regional_eligibility.py",
-        regions = rules.regions_with_population_and_demand.output,
+        regions = rules.regions.output,
         eligibility = rules.eligible_land.output
     output:
-        "build/{layer}/regional-land-eligibility.geojson"
+        "build/{layer}/land-eligibility.csv"
     threads: config["snakemake"]["max-threads"]
     shell:
         PYTHON + " {input.src} land {input.regions} {input.eligibility} {output} {threads}"

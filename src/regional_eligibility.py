@@ -5,6 +5,7 @@ from itertools import cycle
 
 import click
 import numpy as np
+import pandas as pd
 from shapely.geometry import shape
 import fiona
 import rasterio
@@ -74,9 +75,18 @@ def _allocation_eligibility_to_regions(path_to_regions, path_to_eligibility, pat
             )
         if not offshore:
             new_regions = _remove_offshore(new_regions)
-        with fiona.open(path_to_output, "w", **meta) as output:
-            output.writerecords(new_regions)
-    _test_allocation(path_to_output, offshore)
+
+        data = pd.DataFrame(
+            index=[region["properties"]["name"] for region in new_regions],
+            data={
+                eligibility.property_name: [region["properties"][eligibility.property_name]
+                                            for region in new_regions]
+                for eligibility in Eligibility
+            }
+        )
+        data.index.name = "name"
+        data.to_csv(path_to_output, header=True)
+    _test_allocation(path_to_regions, path_to_output, offshore)
 
 
 def _allocate_eligibility_to_region(args):
@@ -138,15 +148,16 @@ def _remove_offshore(regions):
     return regions
 
 
-def _test_land_allocation(path_to_output):
-    _test_allocation(path_to_output, offshore=False)
+def _test_land_allocation(path_to_regions, path_to_output):
+    _test_allocation(path_to_regions, path_to_output, offshore=False)
 
 
-def _test_allocation(path_to_output, offshore):
+def _test_allocation(path_to_regions, path_to_eligibilities, offshore):
     eligibilities = [eligibility for eligibility in Eligibility]
     if offshore is False:
         eligibilities.remove(Eligibility.OFFSHORE_WIND_FARM)
-    regions = gpd.read_file(path_to_output)
+    regions = gpd.read_file(path_to_regions)
+    regions = regions.merge(pd.read_csv(path_to_eligibilities), on='name')
     total_allocated_area = regions.loc[:, [eligibility.property_name
                                            for eligibility in eligibilities]].sum(axis="columns")
     region_size = area_in_squaremeters(regions) / 1000 / 1000
