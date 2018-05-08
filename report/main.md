@@ -44,7 +44,7 @@ NUTS
 
 GADM
 
-:   The global administrative areas database [@GADM:2015] is used to amend NUTS data.
+:   The global administrative areas database [@GADM:2018] is used to amend NUTS data.
 
 Exclusive Economic Zones
 

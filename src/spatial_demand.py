@@ -28,14 +28,14 @@ def spatial_distribution(path_to_national_demand, path_to_industry_load, path_to
     industries = gpd.read_file(path_to_industry_load)
     industries["demand_twh_per_year"] = _determine_industry_demand(industries)
     regions = gpd.read_file(path_to_regions)
-    regions = regions.merge(pd.read_csv(path_to_population), on='name')
+    regions = regions.merge(pd.read_csv(path_to_population), on='id')
 
     regional_industry_demand = _allocate_industry_demand_to_regions(industries, regions)
     assert math.isclose(regional_industry_demand.sum(), industries.demand_twh_per_year.sum())
     regional_non_industry_demand = _determine_non_industry_demand(total_demand, regional_industry_demand, regions)
     regions["demand_twh_per_year"] = regional_industry_demand + regional_non_industry_demand
     assert math.isclose(regions["demand_twh_per_year"].sum(), total_demand["twh_per_year"].sum())
-    pd.DataFrame(regions).set_index("name")["demand_twh_per_year"].to_csv(path_to_results, header=True)
+    pd.DataFrame(regions).set_index("id")["demand_twh_per_year"].to_csv(path_to_results, header=True)
 
 
 def _determine_industry_demand(industries):

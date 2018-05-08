@@ -52,8 +52,8 @@ rule population:
         """
         fio cat {input.regions} | \
         rio zonalstats -r {input.population} --prefix 'population_' --stats sum | \
-        sed -e 's/nan/0.0/g' | # some regions are so small, they contain no pixel
-        python src/geojson_to_csv.py -a name -a population_sum > {output}
+        python src/geojson_to_csv.py -a id -a population_sum | \
+        sed -e 's/None/0.0/g' > {output} # some regions are so small, they contain no pixel
         """
 
 
@@ -78,7 +78,7 @@ rule eez_eligibility:
         regions = rules.eez_in_europe.output,
         eligibility = rules.eligible_land.output
     output:
-        "build/eez-eligibility.geojson"
+        "build/eez-eligibility.csv"
     threads: config["snakemake"]["max-threads"]
     shell:
         PYTHON + " {input.src} offshore {input.regions} {input.eligibility} {output} {threads}"
@@ -97,17 +97,29 @@ rule regional_land_eligibility:
         PYTHON + " {input.src} land {input.regions} {input.eligibility} {output} {threads}"
 
 
-rule regional_eligibility:
-    message: "Allocate eez and their eligibilities to regions of layer {wildcards.layer} using {threads} threads."
+rule shared_coast:
+    message: "Determine share of coast length between eez and regions of layer {wildcards.layer} using {threads} threads."
     input:
-        "src/allocate_eez.py",
-        rules.regional_land_eligibility.output,
-        rules.eez_eligibility.output
+        "src/shared_coast.py",
+        rules.regions.output,
+        rules.eez_in_europe.output
     output:
-        "build/{layer}/regional-eligibility.geojson"
+        "build/{layer}/shared-coast.csv"
     threads: config["snakemake"]["max-threads"]
     shell:
         PYTHON_SCRIPT + " {threads}"
+
+
+rule regional_offshore_eligibility:
+    message: "Allocate eez eligibilities to regions of layer {wildcards.layer}."
+    input:
+        "src/allocate_eez.py",
+        rules.eez_eligibility.output,
+        rules.shared_coast.output
+    output:
+        "build/{layer}/offshore-eligibility.csv"
+    shell:
+        PYTHON_SCRIPT
 
 
 rule regional_eligibility_rooftop_correction:
@@ -116,9 +128,10 @@ rule regional_eligibility_rooftop_correction:
         "src/rooftop_correction.py",
         rules.rooftop_area.output,
         rules.eligible_land.output,
-        rules.regional_eligibility.output
+        rules.regions.output,
+        rules.regional_land_eligibility.output
     output:
-        "build/{layer}/regional-eligibility-rooftop-corrected.geojson"
+        "build/{layer}/land-eligibility-rooftop-corrected.csv"
     shell:
         PYTHON_SCRIPT
 
@@ -139,10 +152,14 @@ rule necessary_land:
     message: "Determine fraction of land necessary to supply demand per region of layer {wildcards.layer}."
     input:
         "src/necessary_land.py",
+        rules.regions.output,
+        rules.population.output,
+        rules.demand.output,
         rules.regional_eligibility_rooftop_correction.output,
+        rules.regional_offshore_eligibility.output,
         rules.renewable_capacity_factors.output
     output:
-        "build/{layer}/necessary-land.geojson"
+        "build/{layer}/result.geojson"
     shell:
         # TODO this approach leads to up to 866 m^2 roof area per citizen -- way too much
         PYTHON_SCRIPT + " {CONFIG_FILE}"
@@ -152,7 +169,7 @@ rule necessary_land_plots:
     message: "Plot fraction of land necessary."
     input:
         "src/vis/necessary_land.py",
-        expand("build/{layer}/necessary-land.geojson", layer=config["layers"].keys()),
+        expand("build/{layer}/result.geojson", layer=config["layers"].keys()),
         "build/national/regions.geojson"
     output:
         "build/necessary-land-boxplots.png",
@@ -166,7 +183,7 @@ rule potential_plot:
     message: "Plot potentials of renewable power."
     input:
         "src/vis/potentials.py",
-        "build/national/regional-eligibility-rooftop-corrected.geojson",
+        "build/national/result.geojson",
         rules.renewable_capacity_factors.output
     output:
         "build/potentials.png"
@@ -178,7 +195,7 @@ rule kassel_plot:
     message: "Plot the map of land necessary for Germany and point to Kassel."
     input:
         "src/vis/kassel.py",
-        "build/municipal/necessary-land.geojson",
+        "build/municipal/result.geojson",
         "build/national/regions.geojson"
     output:
         "build/kassel-map.png"

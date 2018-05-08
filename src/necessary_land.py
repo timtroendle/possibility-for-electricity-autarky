@@ -14,12 +14,16 @@ ZERO_DEMAND = 0.000001
 
 @click.command()
 @click.argument("path_to_regions")
+@click.argument("paths_to_region_attributes", nargs=-1)
 @click.argument("path_to_capacity_factors")
 @click.argument("path_to_output")
 @click.argument("config", type=Config())
-def determine_necessary_land(path_to_regions, path_to_capacity_factors, path_to_output, config):
+def determine_necessary_land(path_to_regions, paths_to_region_attributes, path_to_capacity_factors,
+                             path_to_output, config):
     """Determines the fraction of land needed in each region to fulfill the demand."""
     regions = gpd.read_file(path_to_regions)
+    for path_to_region_attribute in paths_to_region_attributes:
+        regions = regions.merge(pd.read_csv(path_to_region_attribute), on='id')
     cps = pd.read_csv(path_to_capacity_factors, index_col=0)
     max_yield_watt = pd.DataFrame({
         eligibility: _max_yield_watt(eligibility, regions, cps, config)

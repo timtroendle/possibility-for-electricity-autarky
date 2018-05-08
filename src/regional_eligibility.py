@@ -57,11 +57,10 @@ def offshore(path_to_regions, path_to_eligibility, path_to_output, threads):
 
 
 def _allocation_eligibility_to_regions(path_to_regions, path_to_eligibility, path_to_output, threads, offshore):
+    eligibilities = [eligibility for eligibility in Eligibility]
+    if not offshore:
+        eligibilities.remove(Eligibility.OFFSHORE_WIND_FARM)
     with fiona.open(path_to_regions, "r") as regions:
-        meta = regions.meta
-        meta["driver"] = "GeoJSON"
-        for eligibility in Eligibility:
-            meta["schema"]["properties"][eligibility.property_name] = "float"
         with Pool(threads) as pool:
             # start with largest (=slowest) region to optimise the multi processing
             sorted_regions = sorted(
@@ -77,14 +76,14 @@ def _allocation_eligibility_to_regions(path_to_regions, path_to_eligibility, pat
             new_regions = _remove_offshore(new_regions)
 
         data = pd.DataFrame(
-            index=[region["properties"]["name"] for region in new_regions],
+            index=[region["properties"]["id"] for region in new_regions],
             data={
                 eligibility.property_name: [region["properties"][eligibility.property_name]
                                             for region in new_regions]
-                for eligibility in Eligibility
+                for eligibility in eligibilities
             }
         )
-        data.index.name = "name"
+        data.index.name = "id"
         data.to_csv(path_to_output, header=True)
     _test_allocation(path_to_regions, path_to_output, offshore)
 
@@ -148,8 +147,8 @@ def _remove_offshore(regions):
     return regions
 
 
-def _test_land_allocation(path_to_regions, path_to_output):
-    _test_allocation(path_to_regions, path_to_output, offshore=False)
+def _test_land_allocation(path_to_regions, path_to_eligibilities):
+    _test_allocation(path_to_regions, path_to_eligibilities, offshore=False)
 
 
 def _test_allocation(path_to_regions, path_to_eligibilities, offshore):
@@ -157,7 +156,7 @@ def _test_allocation(path_to_regions, path_to_eligibilities, offshore):
     if offshore is False:
         eligibilities.remove(Eligibility.OFFSHORE_WIND_FARM)
     regions = gpd.read_file(path_to_regions)
-    regions = regions.merge(pd.read_csv(path_to_eligibilities), on='name')
+    regions = regions.merge(pd.read_csv(path_to_eligibilities), on="id")
     total_allocated_area = regions.loc[:, [eligibility.property_name
                                            for eligibility in eligibilities]].sum(axis="columns")
     region_size = area_in_squaremeters(regions) / 1000 / 1000

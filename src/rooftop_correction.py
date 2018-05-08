@@ -1,6 +1,7 @@
 """Module to decrease the total urban area to the areas that are available for PV."""
 import click
 import fiona
+import pandas as pd
 import rasterio
 from rasterstats import zonal_stats
 
@@ -14,8 +15,10 @@ NO_DATA_VALUE = -1
 @click.argument("path_to_rooftop_area_share")
 @click.argument("path_to_eligibility")
 @click.argument("path_to_regions")
+@click.argument("path_to_regional_eligibility")
 @click.argument("path_to_output")
-def rooftop_correction(path_to_rooftop_area_share, path_to_eligibility, path_to_regions, path_to_output):
+def rooftop_correction(path_to_rooftop_area_share, path_to_eligibility, path_to_regions,
+                       path_to_regional_eligibility, path_to_output):
     """Reduce total urban area to the share that is available for PV.
 
     This is based on using only those areas that have been identified as roofs in the
@@ -36,27 +39,26 @@ def rooftop_correction(path_to_rooftop_area_share, path_to_eligibility, path_to_
             stats="mean",
             nodata=NO_DATA_VALUE
         )
-        meta = src.meta.copy()
-        meta["schema"]["properties"]["urban_rooftop_area_share"] = "float"
-        new_features = [_update_feature(feature, stat["mean"]) for feature, stat in zip(src, zs)]
+        urban_rooftop_area_share = pd.Series(
+            index=[feat["properties"]["id"] for feat in src],
+            data=[stat["mean"] for stat in zs]
+        ).fillna(0.0) # happens if there is no urban area in the region
+    corrected_eligibilites = _correct_eligibilities(path_to_regional_eligibility, urban_rooftop_area_share)
 
-    with fiona.open(path_to_output, "w", **meta) as dst:
-        dst.writerecords(new_features)
-    _test_land_allocation(path_to_output)
+    corrected_eligibilites.to_csv(path_to_output, header=True)
+    _test_land_allocation(path_to_regions, path_to_output)
 
 
-def _update_feature(feature, avg_rooftop_share):
-    if avg_rooftop_share is None: # happens if there is no urban area in the region
-        avg_rooftop_share = 0.0
-    feature = feature.copy()
-    feature["properties"]["urban_rooftop_area_share"] = avg_rooftop_share
-    total_urban_area = feature["properties"][Eligibility.ROOFTOP_PV.property_name]
-    total_unusable_area = feature["properties"][Eligibility.NOT_ELIGIBLE.property_name]
-    rooftop_area = total_urban_area * avg_rooftop_share
-    other_urban_area = total_urban_area * (1 - avg_rooftop_share)
-    feature["properties"][Eligibility.ROOFTOP_PV.property_name] = rooftop_area
-    feature["properties"][Eligibility.NOT_ELIGIBLE.property_name] = total_unusable_area + other_urban_area
-    return feature
+def _correct_eligibilities(path_to_regional_eligibility, urban_rooftop_area_share):
+    regional_eligibility = pd.read_csv(path_to_regional_eligibility, index_col=0)
+    regional_eligibility["urban_rooftop_area_share"] = urban_rooftop_area_share
+    total_urban_area = regional_eligibility[Eligibility.ROOFTOP_PV.property_name]
+    total_unusable_area = regional_eligibility[Eligibility.NOT_ELIGIBLE.property_name]
+    rooftop_area = total_urban_area * regional_eligibility["urban_rooftop_area_share"]
+    other_urban_area = total_urban_area * (1 - regional_eligibility["urban_rooftop_area_share"])
+    regional_eligibility[Eligibility.ROOFTOP_PV.property_name] = rooftop_area
+    regional_eligibility[Eligibility.NOT_ELIGIBLE.property_name] = total_unusable_area + other_urban_area
+    return regional_eligibility
 
 
 if __name__ == "__main__":
