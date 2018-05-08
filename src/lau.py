@@ -5,7 +5,7 @@ import fiona.transform
 import shapely.geometry
 import pycountry
 
-from gadm import SCHEMA
+from gadm import SCHEMA, _test_id_uniqueness
 from nuts import _to_multi_polygon, _study_area
 from conversion import eu_country_code_to_iso3
 from utils import Config
@@ -26,6 +26,7 @@ def normalise_lau(path_to_lau, path_to_output, config):
                                                               driver=OUTPUT_DRIVER,
                                                               layer="lau2") as result_file:
         result_file.writerecords(_layer_features(lau_file, config))
+    _test_id_uniqueness(path_to_output)
 
 
 def _layer_features(lau_file, config):
@@ -33,8 +34,9 @@ def _layer_features(lau_file, config):
         new_feature = {}
         new_feature["properties"] = {}
         new_feature["properties"]["country_code"] = eu_country_code_to_iso3(feature["properties"]["COMM_ID"][:2])
+        new_feature["properties"]["id"] = feature["properties"]["COMM_ID"]
         new_feature["properties"]["name"] = feature["properties"]["COMM_ID"]
-        new_feature["properties"]["region_type"] = None
+        new_feature["properties"]["region_type"] = "commune"
         new_feature["geometry"] = _all_parts_in_study_area_and_crs(feature, lau_file.crs, config)
         yield new_feature
 

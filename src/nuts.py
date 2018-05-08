@@ -5,7 +5,7 @@ import fiona.transform
 import shapely.geometry
 import pycountry
 
-from gadm import SCHEMA, _to_multi_polygon
+from gadm import SCHEMA, _to_multi_polygon, _test_id_uniqueness
 from conversion import eu_country_code_to_iso3
 from utils import Config
 
@@ -28,6 +28,7 @@ def normalise_nuts(path_to_nuts, path_to_output, config):
         for layer_id in range(4):
             print("Building layer {}...".format(layer_id))
             _write_layer(nuts_file, config, path_to_output, layer_id)
+    _test_id_uniqueness(path_to_output)
 
 
 def _write_layer(nuts_file, config, path_to_output, layer_id):
@@ -45,8 +46,9 @@ def _layer_features(nuts_file, config, layer_id):
         new_feature = {}
         new_feature["properties"] = {}
         new_feature["properties"]["country_code"] = eu_country_code_to_iso3(feature["properties"]["NUTS_ID"][:2])
+        new_feature["properties"]["id"] = feature["properties"]["NUTS_ID"]
         new_feature["properties"]["name"] = feature["properties"]["NUTS_ID"]
-        new_feature["properties"]["region_type"] = None
+        new_feature["properties"]["region_type"] = "country" if layer_id == 0 else None
         new_feature["geometry"] = _all_parts_in_study_area_and_crs(feature, nuts_file.crs, config)
         yield new_feature
 

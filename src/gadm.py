@@ -4,6 +4,7 @@ from itertools import chain
 import click
 import fiona
 import fiona.transform
+import geopandas as gpd
 import shapely.geometry
 from shapely.prepared import prep
 
@@ -11,8 +12,8 @@ from src.utils import Config
 
 LAYER_NAME = "gadm{layer_id}"
 SCHEMA = {
-    "properties": {"country_code": "str", "name": "str",
-                   "region_type": "str"},
+    "properties": {"country_code": "str", "id": "str",
+                   "name": "str", "region_type": "str"},
     "geometry": "MultiPolygon"
 }
 
@@ -34,7 +35,7 @@ def retrieve_administrative_borders(path_to_countries, max_layer_depths, path_to
         src_crs = first_country.crs
         src_driver = first_country.driver
     for layer_id in range(max_layer_depths + 1):
-        print("Merging layer {}...".format(layer_id))
+        print(f"Merging layer {layer_id}...")
         with fiona.open(path_to_output,
                         "w",
                         crs=config["crs"],
@@ -47,6 +48,7 @@ def retrieve_administrative_borders(path_to_countries, max_layer_depths, path_to
                       for path_to_country in path_to_countries])
                  ]
             )
+    _test_id_uniqueness(path_to_output)
 
 
 def _country_features(path_to_file, layer_id, study_area):
@@ -58,12 +60,10 @@ def _country_features(path_to_file, layer_id, study_area):
             new_feature = {}
             new_feature["properties"] = {}
             new_feature["properties"]["country_code"] = feature["properties"]["GID_0"]
-            new_feature["properties"]["name"] = (
-                feature["properties"]["NAME_{}".format(layer_id)] if layer_id > 0
-                else feature["properties"]["NAME_0"]
-            )
+            new_feature["properties"]["id"] = feature["properties"][f"GID_{layer_id}"]
+            new_feature["properties"]["name"] = feature["properties"][f"NAME_{layer_id}"]
             new_feature["properties"]["region_type"] = (
-                feature["properties"]["ENGTYPE_{}".format(layer_id)] if layer_id > 0
+                feature["properties"][f"ENGTYPE_{layer_id}"] if layer_id > 0
                 else "country"
             )
             new_feature["geometry"] = _all_parts_in_study_area(feature, study_area)
@@ -119,6 +119,11 @@ def _to_multi_polygon(geometry):
         return shapely.geometry.MultiPolygon(polygons=[shape])
     else:
         return shape
+
+
+def _test_id_uniqueness(path_to_file):
+    for layer_name in fiona.listlayers(path_to_file):
+        assert not gpd.read_file(path_to_file, layer=layer_name).id.duplicated().any()
 
 
 if __name__ == "__main__":
