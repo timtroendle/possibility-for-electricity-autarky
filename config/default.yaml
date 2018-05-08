@@ -168,3 +168,6 @@ parameters:
         Malta: Italy
         Montenegro: Croatia
         Serbia: Romania
+    max-slope:
+        pv: 3
+        wind: 20

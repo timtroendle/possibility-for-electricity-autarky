@@ -5,8 +5,7 @@ import click
 import numpy as np
 import rasterio
 
-MAX_SLOPE_PV = 3
-MAX_SLOPE_WIND = 20
+from src.utils import Config
 
 DATATYPE = np.uint8
 
@@ -76,8 +75,9 @@ class ProtectedArea(IntEnum):
 @click.argument("path_to_slope")
 @click.argument("path_to_bathymetry")
 @click.argument("path_to_result")
+@click.argument("config", type=Config())
 def determine_eligible_land(path_to_land_cover, path_to_protected_areas, path_to_slope,
-                            path_to_bathymetry, path_to_result):
+                            path_to_bathymetry, path_to_result, config):
     """Determines eligibility of land for renewables."""
     with rasterio.open(path_to_land_cover) as src:
         raster_affine = src.affine
@@ -96,19 +96,21 @@ def determine_eligible_land(path_to_land_cover, path_to_protected_areas, path_to
         new_geotiff.write(eligibility, 1)
 
 
-def determine_eligibility(land_cover, protected_areas, slope, bathymetry):
+def determine_eligibility(land_cover, protected_areas, slope, bathymetry, config):
+    max_slope_pv = config["parameters"]["max-slope"]["pv"]
+    max_slope_wind = config["parameters"]["max-slope"]["wind"]
     eligibility = np.ones_like(land_cover, dtype=DATATYPE) * Eligibility.NOT_ELIGIBLE
     eligibility[land_cover == GlobCover.ARTIFICAL_SURFACES_AND_URBAN_AREAS] = \
         Eligibility.ROOFTOP_PV
     eligibility[(np.isin(land_cover, FARM + VEGETATION + BARE)) &
                 (protected_areas == ProtectedArea.NOT_PROTECTED) &
-                (slope <= MAX_SLOPE_PV)] = Eligibility.ONSHORE_WIND_OR_PV_FARM
+                (slope <= max_slope_pv)] = Eligibility.ONSHORE_WIND_OR_PV_FARM
     eligibility[(np.isin(land_cover, FARM + VEGETATION + BARE)) &
                 (protected_areas == ProtectedArea.NOT_PROTECTED) &
-                (slope <= MAX_SLOPE_WIND) & (slope > MAX_SLOPE_PV)] = Eligibility.ONSHORE_WIND_FARM
+                (slope <= max_slope_wind) & (slope > max_slope_pv)] = Eligibility.ONSHORE_WIND_FARM
     eligibility[(np.isin(land_cover, FOREST)) &
                 (protected_areas == ProtectedArea.NOT_PROTECTED) &
-                (slope <= MAX_SLOPE_WIND)] = Eligibility.ONSHORE_WIND_FARM
+                (slope <= max_slope_wind)] = Eligibility.ONSHORE_WIND_FARM
     eligibility[(land_cover == GlobCover.WATER_BODIES) &
                 (protected_areas == ProtectedArea.NOT_PROTECTED) &
                 (bathymetry > -50)] = Eligibility.OFFSHORE_WIND_FARM
