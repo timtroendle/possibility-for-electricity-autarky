@@ -200,6 +200,18 @@ rule potential_plot:
         PYTHON_SCRIPT + " {CONFIG_FILE}"
 
 
+rule solution_matrix_plot:
+    message: "Plot the solution matrix showing pathways to reach 100% sufficent power supply."
+    input:
+        "src/vis/solution.py",
+        "build/municipal/full-protection/result.geojson",
+        "build/municipal/zero-protection/result.geojson"
+    output:
+        "build/solution-matrix.png"
+    shell:
+        PYTHON_SCRIPT
+
+
 rule kassel_plot:
     message: "Plot the map of land necessary for Germany and point to Kassel for scenario {wildcards.scenario}."
     input:
