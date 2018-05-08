@@ -75,9 +75,10 @@ class ProtectedArea(IntEnum):
 @click.argument("path_to_slope")
 @click.argument("path_to_bathymetry")
 @click.argument("path_to_result")
+@click.argument("scenario")
 @click.argument("config", type=Config())
 def determine_eligible_land(path_to_land_cover, path_to_protected_areas, path_to_slope,
-                            path_to_bathymetry, path_to_result, config):
+                            path_to_bathymetry, path_to_result, scenario, config):
     """Determines eligibility of land for renewables."""
     with rasterio.open(path_to_land_cover) as src:
         raster_affine = src.affine
@@ -85,11 +86,14 @@ def determine_eligible_land(path_to_land_cover, path_to_protected_areas, path_to
         crs = src.crs
     with rasterio.open(path_to_slope) as src:
         slope = src.read(1)
-    with rasterio.open(path_to_protected_areas) as src:
-        protected_areas = src.read(1)
+    if config["scenarios"][scenario]["use-protected-areas"]:
+        with rasterio.open(path_to_protected_areas) as src:
+            protected_areas = src.read(1)
+    else:
+        protected_areas = np.ones_like(land_cover) * ProtectedArea.NOT_PROTECTED
     with rasterio.open(path_to_bathymetry) as src:
         bathymetry = src.read(1)
-    eligibility = determine_eligibility(land_cover, protected_areas, slope, bathymetry)
+    eligibility = determine_eligibility(land_cover, protected_areas, slope, bathymetry, config)
     with rasterio.open(path_to_result, 'w', driver='GTiff', height=eligibility.shape[0],
                        width=eligibility.shape[1], count=1, dtype=DATATYPE,
                        crs=crs, transform=raster_affine) as new_geotiff:
@@ -113,7 +117,7 @@ def determine_eligibility(land_cover, protected_areas, slope, bathymetry, config
                 (slope <= max_slope_wind)] = Eligibility.ONSHORE_WIND_FARM
     eligibility[(land_cover == GlobCover.WATER_BODIES) &
                 (protected_areas == ProtectedArea.NOT_PROTECTED) &
-                (bathymetry > -50)] = Eligibility.OFFSHORE_WIND_FARM
+                (bathymetry > config["parameters"]["max-depth-offshore"])] = Eligibility.OFFSHORE_WIND_FARM
     return eligibility
 
 

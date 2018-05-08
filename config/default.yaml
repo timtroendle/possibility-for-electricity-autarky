@@ -171,3 +171,9 @@ parameters:
     max-slope:
         pv: 3
         wind: 20
+    max-depth-offshore: -50
+scenarios:
+    full-protection:
+        use-protected-areas: True
+    zero-protection:
+        use-protected-areas: False

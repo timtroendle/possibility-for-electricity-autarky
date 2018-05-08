@@ -181,10 +181,10 @@ Using these factors together with the eligible land estimation of all steps befo
 
 # Results
 
-![Potential of renewable power technologies to fulfil national demand.](../build/potentials.png){#fig:potentials .class}
+![Potential of renewable power technologies to fulfil national demand.](../build/full-protection/potentials.png){#fig:potentials .class}
 
-![Ranges of fraction of land necessary to fulfil demand in different countries.](../build/necessary-land-boxplots.png){#fig:necessary-land-boxplots .class}
+![Ranges of fraction of land necessary to fulfil demand in different countries.](../build/full-protection/necessary-land-boxplots.png){#fig:necessary-land-boxplots .class}
 
-![Regions with sufficient yearly aggregated renewable power (green) and with insufficient power (red).](../build/necessary-land-map.png){#fig:necessary-land-map .class}
+![Regions with sufficient yearly aggregated renewable power (green) and with insufficient power (red).](../build/full-protection/necessary-land-map.png){#fig:necessary-land-map .class}
 
 # Bibliography

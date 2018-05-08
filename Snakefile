@@ -15,7 +15,8 @@ rule all:
 
 rule eligible_land:
     message:
-        "Determine land eligibility for renewables based on land cover, slope, bathymetry, and protected areas."
+        "Determine land eligibility for renewables based on land cover, slope, bathymetry, and protected areas "
+        "for scenario {wildcards.scenario}."
     input:
         "src/eligible_land.py",
         rules.land_cover_in_europe.output,
@@ -23,9 +24,9 @@ rule eligible_land:
         rules.slope_in_europe.output,
         rules.bathymetry_in_europe.output
     output:
-        "build/eligible-land.tif"
+        "build/{scenario}/eligible-land.tif"
     shell:
-        PYTHON_SCRIPT
+        PYTHON_SCRIPT + " {wildcards.scenario} {CONFIG_FILE}"
 
 
 rule regions:
@@ -72,26 +73,29 @@ rule demand:
 
 
 rule eez_eligibility:
-    message: "Allocate eligible land to exclusive economic zones using {threads} threads."
+    message:
+        "Allocate eligible land to exclusive economic zones for scenario {wildcards.scenario} using {threads} threads."
     input:
         src = "src/regional_eligibility.py",
         regions = rules.eez_in_europe.output,
         eligibility = rules.eligible_land.output
     output:
-        "build/eez-eligibility.csv"
+        "build/{scenario}/eez-eligibility.csv"
     threads: config["snakemake"]["max-threads"]
     shell:
         PYTHON + " {input.src} offshore {input.regions} {input.eligibility} {output} {threads}"
 
 
 rule regional_land_eligibility:
-    message: "Allocate eligible land to regions of layer {wildcards.layer} using {threads} threads."
+    message:
+        "Allocate eligible land to regions for scenario {wildcards.scenario} of layer {wildcards.layer} "
+        "using {threads} threads."
     input:
         src = "src/regional_eligibility.py",
         regions = rules.regions.output,
         eligibility = rules.eligible_land.output
     output:
-        "build/{layer}/land-eligibility.csv"
+        "build/{layer}/{scenario}/land-eligibility.csv"
     threads: config["snakemake"]["max-threads"]
     shell:
         PYTHON + " {input.src} land {input.regions} {input.eligibility} {output} {threads}"
@@ -111,19 +115,20 @@ rule shared_coast:
 
 
 rule regional_offshore_eligibility:
-    message: "Allocate eez eligibilities to regions of layer {wildcards.layer}."
+    message: "Allocate eez eligibilities to regions for scenario {wildcards.scenario} of layer {wildcards.layer}."
     input:
         "src/allocate_eez.py",
         rules.eez_eligibility.output,
         rules.shared_coast.output
     output:
-        "build/{layer}/offshore-eligibility.csv"
+        "build/{layer}/{scenario}/offshore-eligibility.csv"
     shell:
         PYTHON_SCRIPT
 
 
 rule regional_eligibility_rooftop_correction:
-    message: "Determine share of roof top area in each region of layer {wildcards.layer}."
+    message:
+        "Determine share of roof top area in each region for scenario {wildcards.scenario} of layer {wildcards.layer}."
     input:
         "src/rooftop_correction.py",
         rules.rooftop_area.output,
@@ -131,7 +136,7 @@ rule regional_eligibility_rooftop_correction:
         rules.regions.output,
         rules.regional_land_eligibility.output
     output:
-        "build/{layer}/land-eligibility-rooftop-corrected.csv"
+        "build/{layer}/{scenario}/land-eligibility-rooftop-corrected.csv"
     shell:
         PYTHON_SCRIPT
 
@@ -149,7 +154,9 @@ rule renewable_capacity_factors:
 
 
 rule necessary_land:
-    message: "Determine fraction of land necessary to supply demand per region of layer {wildcards.layer}."
+    message:
+        "Determine fraction of land necessary to supply demand per region for scenario {wildcards.scenario} "
+        "of layer {wildcards.layer}."
     input:
         "src/necessary_land.py",
         rules.regions.output,
@@ -159,46 +166,48 @@ rule necessary_land:
         rules.regional_offshore_eligibility.output,
         rules.renewable_capacity_factors.output
     output:
-        "build/{layer}/result.geojson"
+        "build/{layer}/{scenario}/result.geojson"
     shell:
         # TODO this approach leads to up to 866 m^2 roof area per citizen -- way too much
         PYTHON_SCRIPT + " {CONFIG_FILE}"
 
 
 rule necessary_land_plots:
-    message: "Plot fraction of land necessary."
+    message: "Plot fraction of land necessary for scenario {wildcards.scenario}."
     input:
         "src/vis/necessary_land.py",
-        expand("build/{layer}/result.geojson", layer=config["layers"].keys()),
+        "build/national/{scenario}/result.geojson",
+        "build/subnational/{scenario}/result.geojson",
+        "build/municipal/{scenario}/result.geojson",
         "build/national/regions.geojson"
     output:
-        "build/necessary-land-boxplots.png",
-        "build/necessary-land-map.png",
-        "build/necessary-land-correlations.png"
+        "build/{scenario}/necessary-land-boxplots.png",
+        "build/{scenario}/necessary-land-map.png",
+        "build/{scenario}/necessary-land-correlations.png"
     shell:
         PYTHON_SCRIPT
 
 
 rule potential_plot:
-    message: "Plot potentials of renewable power."
+    message: "Plot potentials of renewable power for scenario {wildcards.scenario}."
     input:
         "src/vis/potentials.py",
-        "build/national/result.geojson",
+        "build/national/{scenario}/result.geojson",
         rules.renewable_capacity_factors.output
     output:
-        "build/potentials.png"
+        "build/{scenario}/potentials.png"
     shell:
         PYTHON_SCRIPT + " {CONFIG_FILE}"
 
 
 rule kassel_plot:
-    message: "Plot the map of land necessary for Germany and point to Kassel."
+    message: "Plot the map of land necessary for Germany and point to Kassel for scenario {wildcards.scenario}."
     input:
         "src/vis/kassel.py",
-        "build/municipal/result.geojson",
-        "build/national/regions.geojson"
+        "build/municipal/{scenario}/result.geojson",
+        "build/national/{scenario}/regions.geojson"
     output:
-        "build/kassel-map.png"
+        "build/{scenario}/kassel-map.png"
     shell:
         PYTHON_SCRIPT
 
@@ -209,8 +218,8 @@ rule paper:
         "report/literature.bib",
         "report/main.md",
         "report/pandoc-metadata.yml",
-        rules.necessary_land_plots.output,
-        rules.potential_plot.output
+        expand("build/{scenario}/necessary-land-map.png", scenario=config["scenarios"].keys()),
+        expand("build/{scenario}/potentials.png", scenario=config["scenarios"].keys())
     output:
         "build/paper.pdf"
     shell:
