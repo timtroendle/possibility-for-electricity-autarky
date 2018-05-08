@@ -85,41 +85,41 @@ layers:
         # It's not documented anywhere -- at least I could not find any information.
         # Hence, I am using GADM here instead.
         # Validation source: https://en.wikipedia.org/wiki/List_of_administrative_divisions_by_country
-        Austria: gadm1 # gadm1: 11 regions; wiki: 9 regions
-        Belgium: gadm1 # gadm1 and wiki match
-        Bulgaria: gadm1 # match
-        Croatia: gadm1 # match
+        Austria: gadm1 # gadm1 and wiki match 9
+        Belgium: gadm1 # match 3
+        Bulgaria: gadm1 # match 28
+        Croatia: gadm1 # match 21
         Cyprus: gadm1 # gadm1: 5 regions; wiki: 6 regions
-        Czech Republic: gadm1 # match
-        Denmark: gadm1 # match
+        Czech Republic: gadm1 # match 14
+        Denmark: gadm1 # match 5
         Estonia: gadm1 # gadm1 16 regions; wiki 15 regions
         Finland: gadm1 # gadm1 5 regions; wiki 19 regions
-        France: gadm1 # gadm1 22 regions; wiki 13 regions (changed in 2016, gadm is outdated)
-        Germany: gadm1 # match
+        France: gadm1 # match 13
+        Germany: gadm1 # match 16
         Greece: gadm1 # gadm1 8 regions; wiki 13 (14) regions
-        Hungary: gadm1 # match
-        Ireland: gadm1 # match
-        Italy: gadm1 # match
+        Hungary: gadm1 # match 20
+        Ireland: gadm1 # match 26
+        Italy: gadm1 # match 20
         Latvia: gadm1 # gadm1 5 regions; wiki 119 regions
-        Lithuania: gadm1 # match
+        Lithuania: gadm1 # match 10
         Luxembourg: gadm1 # gadm1: 3 regions; wiki 12 regions
-        Malta: gadm1 # gadm1: 1 region; wiki 5 regions
+        Malta: gadm1 # match 5
         Netherlands: gadm1 # gadm1 14 regions; wiki 12 regions
-        Poland: gadm1 # match
-        Portugal: gadm1 # match
-        Romania: gadm1 # match
-        Slovakia: gadm1 # match
-        Slovenia: gadm1 # match
-        Spain: gadm1 # match
-        Sweden: gadm1 # match
-        United Kingdom: gadm1 # match
-        Albania: gadm1 # match
-        Bosnia and Herzegovina: gadm1 # match
+        Poland: gadm1 # match 16
+        Portugal: gadm1 # match 18
+        Romania: gadm1 # match 42
+        Slovakia: gadm1 # match 8
+        Slovenia: gadm1 # match 12
+        Spain: gadm1 # match 17
+        Sweden: gadm1 # match 21
+        United Kingdom: gadm1 # match 4
+        Albania: gadm1 # match 12
+        Bosnia and Herzegovina: gadm1 # match 3
         Macedonia, Republic of: gadm1 # gadm1 85 regions; wiki 8 regions
-        Montenegro: gadm1 # match
-        Norway: gadm1 # match
+        Montenegro: gadm1 # match 21
+        Norway: gadm1 # match 19
         Serbia: gadm1 # gadm1 25 regions; wiki 5 regions
-        Switzerland: gadm1 # match
+        Switzerland: gadm1 # match 26
     municipal:
         Austria: lau2
         Belgium: lau2

@@ -13,6 +13,7 @@ URL_PROTECTED_AREAS = "https://www.protectedplanet.net/downloads/WDPA_Jan2018?ty
 URL_CGIAR_TILE = "http://droppr.org/srtm/v4.1/6_5x5_TIFs/"
 URL_GMTED_TILE = "https://edcintl.cr.usgs.gov/downloads/sciweb1/shared/topo/downloads/GMTED/Global_tiles_GMTED/075darcsec/mea/"
 URL_GADM = "http://biogeo.ucdavis.edu/data/gadm2.8/gpkg"
+URL_GADM = "https://biogeo.ucdavis.edu/data/gadm3.6/gpkg/"
 URL_BATHYMETRIC = "https://www.ngdc.noaa.gov/mgg/global/relief/ETOPO1/data/bedrock/grid_registered/georeferenced_tiff/ETOPO1_Bed_g_geotiff.zip"
 URL_WIND_CP = "https://www.renewables.ninja/static/downloads/ninja_europe_wind_v1.1.zip"
 URL_PV_CP = "https://www.renewables.ninja/static/downloads/ninja_europe_pv_v1.1.zip"
@@ -55,13 +56,13 @@ rule electricity_demand_national:
 rule raw_gadm_administrative_borders_zipped:
     message: "Download administrative borders for {wildcards.country_code} as zip."
     output: protected("data/automatic/raw-gadm/{country_code}.zip")
-    shell: "curl -sLo {output} '{URL_GADM}/{wildcards.country_code}_adm_gpkg.zip'"
+    shell: "curl -sLo {output} '{URL_GADM}/gadm36_{wildcards.country_code}_gpkg.zip'"
 
 
 rule raw_gadm_administrative_borders:
     message: "Unzip administrative borders of {wildcards.country_code} as zip."
     input: "data/automatic/raw-gadm/{country_code}.zip"
-    output: temp("data/automatic/raw-gadm/{country_code}_adm.gpkg")
+    output: temp("data/automatic/raw-gadm/gadm36_{country_code}.gpkg")
     shell: "unzip -o {input} -d data/automatic/raw-gadm"
 
 
@@ -69,7 +70,7 @@ rule administrative_borders_gadm:
     message: "Merge administrative borders of all countries up to layer {params.max_layer_depth}."
     input:
         "src/gadm.py",
-        ["data/automatic/raw-gadm/{}_adm.gpkg".format(country_code)
+        ["data/automatic/raw-gadm/gadm36_{}.gpkg".format(country_code)
             for country_code in [pycountry.countries.lookup(country).alpha_3
                                  for country in config['scope']['countries']]
          ]

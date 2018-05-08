@@ -5,7 +5,7 @@ import fiona.transform
 import shapely.geometry
 import pycountry
 
-from gadm import SCHEMA
+from gadm import SCHEMA, _to_multi_polygon
 from conversion import eu_country_code_to_iso3
 from utils import Config
 
@@ -65,14 +65,6 @@ def _all_parts_in_study_area_and_crs(feature, src_crs, config):
         dst_crs=config["crs"],
         geom=geometry
     )
-
-
-def _to_multi_polygon(geometry):
-    shape = shapely.geometry.shape(geometry)
-    if geometry["type"] == "Polygon":
-        return shapely.geometry.MultiPolygon(polygons=[shape])
-    else:
-        return shape
 
 
 def _in_layer_and_in_study_area(layer_id, config):
