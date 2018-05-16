@@ -7,7 +7,7 @@ import seaborn as sns
 
 from src.conversion import area_in_squaremeters
 
-LAND_THRESHOLD = 0.3 # fraction of land that can be used for energy farming
+LAND_THRESHOLD = 0.6 # fraction of land that can be used for energy farming
 GREEN = "#679436"
 RED = "#A01914"
 
