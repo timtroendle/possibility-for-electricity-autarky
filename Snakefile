@@ -166,7 +166,7 @@ rule necessary_land:
         rules.regional_offshore_eligibility.output,
         rules.renewable_capacity_factors.output
     output:
-        "build/{layer}/{scenario}/result.geojson"
+        "build/{layer}/{scenario}/necessary-land.csv"
     shell:
         # TODO this approach leads to up to 866 m^2 roof area per citizen -- way too much
         PYTHON_SCRIPT + " {CONFIG_FILE}"
@@ -175,24 +175,37 @@ rule necessary_land:
 rule necessary_land_plots:
     message: "Plot fraction of land necessary for scenario {wildcards.scenario}."
     input:
-        "src/vis/necessary_land.py",
-        "build/national/{scenario}/result.geojson",
-        "build/subnational/{scenario}/result.geojson",
-        "build/municipal/{scenario}/result.geojson",
-        "build/national/regions.geojson"
+        src = "src/vis/necessary_land.py",
+        national_regions = "build/national/regions.geojson",
+        subnational_regions = "build/subnational/regions.geojson",
+        municipal_regions = "build/municipal/regions.geojson",
+        national_necessary_land = "build/national/{scenario}/necessary-land.csv",
+        subnational_necessary_land = "build/subnational/{scenario}/necessary-land.csv",
+        municipal_necessary_land = "build/municipal/{scenario}/necessary-land.csv",
+        national_population = "build/national/population.csv",
+        subnational_population = "build/subnational/population.csv",
+        municipal_population = "build/municipal/population.csv",
     output:
         "build/{scenario}/necessary-land-boxplots.png",
         "build/{scenario}/necessary-land-map.png",
         "build/{scenario}/necessary-land-correlations.png"
     shell:
-        PYTHON_SCRIPT
+        PYTHON + " {input.src} "
+                 "{input.national_regions},{input.national_necessary_land},{input.national_population} "
+                 "{input.subnational_regions},{input.subnational_necessary_land},{input.subnational_population} "
+                 "{input.municipal_regions},{input.municipal_necessary_land},{input.municipal_population} "
+                 "{input.national_regions} "
+                 "{output}"
 
 
 rule potential_plot:
     message: "Plot potentials of renewable power for scenario {wildcards.scenario}."
     input:
         "src/vis/potentials.py",
-        "build/national/{scenario}/result.geojson",
+        "build/national/regions.geojson",
+        "build/national/demand.csv",
+        "build/national/{scenario}/land-eligibility-rooftop-corrected.csv",
+        "build/national/{scenario}/offshore-eligibility.csv",
         rules.renewable_capacity_factors.output
     output:
         "build/{scenario}/potentials.png"
@@ -216,8 +229,9 @@ rule kassel_plot:
     message: "Plot the map of land necessary for Germany and point to Kassel for scenario {wildcards.scenario}."
     input:
         "src/vis/kassel.py",
-        "build/municipal/{scenario}/result.geojson",
-        "build/national/{scenario}/regions.geojson"
+        "build/municipal/regions.geojson",
+        "build/municipal/{scenario}/necessary-land.csv",
+        "build/national/regions.geojson"
     output:
         "build/{scenario}/kassel-map.png"
     shell:

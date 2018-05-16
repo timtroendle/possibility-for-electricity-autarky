@@ -13,14 +13,17 @@ from src.conversion import watt_to_watthours
 
 
 @click.command()
-@click.argument("path_to_result")
+@click.argument("path_to_regions")
+@click.argument("paths_to_region_attributes", nargs=-1)
 @click.argument("path_to_cps")
 @click.argument("path_to_plot")
 @click.argument("config", type=Config())
-def potentials(path_to_result, path_to_cps, path_to_plot, config):
+def potentials(path_to_regions, paths_to_region_attributes, path_to_cps, path_to_plot, config):
     """Visualise the theoretic potential of all renewable power technologies."""
     sns.set_context('paper')
-    regions = gpd.read_file(path_to_result)
+    regions = gpd.read_file(path_to_regions)
+    for path_to_region_attribute in paths_to_region_attributes:
+        regions = regions.merge(pd.read_csv(path_to_region_attribute), on='id')
     cps = pd.read_csv(path_to_cps, index_col=0)
 
     data = pd.Series(

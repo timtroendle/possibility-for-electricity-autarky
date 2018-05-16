@@ -15,12 +15,13 @@ RED = "#A01914"
 
 @click.command()
 @click.argument("path_to_regions")
+@click.argument("path_to_necessary_land")
 @click.argument("path_to_countries")
 @click.argument("path_to_map")
-def visualise_necessary_land(path_to_regions, path_to_countries, path_to_map):
+def visualise_necessary_land(path_to_regions, path_to_necessary_land, path_to_countries, path_to_map):
     """Visualise fraction of necessary land needed to fulfill demand in each region in Germany."""
     sns.set_context('paper')
-    regions = gpd.read_file(path_to_regions)
+    regions = gpd.read_file(path_to_regions).merge(pd.read_csv(path_to_necessary_land), on="id")
     countries = gpd.read_file(path_to_countries)
     _map(regions, countries, path_to_map)
 

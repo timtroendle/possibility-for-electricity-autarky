@@ -9,8 +9,6 @@ from src.utils import Config
 from src.eligible_land import Eligibility
 from src.conversion import watt_to_watthours
 
-ZERO_DEMAND = 0.000001
-
 
 @click.command()
 @click.argument("path_to_regions")
@@ -35,8 +33,7 @@ def determine_necessary_land(path_to_regions, paths_to_region_attributes, path_t
     ).div(1e12)
     regions["fraction_land_necessary"] = (regions["demand_twh_per_year"] /
                                           regions["max_yield_twh_per_year"])
-    regions.loc[regions["demand_twh_per_year"] <= ZERO_DEMAND, "fraction_land_necessary"] = 0.0 # nan otherwise
-    regions.to_file(path_to_output, driver='GeoJSON')
+    regions.set_index("id")["fraction_land_necessary"].to_csv(path_to_output, header=True)
 
 
 def _max_yield_watt(eligibility, regions, cps, config):

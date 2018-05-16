@@ -13,12 +13,12 @@ RED = "#A01914"
 
 
 @click.command()
-@click.argument("paths_to_regions", nargs=-1)
+@click.argument("paths_to_results", nargs=-1)
 @click.argument("path_to_countries")
 @click.argument("path_to_boxplot")
 @click.argument("path_to_map")
 @click.argument("path_to_correlation")
-def visualise_necessary_land(paths_to_regions, path_to_countries, path_to_boxplot, path_to_map, path_to_correlation):
+def visualise_necessary_land(paths_to_results, path_to_countries, path_to_boxplot, path_to_map, path_to_correlation):
     """Visualise fraction of necessary land needed to fulfill demand in each region.
 
     Creates:
@@ -27,9 +27,16 @@ def visualise_necessary_land(paths_to_regions, path_to_countries, path_to_boxplo
     * plot of correlation of region features to necessary land
     """
     sns.set_context('paper')
-    region_sets = [gpd.read_file(path) for path in paths_to_regions]
-    for region, path_to_region in zip(region_sets, paths_to_regions):
-        region["layer_id"] = _infer_layer_id(path_to_region)
+    paths_to_results = [paths.split(",") for paths in paths_to_results]
+    region_sets = [
+        gpd.read_file(paths[0]).merge(
+            pd.concat([pd.read_csv(p, index_col=0) for p in paths[1:]], axis=1).reset_index(),
+            on="id"
+        )
+        for paths in paths_to_results
+    ]
+    for region, paths_to_region in zip(region_sets, paths_to_results):
+        region["layer_id"] = _infer_layer_id(paths_to_region[0])
     countries = gpd.read_file(path_to_countries)
     _boxplot([region_sets[0], region_sets[-1]], path_to_boxplot)
     _correlation(region_sets, path_to_correlation)
