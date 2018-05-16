@@ -41,6 +41,7 @@ def renewable_capacity_factors(path_to_raw_wind, path_to_raw_pv, path_to_results
     cps.loc[missing_offshore, "offshore_capacity_factor"] = cps.loc[missing_offshore, "onshore_capacity_factor"]
     assert not cps.isnull().any().any()
     cps.index = [pycountry.countries.lookup(country_code).alpha_3 for country_code in cps.index]
+    cps.index.name = "country_code"
     cps.to_csv(path_to_results, header=True)
 
 

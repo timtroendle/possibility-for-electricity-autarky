@@ -141,6 +141,24 @@ rule regional_eligibility_rooftop_correction:
         PYTHON_SCRIPT
 
 
+rule regional_eligibility:
+    message: "Merge land and offshore eligibility for layer {wildcards.layer} and scenario {wildcards.scenario}."
+    input:
+        land = rules.regional_eligibility_rooftop_correction.output,
+        offshore = rules.regional_offshore_eligibility.output
+    output:
+        "build/{layer}/{scenario}/regional-eligibility.csv"
+    run:
+        import pandas as pd
+
+        all = pd.concat(
+            [pd.read_csv(path).set_index("id") for path in [input.land[0], input.offshore[0]]],
+            axis=1
+        )
+        all.index.name = "id"
+        all.to_csv(output[0], header=True)
+
+
 rule renewable_capacity_factors:
     message: "Merge all renewable capacity factors and replace missing."
     input:
@@ -153,18 +171,34 @@ rule renewable_capacity_factors:
         PYTHON_SCRIPT + " {CONFIG_FILE}"
 
 
+rule regional_capacity_factors:
+    message: "Determine capacity factors for regions of layer {wildcards.layer}."
+    input:
+        regions = rules.regions.output,
+        national_capacity_factors = rules.renewable_capacity_factors.output
+    output:
+        "build/{layer}/capacity-factors.csv"
+    run:
+        import geopandas as gpd
+        import pandas as pd
+
+        regions = gpd.read_file(input.regions[0]).set_index("id")
+        national_cps = pd.read_csv(input.national_capacity_factors[0], index_col=0)
+        national_cps = national_cps.reindex(regions.set_index("country_code").index)
+        national_cps.index = regions.index
+        national_cps.to_csv(output[0], header=True)
+
+
 rule necessary_land:
     message:
         "Determine fraction of land necessary to supply demand per region for scenario {wildcards.scenario} "
         "of layer {wildcards.layer}."
     input:
         "src/necessary_land.py",
-        rules.regions.output,
         rules.population.output,
         rules.demand.output,
-        rules.regional_eligibility_rooftop_correction.output,
-        rules.regional_offshore_eligibility.output,
-        rules.renewable_capacity_factors.output
+        rules.regional_eligibility.output,
+        rules.regional_capacity_factors.output
     output:
         "build/{layer}/{scenario}/necessary-land.csv"
     shell:
@@ -217,12 +251,15 @@ rule solution_matrix_plot:
     message: "Plot the solution matrix showing pathways to reach 100% sufficent power supply."
     input:
         "src/vis/solution.py",
-        "build/municipal/full-protection/result.geojson",
-        "build/municipal/zero-protection/result.geojson"
+        "build/municipal/demand.csv",
+        "build/municipal/capacity-factors.csv",
+        "build/municipal/population.csv",
+        "build/municipal/full-protection/regional-eligibility.csv",
+        "build/municipal/zero-protection/regional-eligibility.csv",
     output:
         "build/solution-matrix.png"
     shell:
-        PYTHON_SCRIPT
+        PYTHON_SCRIPT + " {CONFIG_FILE}"
 
 
 rule kassel_plot:
@@ -245,7 +282,8 @@ rule paper:
         "report/main.md",
         "report/pandoc-metadata.yml",
         expand("build/{scenario}/necessary-land-map.png", scenario=config["scenarios"].keys()),
-        expand("build/{scenario}/potentials.png", scenario=config["scenarios"].keys())
+        expand("build/{scenario}/potentials.png", scenario=config["scenarios"].keys()),
+        rules.solution_matrix_plot.output
     output:
         "build/paper.pdf"
     shell:

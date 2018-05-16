@@ -30,7 +30,10 @@ def visualise_necessary_land(paths_to_results, path_to_countries, path_to_boxplo
     paths_to_results = [paths.split(",") for paths in paths_to_results]
     region_sets = [
         gpd.read_file(paths[0]).merge(
-            pd.concat([pd.read_csv(p, index_col=0) for p in paths[1:]], axis=1).reset_index(),
+            pd.concat(
+                [pd.read_csv(p).set_index("id") for p in paths[1:]],
+                axis=1
+            ).reset_index().rename(columns={"index": "id"}),
             on="id"
         )
         for paths in paths_to_results

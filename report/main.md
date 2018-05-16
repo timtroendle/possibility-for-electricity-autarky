@@ -187,4 +187,6 @@ Using these factors together with the eligible land estimation of all steps befo
 
 ![Regions with sufficient yearly aggregated renewable power (green) and with insufficient power (red).](../build/full-protection/necessary-land-map.png){#fig:necessary-land-map .class}
 
+![European population with access to enough energy with autarky on the municipal level and relaxed electricity imports and environmental protection constraints.](../build/solution-matrix.png){#fig:solution-map .class}
+
 # Bibliography

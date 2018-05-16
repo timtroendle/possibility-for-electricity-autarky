@@ -3,43 +3,60 @@ from datetime import timedelta
 
 import click
 import pandas as pd
-import geopandas as gpd
 
 from src.utils import Config
 from src.eligible_land import Eligibility
 from src.conversion import watt_to_watthours
 
 
+CP_MAP = {
+    Eligibility.ROOFTOP_PV: "pv_capacity_factor",
+    Eligibility.ONSHORE_WIND_OR_PV_FARM: "pv_capacity_factor",
+    Eligibility.ONSHORE_WIND_FARM: "onshore_capacity_factor",
+    Eligibility.OFFSHORE_WIND_FARM: "offshore_capacity_factor"
+}
+
+
 @click.command()
-@click.argument("path_to_regions")
 @click.argument("paths_to_region_attributes", nargs=-1)
-@click.argument("path_to_capacity_factors")
 @click.argument("path_to_output")
 @click.argument("config", type=Config())
-def determine_necessary_land(path_to_regions, paths_to_region_attributes, path_to_capacity_factors,
-                             path_to_output, config):
+def determine_necessary_land(paths_to_region_attributes, path_to_output, config):
     """Determines the fraction of land needed in each region to fulfill the demand."""
-    regions = gpd.read_file(path_to_regions)
-    for path_to_region_attribute in paths_to_region_attributes:
-        regions = regions.merge(pd.read_csv(path_to_region_attribute), on='id')
-    cps = pd.read_csv(path_to_capacity_factors, index_col=0)
+    attributes = pd.concat(
+        [pd.read_csv(path_to_attribute).set_index("id") for path_to_attribute in paths_to_region_attributes],
+        axis=1
+    )
+    determine_fraction_land_necessary(
+        demand_twh_per_year=attributes["demand_twh_per_year"],
+        eligibilities=attributes[[eligibility.property_name for eligibility in Eligibility]],
+        capacity_factors=attributes[[column for column in attributes.columns if "capacity_factor in column"]],
+        config=config
+    ).to_csv(path_to_output, header=True)
+
+
+def determine_fraction_land_necessary(demand_twh_per_year, eligibilities, capacity_factors, config):
     max_yield_watt = pd.DataFrame({
-        eligibility: _max_yield_watt(eligibility, regions, cps, config)
+        eligibility: _max_yield_watt(eligibility, eligibilities, capacity_factors, config)
         for eligibility in Eligibility
     })
-    regions["max_yield_twh_per_year"] = watt_to_watthours(
+    max_yield_twh_per_year = watt_to_watthours(
         max_yield_watt.sum(axis=1),
         timedelta(days=365)
     ).div(1e12)
-    regions["fraction_land_necessary"] = (regions["demand_twh_per_year"] /
-                                          regions["max_yield_twh_per_year"])
-    regions.set_index("id")["fraction_land_necessary"].to_csv(path_to_output, header=True)
+    fraction_land_necessary = demand_twh_per_year / max_yield_twh_per_year
+    fraction_land_necessary.name = "fraction_land_necessary"
+    fraction_land_necessary.index.name = "id"
+    return fraction_land_necessary
 
 
-def _max_yield_watt(eligibility, regions, cps, config):
+def _max_yield_watt(eligibility, eligibilities, cps, config):
     """Returns a pandas Series of maximum yields in all regions of given eligibility type in Watt."""
-    available_area_km2 = regions[eligibility.property_name]
-    capacity_factors = regions.country_code.map(lambda country_code: _cp(cps, country_code, eligibility))
+    available_area_km2 = eligibilities[eligibility.property_name]
+    if eligibility == Eligibility.NOT_ELIGIBLE:
+        capacity_factors = pd.Series(0, index=cps.index)
+    else:
+        capacity_factors = cps.loc[:, CP_MAP[eligibility]]
     return available_area_km2 * _power_density_watt_per_m2(config, eligibility) * 1e6 * capacity_factors
 
 
@@ -53,19 +70,6 @@ def _power_density_watt_per_m2(config, eligibility):
         return power_densities["onshore-wind"]
     elif eligibility == Eligibility.OFFSHORE_WIND_FARM:
         return power_densities["offshore-wind"]
-    elif eligibility == Eligibility.NOT_ELIGIBLE:
-        return 0
-    else:
-        raise ValueError("Unknown eligibility: {}".format(eligibility))
-
-
-def _cp(cps, country_code, eligibility):
-    if eligibility in [Eligibility.ROOFTOP_PV, Eligibility.ONSHORE_WIND_OR_PV_FARM]:
-        return cps.loc[country_code, "pv_capacity_factor"]
-    elif eligibility == Eligibility.ONSHORE_WIND_FARM:
-        return cps.loc[country_code, "onshore_capacity_factor"]
-    elif eligibility == Eligibility.OFFSHORE_WIND_FARM:
-        return cps.loc[country_code, "offshore_capacity_factor"]
     elif eligibility == Eligibility.NOT_ELIGIBLE:
         return 0
     else:
