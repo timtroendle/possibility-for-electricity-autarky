@@ -114,11 +114,12 @@ def _reproject(feature, src_crs, dst_crs):
 
 
 def _to_multi_polygon(geometry):
-    shape = shapely.geometry.shape(geometry)
-    if geometry["type"] == "Polygon":
-        return shapely.geometry.MultiPolygon(polygons=[shape])
+    if isinstance(geometry, dict):
+        geometry = shapely.geometry.shape(geometry)
+    if isinstance(geometry, shapely.geometry.polygon.Polygon):
+        return shapely.geometry.MultiPolygon(polygons=[geometry])
     else:
-        return shape
+        return geometry
 
 
 def _test_id_uniqueness(path_to_file):

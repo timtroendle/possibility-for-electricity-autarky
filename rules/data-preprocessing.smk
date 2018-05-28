@@ -99,7 +99,9 @@ rule administrative_borders_nuts:
     shell:
         """
         unzip {input.zip} -d ./build
-        {PYTHON} {input.src} ./build/NUTS_2013_01M_SH/data/NUTS_RG_01M_2013.shp {output} {CONFIG_FILE}
+        {PYTHON} {input.src} merge ./build/NUTS_2013_01M_SH/data/NUTS_RG_01M_2013.shp \
+        ./build/NUTS_2013_01M_SH/data/NUTS_AT_2013.dbf ./build/raw-nuts.gpkg
+        {PYTHON} {input.src} normalise ./build/raw-nuts.gpkg {output} {CONFIG_FILE}
         """
 
 
@@ -122,7 +124,9 @@ rule administrative_borders_lau:
     shell:
         """
         unzip {input.zip} -d ./build
-        {PYTHON} {input.src} ./build/COMM_01M_2013_SH/data/COMM_RG_01M_2013.shp {output} {CONFIG_FILE}
+        {PYTHON} {input.src} merge ./build/COMM_01M_2013_SH/data/COMM_RG_01M_2013.shp \
+        ./build/COMM_01M_2013_SH/data/COMM_AT_2013.dbf ./build/raw-lau.gpkg
+        {PYTHON} {input.src} normalise ./build/raw-lau.gpkg {output} {CONFIG_FILE}
         """
 
 rule raw_land_cover_zipped:
