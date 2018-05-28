@@ -16,7 +16,8 @@ def geojson_to_csv(attribute):
     for i, obj in enumerate(source):
         features = obj.get('features') or [obj]
         for j, feat in enumerate(features):
-            values = [str(feat["properties"][attribute_name]) for attribute_name in attribute_names]
+            values = [str(feat["properties"][attribute_name]) if attribute_name in feat["properties"] else ""
+                      for attribute_name in attribute_names]
             click.echo(",".join(values))
 
 

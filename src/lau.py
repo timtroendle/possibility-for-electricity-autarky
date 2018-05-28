@@ -57,6 +57,7 @@ def _layer_features(lau_file, config):
         new_feature["properties"]["id"] = feature["properties"]["COMM_ID"]
         new_feature["properties"]["name"] = feature["properties"]["NAME_LATN"]
         new_feature["properties"]["region_type"] = "commune"
+        new_feature["properties"]["proper"] = True if feature["properties"]["TRUE_COMM_"] == "T" else False
         new_feature["geometry"] = _all_parts_in_study_area_and_crs(feature, lau_file.crs, config)
         yield new_feature
 

@@ -42,19 +42,43 @@ rule regions:
         PYTHON_SCRIPT + " {wildcards.layer} {CONFIG_FILE}"
 
 
+rule regional_land_cover:
+    message: "Land cover statistics per region of layer {wildcards.layer}."
+    input:
+        regions = rules.regions.output,
+        land_cover = rules.land_cover_in_europe.output,
+        src = "src/geojson_to_csv.py"
+    output:
+        "build/{layer}/land-cover.geojson"
+    shell:
+        """
+        fio cat {input.regions} | \
+        rio zonalstats -r {input.land_cover} --prefix 'lc_' --categorical | \
+        {PYTHON} {input.src} -a id -a lc_11 -a lc_14 -a lc_20 -a lc_30 -a lc_40 \
+        -a lc_50 -a lc_60 -a lc_70 -a lc_90 -a lc_100 -a lc_110 -a lc_120 -a lc_130 \
+        -a lc_140 -a lc_150 -a lc_160 -a lc_170 -a lc_180 -a lc_190 -a lc_200 \
+        -a lc_210 -a lc_220 -a lc_230 > \
+        {output}
+        """
+
+
 rule population:
     message: "Allocate population to regions of layer {wildcards.layer}."
     input:
         regions = rules.regions.output,
-        population = RAW_GRIDDED_POP_DATA
+        population = RAW_GRIDDED_POP_DATA,
+        src_geojson = "src/geojson_to_csv.py",
+        src_population = "src/population.py",
+        land_cover = rules.regional_land_cover.output
     output:
         "build/{layer}/population.csv"
     shell:
         """
         fio cat {input.regions} | \
         rio zonalstats -r {input.population} --prefix 'population_' --stats sum | \
-        python src/geojson_to_csv.py -a id -a population_sum | \
-        sed -e 's/None/0.0/g' > {output} # some regions are so small, they contain no pixel
+        {PYTHON} {input.src_geojson} -a id -a population_sum -a proper | \
+        {PYTHON} {input.src_population} {input.land_cover} > \
+        {output}
         """
 
 

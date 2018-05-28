@@ -70,6 +70,7 @@ def _layer_features(nuts_file, config, layer_id):
         new_feature["properties"]["id"] = feature["properties"]["NUTS_ID"]
         new_feature["properties"]["name"] = feature["properties"]["NAME_LATN"]
         new_feature["properties"]["region_type"] = "country" if layer_id == 0 else None
+        new_feature["properties"]["proper"] = True
         new_feature["geometry"] = _all_parts_in_study_area_and_crs(feature, nuts_file.crs, config)
         yield new_feature
 

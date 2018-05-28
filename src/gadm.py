@@ -12,8 +12,14 @@ from src.utils import Config
 
 LAYER_NAME = "gadm{layer_id}"
 SCHEMA = {
-    "properties": {"country_code": "str", "id": "str",
-                   "name": "str", "region_type": "str"},
+    "properties": {
+        "country_code": "str", # id of the country to which the region belongs
+        "id": "str", # a unique id of this region
+        "name": "str", # the name of the region, not necessarily unqique
+        "region_type": "str", # the type of the region
+        "proper": "int" # flag indicating proper administrative unit (not the case for water bodies e.g.)
+        # FIXME should be bool, fixed in fiona 1.8: https://github.com/Toblerity/Fiona/issues/524
+    },
     "geometry": "MultiPolygon"
 }
 
@@ -66,6 +72,7 @@ def _country_features(path_to_file, layer_id, study_area):
                 feature["properties"][f"ENGTYPE_{layer_id}"] if layer_id > 0
                 else "country"
             )
+            new_feature["properties"]["proper"] = True
             new_feature["geometry"] = _all_parts_in_study_area(feature, study_area)
             yield new_feature
 
