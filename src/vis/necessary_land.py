@@ -2,6 +2,8 @@
 import click
 import pandas as pd
 import geopandas as gpd
+import shapely
+from descartes import PolygonPatch
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -76,6 +78,7 @@ def _map(regions, countries, path_to_plot):
 
     fig = plt.figure(figsize=(16, 16))
     ax = fig.add_subplot(111)
+    ax.add_patch(_serbia_montenegro_patch(regions)) # FIXME, see comment in function below
     _third_countries(countries).plot(
         color='grey', edgecolor='black', linewidth=0.4, ax=ax, alpha=0.2
     )
@@ -158,6 +161,21 @@ def _infer_layer_id(path_to_regions):
     # based on the idea, that paths are something like 'build/adm2/blabla.geojson'
     # FIXME should be a more robust approach
     return path_to_regions.split("/")[1]
+
+
+def _serbia_montenegro_patch(regions):
+    # FIXME this patches the issue of currently having a gap between Serbia (NUTS/LAU)
+    # and Montenegro (GADM) which is clearly visible in the final plot. I believe the
+    # issue stems from the fact that the demarcation process hasn't been finished --
+    # at least not back in 2013 where the NUTS/LAU data stems from. See for example:
+    # http://www.bezbednost.org/upload/document/1112231512_pp_3_territorial_an.pdf
+    # The issue might be solved with the current 2016 NUTS/LAU data, but that data
+    # set hasn't been published by EuroStat so far.
+    coords = ((19.0, 42.2), (19.0, 43.6), (20.5, 43.6), (20.5, 42.2), (19.0, 42.2))
+    patch = shapely.geometry.Polygon(coords)
+    for region in regions[regions.country_code.isin(["MNE", "SRB", "ALB"])].geometry:
+        patch = patch - region
+    return PolygonPatch(patch, linewidth=0.0, facecolor=GREEN)
 
 
 if __name__ == "__main__":

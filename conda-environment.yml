@@ -19,6 +19,7 @@ dependencies:
   - geopandas=0.3.0
   - snakemake=4.4.0
   - xlrd=1.1.0
+  - descartes=1.1
   - pip:
       - pytest-pythonpath # adds the root path "./" to PYTHONPATH
       - pandoc-tablenos
