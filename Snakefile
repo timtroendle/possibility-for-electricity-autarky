@@ -10,7 +10,7 @@ include: "rules/data-preprocessing.smk"
 
 rule all:
     message: "Run entire analysis and compile report."
-    input: "build/paper.pdf"
+    input: "build/report.pdf"
 
 
 rule eligible_land:
@@ -301,7 +301,7 @@ rule kassel_plot:
         PYTHON_SCRIPT
 
 
-rule paper:
+rule report:
     message: "Compile report."
     input:
         "report/literature.bib",
@@ -311,12 +311,12 @@ rule paper:
         expand("build/{scenario}/potentials.png", scenario=config["scenarios"].keys()),
         rules.solution_matrix_plot.output
     output:
-        "build/paper.pdf"
+        "build/report.pdf"
     shell:
         """
         cd ./report
         pandoc --filter pantable --filter pandoc-fignos --filter pandoc-tablenos \
-        --filter pandoc-citeproc main.md pandoc-metadata.yml -t latex -o ../build/paper.pdf
+        --filter pandoc-citeproc main.md pandoc-metadata.yml -t latex -o ../build/report.pdf
         """
 
 
