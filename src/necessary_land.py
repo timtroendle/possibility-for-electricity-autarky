@@ -15,6 +15,7 @@ CP_MAP = {
     Eligibility.ONSHORE_WIND_FARM: "onshore_capacity_factor",
     Eligibility.OFFSHORE_WIND_FARM: "offshore_capacity_factor"
 }
+ZERO_DEMAND = 0.000001
 
 
 @click.command()
@@ -30,7 +31,7 @@ def determine_necessary_land(paths_to_region_attributes, path_to_output, config)
     determine_fraction_land_necessary(
         demand_twh_per_year=attributes["demand_twh_per_year"],
         eligibilities=attributes[[eligibility.property_name for eligibility in Eligibility]],
-        capacity_factors=attributes[[column for column in attributes.columns if "capacity_factor in column"]],
+        capacity_factors=attributes[[column for column in attributes.columns if "capacity_factor" in column]],
         config=config
     ).to_csv(path_to_output, header=True)
 
@@ -45,6 +46,7 @@ def determine_fraction_land_necessary(demand_twh_per_year, eligibilities, capaci
         timedelta(days=365)
     ).div(1e12)
     fraction_land_necessary = demand_twh_per_year / max_yield_twh_per_year
+    fraction_land_necessary[demand_twh_per_year <= ZERO_DEMAND] = 0.0 # might be nan otherwise if yield is 0
     fraction_land_necessary.name = "fraction_land_necessary"
     fraction_land_necessary.index.name = "id"
     return fraction_land_necessary
