@@ -17,10 +17,12 @@ RED = "#A01914"
 @click.command()
 @click.argument("paths_to_results", nargs=-1)
 @click.argument("path_to_countries")
+@click.argument("path_to_world")
 @click.argument("path_to_boxplot")
 @click.argument("path_to_map")
 @click.argument("path_to_correlation")
-def visualise_necessary_land(paths_to_results, path_to_countries, path_to_boxplot, path_to_map, path_to_correlation):
+def visualise_necessary_land(paths_to_results, path_to_countries, path_to_world,
+                             path_to_boxplot, path_to_map, path_to_correlation):
     """Visualise fraction of necessary land needed to fulfill demand in each region.
 
     Creates:
@@ -43,9 +45,10 @@ def visualise_necessary_land(paths_to_results, path_to_countries, path_to_boxplo
     for region, paths_to_region in zip(region_sets, paths_to_results):
         region["layer_id"] = _infer_layer_id(paths_to_region[0])
     countries = gpd.read_file(path_to_countries)
+    third_countries = _third_countries(countries, gpd.read_file(path_to_world))
     _boxplot([region_sets[0], region_sets[-1]], path_to_boxplot)
     _correlation(region_sets, path_to_correlation)
-    _map(region_sets[-1], countries, path_to_map)
+    _map(region_sets[-1], countries, third_countries, path_to_map)
 
 
 def _boxplot(region_sets, path_to_plot):
@@ -71,7 +74,7 @@ def _boxplot(region_sets, path_to_plot):
     fig.savefig(path_to_plot, dpi=300)
 
 
-def _map(regions, countries, path_to_plot):
+def _map(regions, countries, third_countries, path_to_plot):
     winners = regions[regions["fraction_land_necessary"] <= LAND_THRESHOLD]
     loosers = regions[regions["fraction_land_necessary"] > LAND_THRESHOLD]
     invalids = regions[~regions.isin(pd.concat([winners, loosers]))].dropna()
@@ -79,10 +82,12 @@ def _map(regions, countries, path_to_plot):
     fig = plt.figure(figsize=(16, 16))
     ax = fig.add_subplot(111)
     ax.add_patch(_serbia_montenegro_patch(regions)) # FIXME, see comment in function below
-    _third_countries(countries).plot(
+    third_countries.plot(
         color='grey', edgecolor='black', linewidth=0.4, ax=ax, alpha=0.2
     )
-    countries.plot(color='white', edgecolor='black', linewidth=0.4, ax=ax)
+    countries.plot(
+        color='white', edgecolor='black', linewidth=0.4, ax=ax
+    )
     winners.plot(color=GREEN, linewidth=0.1, ax=ax)
     loosers.plot(color=RED, linewidth=0.1, ax=ax)
     if not invalids.empty:
@@ -152,9 +157,8 @@ def _correlation(region_sets, path_to_plot):
     fig.savefig(path_to_plot, dpi=300)
 
 
-def _third_countries(countries):
-    world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
-    return world[~world.iso_a3.isin(countries.country_code.unique())]
+def _third_countries(countries, world):
+    return world[~world.ISO_A3.isin(countries.country_code.unique())]
 
 
 def _infer_layer_id(path_to_regions):

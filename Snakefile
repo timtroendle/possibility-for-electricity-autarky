@@ -243,6 +243,7 @@ rule necessary_land_plots:
         national_population = "build/national/population.csv",
         subnational_population = "build/subnational/population.csv",
         municipal_population = "build/municipal/population.csv",
+        worldwide_countries = rules.country_shapes.output
     output:
         "build/{scenario}/necessary-land-boxplots.png",
         "build/{scenario}/necessary-land-map.png",
@@ -253,6 +254,7 @@ rule necessary_land_plots:
                  "{input.subnational_regions},{input.subnational_necessary_land},{input.subnational_population} "
                  "{input.municipal_regions},{input.municipal_necessary_land},{input.municipal_population} "
                  "{input.national_regions} "
+                 "{input.worldwide_countries} "
                  "{output}"
 
 

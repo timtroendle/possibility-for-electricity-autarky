@@ -17,6 +17,7 @@ URL_GADM = "https://biogeo.ucdavis.edu/data/gadm3.6/gpkg/"
 URL_BATHYMETRIC = "https://www.ngdc.noaa.gov/mgg/global/relief/ETOPO1/data/bedrock/grid_registered/georeferenced_tiff/ETOPO1_Bed_g_geotiff.zip"
 URL_WIND_CP = "https://www.renewables.ninja/static/downloads/ninja_europe_wind_v1.1.zip"
 URL_PV_CP = "https://www.renewables.ninja/static/downloads/ninja_europe_pv_v1.1.zip"
+URL_COUNTRY_SHAPES = "https://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/cultural/ne_10m_admin_0_countries.zip"
 
 
 RAW_SETTLEMENT_DATA = "data/esm-100m-2017/ESM_class50_100m.tif"
@@ -398,3 +399,23 @@ rule industry:
         "build/industrial-load.geojson"
     shell:
         PYTHON_SCRIPT
+
+
+rule raw_country_shapes:
+    message: "Download raw shapes of countries worldwide."
+    output:
+        protected("data/automatic/raw-country-shapes.zip")
+    shell:
+        "curl -sLo {output} '{URL_COUNTRY_SHAPES}'"
+
+
+rule country_shapes:
+    message: "Converting country shapes from shape file to GeoJSON."
+    input: rules.raw_country_shapes.output
+    output: "build/worldwide-countries.geojson"
+    shadow: "full"
+    shell:
+        """
+        unzip {input} -d ./build
+        fio dump build/ne_10m_admin_0_countries.shp > {output}
+        """
