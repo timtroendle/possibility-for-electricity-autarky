@@ -49,7 +49,7 @@ rule regional_land_cover:
         land_cover = rules.land_cover_in_europe.output,
         src = "src/geojson_to_csv.py"
     output:
-        "build/{layer}/land-cover.geojson"
+        "build/{layer}/land-cover.csv"
     shell:
         """
         fio cat {input.regions} | \
