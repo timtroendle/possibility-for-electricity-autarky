@@ -21,8 +21,9 @@ def remix_regions(path_to_nuts, path_to_lau2, path_to_gadm, path_to_output, laye
     """Remixes NUTS, LAU, and GADM data to form the regions of the analysis."""
     source_layers = _read_source_layers(path_to_nuts, path_to_lau2, path_to_gadm)
     _validate_source_layers(source_layers)
-    _validate_layer(config, layer_name)
+    _validate_layer_config(config, layer_name)
     layer = _build_layer(config["layers"][layer_name], source_layers)
+    _validate_layer(layer, layer_name, config["scope"]["countries"])
     _write_layer(layer, path_to_output)
 
 
@@ -44,7 +45,7 @@ def _validate_source_layers(source_layers):
     assert not crs or crs.count(crs[0]) == len(crs), "Source layers have different crs. They must match."
 
 
-def _validate_layer(config, layer_name):
+def _validate_layer_config(config, layer_name):
     country_scope = config["scope"]["countries"]
     layer = config["layers"][layer_name]
     assert all(country in layer.keys() for country in country_scope), ("Layer {} is not correctly "
@@ -59,6 +60,11 @@ def _build_layer(country_to_source_map, source_layers):
     ])
     assert isinstance(layer, pd.DataFrame)
     return gpd.GeoDataFrame(layer, crs=crs)
+
+
+def _validate_layer(layer, layer_name, countries):
+    assert all(_iso3(country) in layer.country_code.unique()
+               for country in countries), (f"Countries are missing in layer {layer_name}.")
 
 
 def _iso3(country_name):

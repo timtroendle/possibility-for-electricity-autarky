@@ -31,7 +31,7 @@ def merge(path_to_shapes, path_to_attributes, path_to_output):
     attributes = gpd.read_file(path_to_attributes)
     attributes = pd.DataFrame(attributes) # to be able to remove the geo information
     del attributes["geometry"]
-    shapes.merge(attributes, on="COMM_ID").to_file(path_to_output, driver=OUTPUT_DRIVER)
+    shapes.merge(attributes, on="COMM_ID", how="left").to_file(path_to_output, driver=OUTPUT_DRIVER)
 
 
 @lau.command()
@@ -53,7 +53,7 @@ def _layer_features(lau_file, config):
     for feature in filter(lambda feature: _in_study_area(config, feature), lau_file):
         new_feature = {}
         new_feature["properties"] = {}
-        new_feature["properties"]["country_code"] = eu_country_code_to_iso3(feature["properties"]["CNTR_CODE"])
+        new_feature["properties"]["country_code"] = eu_country_code_to_iso3(feature["properties"]["COMM_ID"][:2])
         new_feature["properties"]["id"] = feature["properties"]["COMM_ID"]
         new_feature["properties"]["name"] = feature["properties"]["NAME_LATN"]
         new_feature["properties"]["region_type"] = "commune"
@@ -82,7 +82,7 @@ def _in_study_area(config, feature):
     study_area = _study_area(config)
     countries = [pycountry.countries.lookup(country) for country in config["scope"]["countries"]]
     region = shapely.geometry.shape(feature["geometry"])
-    country = pycountry.countries.lookup(eu_country_code_to_iso3(feature["properties"]["CNTR_CODE"]))
+    country = pycountry.countries.lookup(eu_country_code_to_iso3(feature["properties"]["COMM_ID"][:2]))
     if (country in countries) and (study_area.contains(region) or study_area.intersects(region)):
         return True
     else:
