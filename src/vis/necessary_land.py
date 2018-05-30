@@ -81,6 +81,7 @@ def _map(regions, countries, third_countries, path_to_plot):
 
     fig = plt.figure(figsize=(16, 16))
     ax = fig.add_subplot(111)
+    ax.set_aspect('equal')
     ax.add_patch(_serbia_montenegro_patch(regions)) # FIXME, see comment in function below
     third_countries.plot(
         color='grey', edgecolor='black', linewidth=0.4, ax=ax, alpha=0.2

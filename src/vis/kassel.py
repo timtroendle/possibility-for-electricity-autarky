@@ -36,6 +36,7 @@ def _map(regions, countries, path_to_plot):
 
     fig = plt.figure(figsize=(9, 10))
     ax = fig.add_subplot(111)
+    ax.set_aspect('equal')
     _third_countries(countries).plot(
         color='grey', edgecolor='black', linewidth=0.4, ax=ax, alpha=0.2
     )
