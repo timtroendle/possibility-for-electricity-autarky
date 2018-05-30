@@ -172,6 +172,7 @@ parameters:
         pv: 3
         wind: 20
     max-depth-offshore: -50
+    max-building-share: 0.01 # Above, a pixel cannot be used for energy farms. Equals roughly 900m2
 scenarios:
     full-protection:
         use-protected-areas: True

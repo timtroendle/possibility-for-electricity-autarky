@@ -72,9 +72,9 @@ The protected areas database is provided in two files: a shapefile including pol
 
 The slope in Europe is calculated from digital elevation data. The main source is SRTM, but for the Northern part of Europe, GMTED is used as SRTM is not available here. After merging the two data sets and clipping them to the study area, the slope is calculated using `gdaldem slope`. The resulting slope raster data has the resolution of the SRTM data of 3 arcseconds. It is downsampled to 10 arcseconds by taking the maximum slope in the 10 arcsecond region; a conservative approach of resampling.
 
-### Land Eligibility
+### Eligibility
 
-Based on the land cover, protected areas, and slope data, the land eligibility for renewable power plants is determined. Currently, only roof mounted PV, PV farms, and wind farms are considered. The result is a raster data set classifying each pixel whether its land can be used for roof-mounted PV, PV and wind farms, wind farms only, or not at all for renewable power provision.
+Based on the land cover, protected areas, slope, bathymetry, and settlement data, the eligibility for renewable power plants is determined. Currently, only PV farms and wind farms on- as well as offshore are considered. The result is a raster data set classifying each pixel whether its land can be used for PV and wind farms, onshore wind farms only, offshore wind farms, or not at all for renewable power provision. Roof mounted PV potential is determined in a later step for those areas that are in here classified as not eligible.
 
 ### Administrative areas
 
@@ -160,11 +160,11 @@ In conclusion, this means that Corsica and the Balearic Islands are missing in t
 
 Using the electricity demand distribution and the land eligibility raster data set, a final vector data base of all regions and their necessary attributes can be formed. For that, the eligible land categories are counted and associated to their regions.
 
-Both offshore wind and rooftop pv need special treatments. That's first because the regions do not include maritime regions and hence ignore offshore wind potential. And second, because the land cover data set identifies urban areas, but its resolution is too coarse to identify rooftop areas. Large fraction of urban areas are not rooftop areas though, but parks, streets, or water areas. Without special treatment, using land cover data alone would hence lead to an overestimation of rooftop pv potential.
+Both offshore wind and rooftop pv need special treatments. That's first because the regions do not include maritime regions and hence ignore offshore wind potential. And second, because for determining the amount of rooftop areas, we are using a higher spatial resolution than otherwise in this study.
 
 To handle offshore wind, I am using the Economic Exclusive Zones (EEZ) to determine how much offshore wind potential each region has. EEZ are national sovereignty, so there is no correct way to allocate shares of maritime regions to subnational regions. In here, I choose a simple approach: I allocate offshore wind potential to all regions that share a coast with the EEZ. The share is proportional to the length of the shared coast. This simple approach ignores spatial distribution within the EEZs. For example, if there are two regions sharing a coast with an EEZ and both coast lengths are the same, I will allocate 50% of the offshore wind potential to each region in any case. That is true even if one region has all its coast protected and the other not.
 
-To handle rooftop pv, I am using the European Settlement Map to identify the share of rooftop areas in each region. Really what I am doing is identifying buildings as the map has no information on the type of the rooftop or more generally the suitability for pv. This step is hence still an upper bound for rooftop pv potential.
+To handle rooftop pv, I am using the European Settlement Map to identify the amount of rooftop area in each region. I am considering only those pixels that had been classified as not eligible for other renewable generation before. The European Settlement Map determines the fraction of rooftop areas in those areas and in this way I know the amount of rooftop area in each region.
 
 ### Necessary land
 

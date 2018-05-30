@@ -15,14 +15,15 @@ rule all:
 
 rule eligible_land:
     message:
-        "Determine land eligibility for renewables based on land cover, slope, bathymetry, and protected areas "
-        "for scenario {wildcards.scenario}."
+        "Determine land eligibility for renewables based on land cover, slope, bathymetry, buildings, "
+        "and protected areas for scenario {wildcards.scenario}."
     input:
         "src/eligible_land.py",
         rules.land_cover_in_europe.output,
         rules.protected_areas_in_europe.output,
         rules.slope_in_europe.output,
-        rules.bathymetry_in_europe.output
+        rules.bathymetry_in_europe.output,
+        rules.rooftop_area.output
     output:
         "build/{scenario}/eligible-land.tif"
     shell:
@@ -150,17 +151,17 @@ rule regional_offshore_eligibility:
         PYTHON_SCRIPT
 
 
-rule regional_eligibility_rooftop_correction:
+rule regional_eligibility_rooftop_pv:
     message:
-        "Determine share of roof top area in each region for scenario {wildcards.scenario} of layer {wildcards.layer}."
+        "Determine rooftop pv potential in each region for scenario {wildcards.scenario} of layer {wildcards.layer}."
     input:
-        "src/rooftop_correction.py",
+        "src/rooftop.py",
         rules.rooftop_area.output,
         rules.eligible_land.output,
         rules.regions.output,
         rules.regional_land_eligibility.output
     output:
-        "build/{layer}/{scenario}/land-eligibility-rooftop-corrected.csv"
+        "build/{layer}/{scenario}/land-eligibility-with-rooftop-pv.csv"
     shell:
         PYTHON_SCRIPT
 
@@ -168,7 +169,7 @@ rule regional_eligibility_rooftop_correction:
 rule regional_eligibility:
     message: "Merge land and offshore eligibility for layer {wildcards.layer} and scenario {wildcards.scenario}."
     input:
-        land = rules.regional_eligibility_rooftop_correction.output,
+        land = rules.regional_eligibility_rooftop_pv.output,
         offshore = rules.regional_offshore_eligibility.output
     output:
         "build/{layer}/{scenario}/regional-eligibility.csv"
@@ -264,7 +265,7 @@ rule potential_plot:
         "src/vis/potentials.py",
         "build/national/regions.geojson",
         "build/national/demand.csv",
-        "build/national/{scenario}/land-eligibility-rooftop-corrected.csv",
+        "build/national/{scenario}/land-eligibility-with-rooftop-pv.csv",
         "build/national/{scenario}/offshore-eligibility.csv",
         rules.renewable_capacity_factors.output
     output:
