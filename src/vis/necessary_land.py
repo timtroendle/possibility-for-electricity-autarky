@@ -12,6 +12,15 @@ from src.conversion import area_in_squaremeters
 LAND_THRESHOLD = 0.6 # fraction of land that can be used for energy farming
 GREEN = "#679436"
 RED = "#A01914"
+EPSG_3035_PROJ4 = "+proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs "
+MAP_MIN_X = 2400000
+MAP_MIN_Y = 1300000
+MAP_MAX_X = 6600000
+MAP_MAX_Y = 5400000
+SERBIA_PATCH_MIN_X = 5040000
+SERBIA_PATCH_MIN_Y = 2200000
+SERBIA_PATCH_MAX_X = 5170000
+SERBIA_PATCH_MAX_Y = 2340000
 
 
 @click.command()
@@ -33,7 +42,7 @@ def visualise_necessary_land(paths_to_results, path_to_countries, path_to_world,
     sns.set_context('paper')
     paths_to_results = [paths.split(",") for paths in paths_to_results]
     region_sets = [
-        gpd.read_file(paths[0]).merge(
+        gpd.read_file(paths[0]).to_crs(EPSG_3035_PROJ4).merge(
             pd.concat(
                 [pd.read_csv(p).set_index("id") for p in paths[1:]],
                 axis=1
@@ -44,8 +53,8 @@ def visualise_necessary_land(paths_to_results, path_to_countries, path_to_world,
     ]
     for region, paths_to_region in zip(region_sets, paths_to_results):
         region["layer_id"] = _infer_layer_id(paths_to_region[0])
-    countries = gpd.read_file(path_to_countries)
-    third_countries = _third_countries(countries, gpd.read_file(path_to_world))
+    countries = gpd.read_file(path_to_countries).to_crs(EPSG_3035_PROJ4)
+    third_countries = _third_countries(countries, gpd.read_file(path_to_world)).to_crs(EPSG_3035_PROJ4)
     _boxplot([region_sets[0], region_sets[-1]], path_to_boxplot)
     _correlation(region_sets, path_to_correlation)
     _map(region_sets[-1], countries, third_countries, path_to_map)
@@ -93,8 +102,8 @@ def _map(regions, countries, third_countries, path_to_plot):
     loosers.plot(color=RED, linewidth=0.1, ax=ax)
     if not invalids.empty:
         invalids.plot(color="grey", linewidth=0.1, ax=ax)
-    ax.set_xlim(-15, 30)
-    ax.set_ylim(30, 70)
+    ax.set_xlim(MAP_MIN_X, MAP_MAX_X)
+    ax.set_ylim(MAP_MIN_Y, MAP_MAX_Y)
     ax.set_xticks([])
     ax.set_yticks([])
     fig.savefig(path_to_plot, dpi=300)
@@ -176,7 +185,9 @@ def _serbia_montenegro_patch(regions):
     # http://www.bezbednost.org/upload/document/1112231512_pp_3_territorial_an.pdf
     # The issue might be solved with the current 2016 NUTS/LAU data, but that data
     # set hasn't been published by EuroStat so far.
-    coords = ((19.0, 42.2), (19.0, 43.6), (20.5, 43.6), (20.5, 42.2), (19.0, 42.2))
+    coords = ((SERBIA_PATCH_MIN_X, SERBIA_PATCH_MIN_Y), (SERBIA_PATCH_MIN_X, SERBIA_PATCH_MAX_Y),
+              (SERBIA_PATCH_MAX_X, SERBIA_PATCH_MAX_Y), (SERBIA_PATCH_MAX_X, SERBIA_PATCH_MIN_Y),
+              (SERBIA_PATCH_MIN_X, SERBIA_PATCH_MIN_Y))
     patch = shapely.geometry.Polygon(coords)
     for region in regions[regions.country_code.isin(["MNE", "SRB", "ALB"])].geometry:
         patch = patch - region
