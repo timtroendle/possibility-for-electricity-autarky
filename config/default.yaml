@@ -158,8 +158,8 @@ layers:
         Switzerland: lau2
 parameters:
     maximum-installable-power-density: # this is not the yield, but the density of installed power
-        rooftop-pv: 160 # [W/m^2] from (NREL, 2016)
-        pv-farm: 160 # [W/m^2] from (NREL, 2016)
+        rooftop-pv: 160 # [W/m^2] from (Gagnon:2016, Klauser:2016)
+        pv-farm: 160 # [W/m^2] from (Gagnon:2016, Klauser:2016)
         onshore-wind: 8 # [W/m^2] from (European Environment Agency, 2009)
         offshore-wind: 15 # [W/m^2] from (European Environment Agency, 2009)
     onshore-capacity-factor-replacement: # replace missing onshore cp from country_code
