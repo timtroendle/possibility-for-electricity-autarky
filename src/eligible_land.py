@@ -108,7 +108,7 @@ def determine_eligibility(land_cover, protected_areas, slope, bathymetry, buildi
     max_slope_wind = config["parameters"]["max-slope"]["wind"]
     max_building_share = config["parameters"]["max-building-share"]
     eligibility = np.ones_like(land_cover, dtype=DATATYPE) * Eligibility.NOT_ELIGIBLE
-    eligibility[(np.isin(land_cover, FARM + VEGETATION + BARE)) &
+    eligibility[(np.isin(land_cover, VEGETATION + BARE)) &
                 (protected_areas == ProtectedArea.NOT_PROTECTED) &
                 (slope <= max_slope_pv) &
                 (building_share <= max_building_share)] = Eligibility.ONSHORE_WIND_OR_PV_FARM
