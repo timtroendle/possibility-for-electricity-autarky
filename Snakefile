@@ -63,6 +63,23 @@ rule regional_land_cover:
         """
 
 
+rule regional_protected_areas:
+    message: "Protected area statistics per region of layer {wildcards.layer}."
+    input:
+        regions = rules.regions.output,
+        protected_areas = rules.protected_areas_in_europe.output,
+        src = "src/geojson_to_csv.py"
+    output:
+        "build/{layer}/protected-areas.csv"
+    shell:
+        """
+        fio cat {input.regions} | \
+        rio zonalstats -r {input.protected_areas} --prefix 'pa_' --categorical --nodata -1 | \
+        {PYTHON} {input.src} -a id -a pa_0 -a pa_255 > \
+        {output}
+        """
+
+
 rule population:
     message: "Allocate population to regions of layer {wildcards.layer}."
     input:
@@ -241,9 +258,18 @@ rule necessary_land_plots:
         national_necessary_land = "build/national/{scenario}/necessary-land.csv",
         subnational_necessary_land = "build/subnational/{scenario}/necessary-land.csv",
         municipal_necessary_land = "build/municipal/{scenario}/necessary-land.csv",
+        national_land_cover = "build/national/land-cover.csv",
+        subnational_land_cover = "build/subnational/land-cover.csv",
+        municipal_land_cover = "build/municipal/land-cover.csv",
+        national_protected_areas = "build/national/protected-areas.csv",
+        subnational_protected_areas = "build/subnational/protected-areas.csv",
+        municipal_protected_areas = "build/municipal/protected-areas.csv",
         national_population = "build/national/population.csv",
         subnational_population = "build/subnational/population.csv",
         municipal_population = "build/municipal/population.csv",
+        national_demand = "build/national/demand.csv",
+        subnational_demand = "build/subnational/demand.csv",
+        municipal_demand = "build/municipal/demand.csv",
         worldwide_countries = rules.country_shapes.output
     output:
         "build/{scenario}/necessary-land-boxplots.png",
@@ -251,9 +277,9 @@ rule necessary_land_plots:
         "build/{scenario}/necessary-land-correlations.png"
     shell:
         PYTHON + " {input.src} "
-                 "{input.national_regions},{input.national_necessary_land},{input.national_population} "
-                 "{input.subnational_regions},{input.subnational_necessary_land},{input.subnational_population} "
-                 "{input.municipal_regions},{input.municipal_necessary_land},{input.municipal_population} "
+                 "{input.national_regions},{input.national_necessary_land},{input.national_population},{input.national_land_cover},{input.national_protected_areas},{input.national_demand} "
+                 "{input.subnational_regions},{input.subnational_necessary_land},{input.subnational_population},{input.subnational_land_cover},{input.subnational_protected_areas},{input.subnational_demand} "
+                 "{input.municipal_regions},{input.municipal_necessary_land},{input.municipal_population},{input.municipal_land_cover},{input.municipal_protected_areas},{input.municipal_demand} "
                  "{input.national_regions} "
                  "{input.worldwide_countries} "
                  "{output}"

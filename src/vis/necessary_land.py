@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 from src.conversion import area_in_squaremeters
+from src.eligible_land import FARM, FOREST, GlobCover, ProtectedArea
 
 LAND_THRESHOLD = 0.5 # fraction of land that can be used for energy farming
 GREEN = "#679436"
@@ -110,8 +111,8 @@ def _map(regions, countries, third_countries, path_to_plot):
 
 
 def _correlation(region_sets, path_to_plot):
-    fig = plt.figure(figsize=(8, 5))
-    ax1 = fig.add_subplot(121)
+    fig = plt.figure(figsize=(10, 10))
+    ax1 = fig.add_subplot(231)
     for region_set in reversed(region_sets):
         layer_id = region_set["layer_id"][0]
         region_set["area_km2"] = area_in_squaremeters(region_set) / 1e6
@@ -130,7 +131,6 @@ def _correlation(region_sets, path_to_plot):
         color="red", marker="o", markersize=6
     )
     ax1.text(x=berlin.area_km2 + 500, y=berlin.fraction_land_necessary - 0.02, s="Berlin")
-    ax1.set_xticks([0, 40000, 80000, 120000])
     ax1.set_xlabel("region size [km^2]")
     ax1.set_ylabel("fraction of eligible land necessary")
     ax1.set_xlim(0.1,)
@@ -138,7 +138,7 @@ def _correlation(region_sets, path_to_plot):
     ax1.set_xscale("log")
     ax1.legend()
 
-    ax2 = fig.add_subplot(122, sharey=ax1)
+    ax2 = fig.add_subplot(232, sharey=ax1)
     for region_set in reversed(region_sets):
         layer_id = region_set["layer_id"][0]
         region_set["population_density"] = region_set["population_sum"] / region_set["area_km2"]
@@ -164,6 +164,111 @@ def _correlation(region_sets, path_to_plot):
     ax2.set_xscale("log")
     ax2.legend()
 
+    ax3 = fig.add_subplot(233, sharey=ax1)
+    for region_set in reversed(region_sets):
+        layer_id = region_set["layer_id"][0]
+        region_set["protection_share"] = (region_set["pa_{}".format(ProtectedArea.PROTECTED.value)] /
+                                          region_set[[f"pa_{cover.value}" for cover in ProtectedArea]].sum(axis=1))
+        sns.regplot(
+            data=region_set,
+            x="protection_share",
+            y="fraction_land_necessary",
+            label=layer_id,
+            fit_reg=False,
+            ax=ax3
+        )
+    ax3.axhline(1, color="r", linewidth=0.75)
+    berlin = region_sets[1].set_index("name").loc["Berlin"]
+    ax3.plot(
+        [berlin.protection_share], [berlin.fraction_land_necessary],
+        color="red", marker="o", markersize=6
+    )
+    ax3.text(x=berlin.protection_share, y=berlin.fraction_land_necessary - 0.02, s="Berlin")
+    ax3.set_ylabel("")
+    ax3.set_xlabel("share of environmental protection [-]")
+    ax3.set_xlim(0, 1.0)
+    ax3.set_ylim(0, 2)
+    ax3.legend()
+
+    ax4 = fig.add_subplot(234)
+    for region_set in reversed(region_sets):
+        layer_id = region_set["layer_id"][0]
+        total_points = region_set[[f"lc_{cover.value}" for cover in GlobCover]].sum(axis=1)
+        farmland_points = region_set[[f"lc_{cover.value}" for cover in FARM]].sum(axis=1)
+        region_set["farmland_share"] = farmland_points / total_points
+        sns.regplot(
+            data=region_set,
+            x="farmland_share",
+            y="fraction_land_necessary",
+            label=layer_id,
+            fit_reg=False,
+            ax=ax4
+        )
+    ax4.axhline(1, color="r", linewidth=0.75)
+    berlin = region_sets[1].set_index("name").loc["Berlin"]
+    ax4.plot(
+        [berlin.farmland_share], [berlin.fraction_land_necessary],
+        color="red", marker="o", markersize=6
+    )
+    ax4.text(x=berlin.farmland_share, y=berlin.fraction_land_necessary - 0.02, s="Berlin")
+    ax4.set_xlabel("farmland share [-]")
+    ax4.set_ylabel("fraction of eligible land necessary")
+    ax4.set_xlim(0, 1.0)
+    ax4.set_ylim(0, 2)
+    ax4.legend()
+
+    ax5 = fig.add_subplot(235, sharey=ax4)
+    for region_set in reversed(region_sets):
+        layer_id = region_set["layer_id"][0]
+        total_points = region_set[[f"lc_{cover.value}" for cover in GlobCover]].sum(axis=1)
+        forest_points = region_set[[f"lc_{cover.value}" for cover in FOREST]].sum(axis=1)
+        region_set["forest_share"] = forest_points / total_points
+        sns.regplot(
+            data=region_set,
+            x="forest_share",
+            y="fraction_land_necessary",
+            label=layer_id,
+            fit_reg=False,
+            ax=ax5
+        )
+    ax5.axhline(1, color="r", linewidth=0.75)
+    berlin = region_sets[1].set_index("name").loc["Berlin"]
+    ax5.plot(
+        [berlin.forest_share], [berlin.fraction_land_necessary],
+        color="red", marker="o", markersize=6
+    )
+    ax5.text(x=berlin.forest_share, y=berlin.fraction_land_necessary - 0.02, s="Berlin")
+    ax5.set_ylabel("")
+    ax5.set_xlabel("forest share [-]")
+    ax5.set_xlim(0, 1.0)
+    ax5.set_ylim(0, 2)
+    ax5.legend()
+
+    ax6 = fig.add_subplot(236, sharey=ax4)
+    for region_set in reversed(region_sets):
+        layer_id = region_set["layer_id"][0]
+        sns.regplot(
+            data=region_set,
+            x="industrial_demand_fraction",
+            y="fraction_land_necessary",
+            label=layer_id,
+            fit_reg=False,
+            ax=ax6
+        )
+    ax6.axhline(1, color="r", linewidth=0.75)
+    berlin = region_sets[1].set_index("name").loc["Berlin"]
+    ax6.plot(
+        [berlin.industrial_demand_fraction], [berlin.fraction_land_necessary],
+        color="red", marker="o", markersize=6
+    )
+    ax6.text(x=berlin.industrial_demand_fraction, y=berlin.fraction_land_necessary - 0.02, s="Berlin")
+    ax6.set_ylabel("")
+    ax6.set_xlabel("share of industrial demand [-]")
+    ax6.set_xlim(0, 1.0)
+    ax6.set_ylim(0, 2)
+    ax6.legend()
+
+    fig.tight_layout()
     fig.savefig(path_to_plot, dpi=300)
 
 
