@@ -201,6 +201,23 @@ rule regional_eligibility:
         all.to_csv(output[0], header=True)
 
 
+rule rooftop_area_per_capita:
+    message: "Determine the rooftop area per capita."
+    input:
+        population = "build/national/population.csv",
+        eligibility = "build/national/{scenario}/land-eligibility-with-rooftop-pv.csv"
+    output:
+        "build/national/{scenario}/rooftop-area-per-capita.csv"
+    run:
+        import pandas as pd
+        population = pd.read_csv(input.population, index_col=0)["population_sum"]
+        eligibility_m2 = pd.read_csv(input.eligibility, index_col=0)["eligibility_rooftop_pv_km2"] * 1e6
+
+        per_capita = eligibility_m2 / population
+        per_capita.name = "rooftop_pv_m2_per_capita"
+        per_capita.to_csv(output[0], float_format="%.2f")
+
+
 rule renewable_capacity_factors:
     message: "Merge all renewable capacity factors and replace missing."
     input:
@@ -244,7 +261,6 @@ rule necessary_land:
     output:
         "build/{layer}/{scenario}/necessary-land.csv"
     shell:
-        # TODO this approach leads to up to 866 m^2 roof area per citizen -- way too much
         PYTHON_SCRIPT + " {CONFIG_FILE}"
 
 
