@@ -180,7 +180,7 @@ rule regional_eligibility_rooftop_pv:
     output:
         "build/{layer}/{scenario}/land-eligibility-with-rooftop-pv.csv"
     shell:
-        PYTHON_SCRIPT
+        PYTHON_SCRIPT + " {CONFIG_FILE}"
 
 
 rule regional_eligibility:

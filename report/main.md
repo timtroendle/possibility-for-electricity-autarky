@@ -58,6 +58,10 @@ Capacity factors PV and wind
 
 :   National capacity factors for PV and wind for each hour of the year for the years between 1985-2015 and 1980-2016 are taken from renewable.ninja [@Pfenninger:2016; @Staffell:2016].
 
+Sonnendach.ch
+
+:   Dataset comprising all roofs in Switzerland and their eligibility for roof mounted PV [@SwissFederalOfficeofEnergy:2018]. This dataset is used to build a statistical roof model for Switzerland, but also all other countries in Europe.
+
 ## Analysis steps
 
 ### Land cover data
@@ -164,7 +168,7 @@ Both offshore wind and rooftop pv need special treatments. That's first because 
 
 To handle offshore wind, I am using the Economic Exclusive Zones (EEZ) to determine how much offshore wind potential each region has. EEZ are national sovereignty, so there is no correct way to allocate shares of maritime regions to subnational regions. In here, I choose a simple approach: I allocate offshore wind potential to all regions that share a coast with the EEZ. The share is proportional to the length of the shared coast. This simple approach ignores spatial distribution within the EEZs. For example, if there are two regions sharing a coast with an EEZ and both coast lengths are the same, I will allocate 50% of the offshore wind potential to each region in any case. That is true even if one region has all its coast protected and the other not.
 
-To handle rooftop pv, I am using the European Settlement Map to identify the amount of rooftop area in each region. I am considering only those pixels that had been classified as not eligible for other renewable generation before. The European Settlement Map determines the fraction of rooftop areas in those areas and in this way I know the amount of rooftop area in each region.
+To handle rooftop pv, I am using the European Settlement Map to identify the amount of rooftop area in each region. I am considering only those pixels that had been classified as not eligible for other renewable generation before. The European Settlement Map determines the fraction of rooftop areas in those areas which I rescale to match the sonnendach.ch data for Switzerland (assuming roof statistics are similar in all other European countries) and in this way I know the amount of rooftop area in each region.
 
 ### Necessary land
 

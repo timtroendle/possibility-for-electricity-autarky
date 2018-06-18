@@ -5,8 +5,9 @@ import pandas as pd
 import rasterio
 from rasterstats import zonal_stats
 
-from eligible_land import Eligibility
-from regional_eligibility import _test_land_allocation
+from src.eligible_land import Eligibility
+from src.regional_eligibility import _test_land_allocation
+from src.utils import Config
 
 NO_DATA_VALUE = -1
 
@@ -17,8 +18,9 @@ NO_DATA_VALUE = -1
 @click.argument("path_to_regions")
 @click.argument("path_to_regional_eligibility")
 @click.argument("path_to_output")
+@click.argument("config", type=Config())
 def rooftop_correction(path_to_rooftop_area_share, path_to_eligibility, path_to_regions,
-                       path_to_regional_eligibility, path_to_output):
+                       path_to_regional_eligibility, path_to_output, config):
     """Calculate the rooftop area that is available in each region.
 
     This is based on using only those areas that have been identified as roofs in the
@@ -43,16 +45,22 @@ def rooftop_correction(path_to_rooftop_area_share, path_to_eligibility, path_to_
             index=[feat["properties"]["id"] for feat in src],
             data=[stat["mean"] for stat in zs]
         ).fillna(0.0) # happens if there is no building in the region
-    corrected_eligibilites = _correct_eligibilities(path_to_regional_eligibility, building_share)
-
+    available_rooftop_share = _apply_scaling_factor(building_share, config)
+    corrected_eligibilites = _correct_eligibilities(path_to_regional_eligibility, available_rooftop_share)
     corrected_eligibilites.to_csv(path_to_output, header=True)
     _test_land_allocation(path_to_regions, path_to_output)
 
 
-def _correct_eligibilities(path_to_regional_eligibility, building_share):
+def _apply_scaling_factor(building_share, config):
+    # This accounts for the fact that not all rooftops areas are usable for PV.
+    factor = config["parameters"]["available-rooftop-share"]
+    return building_share * factor
+
+
+def _correct_eligibilities(path_to_regional_eligibility, available_rooftop_share):
     regional_eligibility = pd.read_csv(path_to_regional_eligibility, index_col=0)
     total_unusable_area = regional_eligibility[Eligibility.NOT_ELIGIBLE.property_name]
-    rooftop_area = total_unusable_area * building_share
+    rooftop_area = total_unusable_area * available_rooftop_share
     regional_eligibility[Eligibility.ROOFTOP_PV.property_name] = rooftop_area
     regional_eligibility[Eligibility.NOT_ELIGIBLE.property_name] = total_unusable_area - rooftop_area
     return regional_eligibility
