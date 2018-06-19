@@ -23,7 +23,7 @@ rule eligible_land:
         rules.protected_areas_in_europe.output,
         rules.slope_in_europe.output,
         rules.bathymetry_in_europe.output,
-        rules.rooftop_area.output
+        rules.settlements.output
     output:
         "build/{scenario}/eligible-land.tif"
     shell:
@@ -173,7 +173,7 @@ rule regional_eligibility_rooftop_pv:
         "Determine rooftop pv potential in each region for scenario {wildcards.scenario} of layer {wildcards.layer}."
     input:
         "src/rooftop.py",
-        rules.rooftop_area.output,
+        rules.settlements.output.buildings,
         rules.eligible_land.output,
         rules.regions.output,
         rules.regional_land_eligibility.output

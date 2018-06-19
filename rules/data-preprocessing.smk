@@ -20,7 +20,7 @@ URL_PV_CP = "https://www.renewables.ninja/static/downloads/ninja_europe_pv_v1.1.
 URL_COUNTRY_SHAPES = "https://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/cultural/ne_10m_admin_0_countries.zip"
 
 
-RAW_SETTLEMENT_DATA = "data/esm-100m-2017/ESM_class50_100m.tif"
+RAW_SETTLEMENT_DATA = "data/esm-100m-2017/ESM_class{esm_class}_100m.tif"
 RAW_EEZ_DATA = "data/World_EEZ_v10_20180221/eez_v10.shp"
 RAW_INDUSTRY_DATA = "data/electricity-intensive-industry/energy-intensive-industries.xlsx"
 
@@ -348,17 +348,31 @@ rule protected_areas_in_europe:
         """
 
 
-rule rooftop_area:
-    message: "Warp rooftop area to CRS of study using {threads} threads."
+rule settlements:
+    message: "Warp settlement data to CRS of study using {threads} threads."
     input:
-        settlements = RAW_SETTLEMENT_DATA,
+        class50 = RAW_SETTLEMENT_DATA.format(esm_class="50"),
+        class40 = RAW_SETTLEMENT_DATA.format(esm_class="40"),
+        class41 = RAW_SETTLEMENT_DATA.format(esm_class="41"),
+        class45 = RAW_SETTLEMENT_DATA.format(esm_class="45"),
         reference = rules.land_cover_in_europe.output
-    output: "build/rooftop-area.tif"
+    output:
+        buildings = "build/esm-class50-buildings.tif",
+        urban_greens = "build/esm-class404145-urban-greens.tif"
     threads: config["snakemake"]["max-threads"]
+    shadow: "full"
     shell:
         """
-        rio warp {input.settlements} -o {output} \
+        rio warp {input.class50} -o {output.buildings} \
         --like {input.reference} --threads {threads} --resampling bilinear --co compress=LZW
+        rio warp {input.class40} -o build/esm-class40.tif \
+        --like {input.reference} --threads {threads} --resampling bilinear --co compress=LZW
+        rio warp {input.class41} -o build/esm-class41.tif \
+        --like {input.reference} --threads {threads} --resampling bilinear --co compress=LZW
+        rio warp {input.class45} -o build/esm-class45.tif \
+        --like {input.reference} --threads {threads} --resampling bilinear --co compress=LZW
+        rio calc "(+ (+ (read 1) (read 2)) (read 3))" \
+        build/esm-class40.tif build/esm-class41.tif build/esm-class45.tif -o {output.urban_greens}
         """
 
 

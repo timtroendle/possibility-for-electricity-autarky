@@ -28,7 +28,7 @@ GlobCover 2009 -- land cover data
 
 European Settlement Map 2012, Release 2017
 
-:   European Settlement Map is a spatial raster data set that maps settlements in Europe. It is provided by JRC in a resolution of 2.5m [@Ferri:2017]. In here, I am using the statistical summary provided at 100m resolution to identify buildings.
+:   European Settlement Map is a spatial raster data set that maps settlements in Europe. It is provided by JRC in a resolution of 2.5m [@Ferri:2017]. In here, I am using the statistical summary provided at 100m resolution to identify buildings and urban greens.
 
 World Database on Protected Areas
 

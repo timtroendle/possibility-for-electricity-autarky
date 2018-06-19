@@ -75,11 +75,13 @@ class ProtectedArea(IntEnum):
 @click.argument("path_to_slope")
 @click.argument("path_to_bathymetry")
 @click.argument("path_to_building_share")
+@click.argument("path_to_urban_green_share")
 @click.argument("path_to_result")
 @click.argument("scenario")
 @click.argument("config", type=Config())
 def determine_eligible_land(path_to_land_cover, path_to_protected_areas, path_to_slope,
-                            path_to_bathymetry, path_to_building_share, path_to_result, scenario, config):
+                            path_to_bathymetry, path_to_building_share, path_to_urban_green_share,
+                            path_to_result, scenario, config):
     """Determines eligibility of land for renewables."""
     with rasterio.open(path_to_land_cover) as src:
         raster_affine = src.affine
@@ -96,30 +98,44 @@ def determine_eligible_land(path_to_land_cover, path_to_protected_areas, path_to
         bathymetry = src.read(1)
     with rasterio.open(path_to_building_share) as src:
         building_share = src.read(1)
-    eligibility = determine_eligibility(land_cover, protected_areas, slope, bathymetry, building_share, config)
+    with rasterio.open(path_to_urban_green_share) as src:
+        urban_green_share = src.read(1)
+    eligibility = determine_eligibility(
+        land_cover=land_cover,
+        protected_areas=protected_areas,
+        slope=slope,
+        bathymetry=bathymetry,
+        building_share=building_share,
+        urban_green_share=urban_green_share,
+        config=config
+    )
     with rasterio.open(path_to_result, 'w', driver='GTiff', height=eligibility.shape[0],
                        width=eligibility.shape[1], count=1, dtype=DATATYPE,
                        crs=crs, transform=raster_affine) as new_geotiff:
         new_geotiff.write(eligibility, 1)
 
 
-def determine_eligibility(land_cover, protected_areas, slope, bathymetry, building_share, config):
+def determine_eligibility(land_cover, protected_areas, slope, bathymetry, building_share, urban_green_share, config):
     max_slope_pv = config["parameters"]["max-slope"]["pv"]
     max_slope_wind = config["parameters"]["max-slope"]["wind"]
     max_building_share = config["parameters"]["max-building-share"]
+    max_urban_green_share = config["parameters"]["max-urban-green-share"]
     eligibility = np.ones_like(land_cover, dtype=DATATYPE) * Eligibility.NOT_ELIGIBLE
     eligibility[(np.isin(land_cover, VEGETATION + BARE)) &
                 (protected_areas == ProtectedArea.NOT_PROTECTED) &
                 (slope <= max_slope_pv) &
-                (building_share <= max_building_share)] = Eligibility.ONSHORE_WIND_OR_PV_FARM
+                (building_share <= max_building_share) &
+                (urban_green_share <= max_urban_green_share)] = Eligibility.ONSHORE_WIND_OR_PV_FARM
     eligibility[(np.isin(land_cover, VEGETATION + BARE)) &
                 (protected_areas == ProtectedArea.NOT_PROTECTED) &
                 (slope <= max_slope_wind) & (slope > max_slope_pv) &
-                (building_share <= max_building_share)] = Eligibility.ONSHORE_WIND_FARM
+                (building_share <= max_building_share) &
+                (urban_green_share <= max_urban_green_share)] = Eligibility.ONSHORE_WIND_FARM
     eligibility[(np.isin(land_cover, FOREST + FARM)) &
                 (protected_areas == ProtectedArea.NOT_PROTECTED) &
                 (slope <= max_slope_wind) &
-                (building_share <= max_building_share)] = Eligibility.ONSHORE_WIND_FARM
+                (building_share <= max_building_share) &
+                (urban_green_share <= max_urban_green_share)] = Eligibility.ONSHORE_WIND_FARM
     eligibility[(land_cover == GlobCover.WATER_BODIES) &
                 (protected_areas == ProtectedArea.NOT_PROTECTED) &
                 (bathymetry > config["parameters"]["max-depth-offshore"])] = Eligibility.OFFSHORE_WIND_FARM

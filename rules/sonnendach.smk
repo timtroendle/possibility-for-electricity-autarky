@@ -47,7 +47,7 @@ rule rasterise_sonnendach:
 rule swiss_rooftops_from_settlement_data:
     message: "Warp and reproject settlement data to sonnendach extend and coordinates."
     input:
-        rooftops = rules.rooftop_area.output,
+        rooftops = rules.settlements.output.buildings,
         sonnendach = rules.rasterise_sonnendach.output
     output:
         "build/swiss/swiss-rooftops.tif"

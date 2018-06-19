@@ -48,3 +48,4 @@ __pycache__
 # Snakemake
 .snakemake/
 dag.pdf
+dag-sonnendach.pdf
