@@ -112,11 +112,11 @@ def determine_eligibility(land_cover, protected_areas, slope, bathymetry, buildi
                 (protected_areas == ProtectedArea.NOT_PROTECTED) &
                 (slope <= max_slope_pv) &
                 (building_share <= max_building_share)] = Eligibility.ONSHORE_WIND_OR_PV_FARM
-    eligibility[(np.isin(land_cover, FARM + VEGETATION + BARE)) &
+    eligibility[(np.isin(land_cover, VEGETATION + BARE)) &
                 (protected_areas == ProtectedArea.NOT_PROTECTED) &
                 (slope <= max_slope_wind) & (slope > max_slope_pv) &
                 (building_share <= max_building_share)] = Eligibility.ONSHORE_WIND_FARM
-    eligibility[(np.isin(land_cover, FOREST)) &
+    eligibility[(np.isin(land_cover, FOREST + FARM)) &
                 (protected_areas == ProtectedArea.NOT_PROTECTED) &
                 (slope <= max_slope_wind) &
                 (building_share <= max_building_share)] = Eligibility.ONSHORE_WIND_FARM
