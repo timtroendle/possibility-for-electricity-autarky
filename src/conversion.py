@@ -1,5 +1,11 @@
 """Functions to convert units."""
+from functools import partial
+from itertools import product
+
 import pycountry
+import shapely.geometry
+import shapely.ops
+import pyproj
 
 # from https://epsg.io/3035
 EPSG_3035_PROJ4 = "+proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs "
@@ -51,6 +57,31 @@ def coordinate_string_to_decimal(coordinate_string):
     easting = _to_decimal_degree(*_split_coordinate(long))
     northing = _to_decimal_degree(*_split_coordinate(lat))
     return easting, northing
+
+
+def transform_coordinates(x, y, from_epsg, to_epsg):
+    """Tranforms coordinates from one coordinate reference system to the other."""
+    point = shapely.geometry.Point(x, y)
+
+    project = partial(
+        pyproj.transform,
+        pyproj.Proj(init=from_epsg),
+        pyproj.Proj(init=to_epsg))
+
+    transformed_point = shapely.ops.transform(project, point)
+    return transformed_point.x, transformed_point.y
+
+
+def transform_bounds(x_min, y_min, x_max, y_max, from_epsg, to_epsg):
+    """Tranforms bounds from one coordinate reference system to the other.
+
+    Returns bounds as tuple: (x_min, y_min, x_max, y_max).
+    """
+    points = [transform_coordinates(x, y, from_epsg, to_epsg)
+              for x, y in product([x_min, x_max], [y_min, y_max])]
+
+    return (min([p[0] for p in points]), min([p[1] for p in points]),
+            max([p[0] for p in points]), max([p[1] for p in points]),)
 
 
 def _separate_lat_and_long(coordinate_string):
