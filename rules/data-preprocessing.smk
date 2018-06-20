@@ -1,5 +1,6 @@
 """This is a Snakemake file defining rules to retrieve raw data from online sources."""
 import pycountry
+from src.conversion import transform_bounds
 
 PYTHON = "PYTHONPATH=./ python"
 PYTHON_SCRIPT = "PYTHONPATH=./ python {input} {output}"
@@ -18,6 +19,7 @@ URL_BATHYMETRIC = "https://www.ngdc.noaa.gov/mgg/global/relief/ETOPO1/data/bedro
 URL_WIND_CP = "https://www.renewables.ninja/static/downloads/ninja_europe_wind_v1.1.zip"
 URL_PV_CP = "https://www.renewables.ninja/static/downloads/ninja_europe_pv_v1.1.zip"
 URL_COUNTRY_SHAPES = "https://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/cultural/ne_10m_admin_0_countries.zip"
+URL_POP = "http://cidportal.jrc.ec.europa.eu/ftp/jrc-opendata/GHSL/GHS_POP_GPW4_GLOBE_R2015A/GHS_POP_GPW42015_GLOBE_R2015A_54009_250/V1-0/GHS_POP_GPW42015_GLOBE_R2015A_54009_250_v1_0.zip"
 
 
 RAW_SETTLEMENT_DATA = "data/esm-100m-2017/ESM_class{esm_class}_100m.tif"
@@ -432,4 +434,42 @@ rule country_shapes:
         """
         unzip {input} -d ./build
         fio dump build/ne_10m_admin_0_countries.shp > {output}
+        """
+
+
+rule raw_population_zipped:
+    message: "Download population data."
+    output:
+        protected("data/automatic/raw-population-data.zip")
+    shell:
+        "curl -sLo {output} '{URL_POP}'"
+
+
+rule raw_population:
+    message: "Extract population data as zip."
+    input: rules.raw_population_zipped.output
+    output: "build/GHS_POP_GPW42015_GLOBE_R2015A_54009_250_v1_0.tif"
+    shadow: "full"
+    shell:
+        """
+        unzip {input} -d ./build/
+        mv build/GHS_POP_GPW42015_GLOBE_R2015A_54009_250_v1_0/GHS_POP_GPW42015_GLOBE_R2015A_54009_250_v1_0.tif {output}
+        """
+
+
+rule population_in_europe:
+    message: "Clip population data to bounds of study."
+    input:
+        population = rules.raw_population.output,
+    output:
+        "build/population-europe.tif"
+    params:
+        bounds = "{} {} {} {}".format(*transform_bounds(
+            **config["scope"]["bounds"],
+            from_epsg=config["crs"],
+            to_epsg="ESRI:54009"
+        ))
+    shell:
+        """
+        rio clip --bounds {params.bounds} --co compress=LZW {input.population} -o {output}
         """

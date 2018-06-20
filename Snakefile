@@ -1,7 +1,6 @@
 PYTHON = "PYTHONPATH=./ python"
 PYTHON_SCRIPT = "PYTHONPATH=./ python {input} {output}"
 
-RAW_GRIDDED_POP_DATA = "data/gpw-v4-population-count-2020/gpw-v4-population-count_2020.tif"
 CONFIG_FILE = "config/default.yaml"
 
 configfile: CONFIG_FILE
@@ -84,7 +83,7 @@ rule population:
     message: "Allocate population to regions of layer {wildcards.layer}."
     input:
         regions = rules.regions.output,
-        population = RAW_GRIDDED_POP_DATA,
+        population = rules.population_in_europe.output,
         src_geojson = "src/geojson_to_csv.py",
         src_population = "src/population.py",
         land_cover = rules.regional_land_cover.output
@@ -92,7 +91,8 @@ rule population:
         "build/{layer}/population.csv"
     shell:
         """
-        fio cat {input.regions} | \
+        crs=$(rio info --crs {input.population})
+        fio cat --dst_crs "$crs" {input.regions} | \
         rio zonalstats -r {input.population} --prefix 'population_' --stats sum | \
         {PYTHON} {input.src_geojson} -a id -a population_sum -a proper | \
         {PYTHON} {input.src_population} {input.land_cover} > \
