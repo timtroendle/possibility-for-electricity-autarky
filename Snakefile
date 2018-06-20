@@ -100,6 +100,25 @@ rule population:
         """
 
 
+rule population_in_protected_areas:
+    message: "Determine the population that lives in protected areas using {threads} threads."
+    input:
+        population = rules.population_in_europe.output,
+        protected_areas = rules.protected_areas_in_europe.output,
+        regions = "build/national/regions.geojson"
+    output:
+        "build/population-in-protected-areas.tif",
+    threads: config["snakemake"]["max-threads"]
+    shadow: "full"
+    shell:
+        """
+        rio warp {input.population} -o warped_pop_europe.tif \
+        --like {input.protected_areas} --threads {threads} --resampling bilinear
+        rio calc "(* (== (read 1) 255) (read 2))" {input.protected_areas} warped_pop_europe.tif {output}
+        rio mask {output} {output} --crop --geojson-mask {input.regions} --force-overwrite
+        """
+
+
 rule demand:
     message: "Allocate electricity demand to regions of layer {wildcards.layer}."
     input:
