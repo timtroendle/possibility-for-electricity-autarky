@@ -6,7 +6,8 @@ import pandas as pd
 
 from eligible_land import Eligibility
 
-OFFSHORE_ELIGIBILITY = Eligibility.OFFSHORE_WIND_FARM.property_name
+OFFSHORE_ELIGIBILITIES = [Eligibility.OFFSHORE_WIND.area_column_name,
+                          Eligibility.OFFSHORE_WIND_PROTECTED.area_column_name]
 REL_TOLERANCE = 0.005 # 0.5 %
 ABS_TOLERANCE = 5 # km^2
 
@@ -22,19 +23,21 @@ def allocate_eezs(path_to_eez_eligibility, path_to_shared_coasts, path_to_output
     I simply allocate offshore eligibility to all regions that share a coast with
     the eez. The allocation is proportional to the lenght of the shared coastself.
     """
-    eez_eligibilities = pd.read_csv(path_to_eez_eligibility, index_col=0)[OFFSHORE_ELIGIBILITY]
+    eez_eligibilities = pd.read_csv(path_to_eez_eligibility, index_col=0)[OFFSHORE_ELIGIBILITIES]
     eez_eligibilities.index = eez_eligibilities.index.map(str)
     shared_coasts = pd.read_csv(path_to_shared_coasts, index_col=0)
-    result = shared_coasts.dot(eez_eligibilities)
-    result.name = eez_eligibilities.name
+    result = pd.DataFrame(
+        data=shared_coasts.dot(eez_eligibilities),
+        columns=OFFSHORE_ELIGIBILITIES
+    )
 
     _test_allocation(eez_eligibilities, result)
     result.to_csv(path_to_output, header=True)
 
 
 def _test_allocation(eez_eligibilities, result):
-    total_offshore = eez_eligibilities.sum()
-    total_allocated = result.sum()
+    total_offshore = eez_eligibilities.sum().sum()
+    total_allocated = result.sum().sum()
     below_rel_threshold = abs(total_allocated - total_offshore) < total_offshore * REL_TOLERANCE
     below_abs_threshold = abs(total_allocated - total_offshore) < ABS_TOLERANCE
     below_any_threshold = below_rel_threshold | below_abs_threshold

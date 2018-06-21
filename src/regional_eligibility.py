@@ -59,7 +59,8 @@ def offshore(path_to_regions, path_to_eligibility, path_to_output, threads):
 def _allocation_eligibility_to_regions(path_to_regions, path_to_eligibility, path_to_output, threads, offshore):
     eligibilities = [eligibility for eligibility in Eligibility]
     if not offshore:
-        eligibilities.remove(Eligibility.OFFSHORE_WIND_FARM)
+        eligibilities.remove(Eligibility.OFFSHORE_WIND)
+        eligibilities.remove(Eligibility.OFFSHORE_WIND_PROTECTED)
     with fiona.open(path_to_regions, "r") as regions:
         with Pool(threads) as pool:
             # start with largest (=slowest) region to optimise the multi processing
@@ -78,8 +79,8 @@ def _allocation_eligibility_to_regions(path_to_regions, path_to_eligibility, pat
         data = pd.DataFrame(
             index=[region["properties"]["id"] for region in new_regions],
             data={
-                eligibility.property_name: [region["properties"][eligibility.property_name]
-                                            for region in new_regions]
+                eligibility.area_column_name: [region["properties"][eligibility.area_column_name]
+                                               for region in new_regions]
                 for eligibility in eligibilities
             }
         )
@@ -106,7 +107,7 @@ def _allocate_eligibility_to_region(args):
     )
     for eligibility in Eligibility:
         area_size = float((crop == eligibility).sum() * pixel_width * pixel_height / 1000 / 1000)
-        region["properties"][eligibility.property_name] = area_size
+        region["properties"][eligibility.area_column_name] = area_size
     return region
 
 
@@ -140,10 +141,12 @@ def _remove_offshore(regions):
     # There is sometimes offshore eligibility inside land regions.
     # This should not be possible, hence I am resetting them here to not eligible.
     for region in regions:
-        offshore_potential = region["properties"][Eligibility.OFFSHORE_WIND_FARM.property_name]
-        not_eligible = region["properties"][Eligibility.NOT_ELIGIBLE.property_name]
-        region["properties"][Eligibility.OFFSHORE_WIND_FARM.property_name] = 0.0
-        region["properties"][Eligibility.NOT_ELIGIBLE.property_name] = not_eligible + offshore_potential
+        offshore_potential = (region["properties"][Eligibility.OFFSHORE_WIND.area_column_name] +
+                              region["properties"][Eligibility.OFFSHORE_WIND_PROTECTED.area_column_name])
+        not_eligible = region["properties"][Eligibility.NOT_ELIGIBLE.area_column_name]
+        region["properties"][Eligibility.OFFSHORE_WIND.area_column_name] = 0.0
+        region["properties"][Eligibility.OFFSHORE_WIND_PROTECTED.area_column_name] = 0.0
+        region["properties"][Eligibility.NOT_ELIGIBLE.area_column_name] = not_eligible + offshore_potential
     return regions
 
 
@@ -154,10 +157,11 @@ def _test_land_allocation(path_to_regions, path_to_eligibilities):
 def _test_allocation(path_to_regions, path_to_eligibilities, offshore):
     eligibilities = [eligibility for eligibility in Eligibility]
     if offshore is False:
-        eligibilities.remove(Eligibility.OFFSHORE_WIND_FARM)
+        eligibilities.remove(Eligibility.OFFSHORE_WIND)
+        eligibilities.remove(Eligibility.OFFSHORE_WIND_PROTECTED)
     regions = gpd.read_file(path_to_regions)
     regions = regions.merge(pd.read_csv(path_to_eligibilities), on="id")
-    total_allocated_area = regions.loc[:, [eligibility.property_name
+    total_allocated_area = regions.loc[:, [eligibility.area_column_name
                                            for eligibility in eligibilities]].sum(axis="columns")
     region_size = area_in_squaremeters(regions) / 1000 / 1000
     below_rel_threshold = abs(total_allocated_area - region_size) < region_size * REL_TOLERANCE

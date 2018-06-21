@@ -14,8 +14,8 @@ rule all:
 
 rule eligible_land:
     message:
-        "Determine land eligibility for renewables based on land cover, slope, bathymetry, buildings, "
-        "and protected areas for scenario {wildcards.scenario}."
+        "Determine land eligibility for renewables based on land cover, slope, bathymetry, settlements, "
+        "and protected areas."
     input:
         "src/eligible_land.py",
         rules.land_cover_in_europe.output,
@@ -24,9 +24,9 @@ rule eligible_land:
         rules.bathymetry_in_europe.output,
         rules.settlements.output
     output:
-        "build/{scenario}/eligible-land.tif"
+        "build/eligible-land.tif"
     shell:
-        PYTHON_SCRIPT + " {wildcards.scenario} {CONFIG_FILE}"
+        PYTHON_SCRIPT + " {CONFIG_FILE}"
 
 
 rule regions:
@@ -135,13 +135,13 @@ rule demand:
 
 rule eez_eligibility:
     message:
-        "Allocate eligible land to exclusive economic zones for scenario {wildcards.scenario} using {threads} threads."
+        "Allocate eligible land to exclusive economic zones using {threads} threads."
     input:
         src = "src/regional_eligibility.py",
         regions = rules.eez_in_europe.output,
         eligibility = rules.eligible_land.output
     output:
-        "build/{scenario}/eez-eligibility.csv"
+        "build/eez-eligibility.csv"
     threads: config["snakemake"]["max-threads"]
     shell:
         PYTHON + " {input.src} offshore {input.regions} {input.eligibility} {output} {threads}"
@@ -149,14 +149,13 @@ rule eez_eligibility:
 
 rule regional_land_eligibility:
     message:
-        "Allocate eligible land to regions for scenario {wildcards.scenario} of layer {wildcards.layer} "
-        "using {threads} threads."
+        "Allocate eligible land to regions of layer {wildcards.layer} using {threads} threads."
     input:
         src = "src/regional_eligibility.py",
         regions = rules.regions.output,
         eligibility = rules.eligible_land.output
     output:
-        "build/{layer}/{scenario}/land-eligibility.csv"
+        "build/{layer}/land-eligibility.csv"
     threads: config["snakemake"]["max-threads"]
     shell:
         PYTHON + " {input.src} land {input.regions} {input.eligibility} {output} {threads}"
@@ -176,20 +175,20 @@ rule shared_coast:
 
 
 rule regional_offshore_eligibility:
-    message: "Allocate eez eligibilities to regions for scenario {wildcards.scenario} of layer {wildcards.layer}."
+    message: "Allocate eez eligibilities to regions of layer {wildcards.layer}."
     input:
         "src/allocate_eez.py",
         rules.eez_eligibility.output,
         rules.shared_coast.output
     output:
-        "build/{layer}/{scenario}/offshore-eligibility.csv"
+        "build/{layer}/offshore-eligibility.csv"
     shell:
         PYTHON_SCRIPT
 
 
 rule regional_eligibility_rooftop_pv:
     message:
-        "Determine rooftop pv potential in each region for scenario {wildcards.scenario} of layer {wildcards.layer}."
+        "Determine rooftop pv potential in each region of layer {wildcards.layer}."
     input:
         "src/rooftop.py",
         rules.settlements.output.buildings,
@@ -197,18 +196,18 @@ rule regional_eligibility_rooftop_pv:
         rules.regions.output,
         rules.regional_land_eligibility.output
     output:
-        "build/{layer}/{scenario}/land-eligibility-with-rooftop-pv.csv"
+        "build/{layer}/land-eligibility-with-rooftop-pv.csv"
     shell:
         PYTHON_SCRIPT + " {CONFIG_FILE}"
 
 
 rule regional_eligibility:
-    message: "Merge land and offshore eligibility for layer {wildcards.layer} and scenario {wildcards.scenario}."
+    message: "Merge land and offshore eligibility for layer {wildcards.layer}."
     input:
         land = rules.regional_eligibility_rooftop_pv.output,
         offshore = rules.regional_offshore_eligibility.output
     output:
-        "build/{layer}/{scenario}/regional-eligibility.csv"
+        "build/{layer}/regional-eligibility.csv"
     run:
         import pandas as pd
 
@@ -224,9 +223,9 @@ rule rooftop_area_per_capita:
     message: "Determine the rooftop area per capita."
     input:
         population = "build/national/population.csv",
-        eligibility = "build/national/{scenario}/land-eligibility-with-rooftop-pv.csv"
+        eligibility = "build/national/land-eligibility-with-rooftop-pv.csv"
     output:
-        "build/national/{scenario}/rooftop-area-per-capita.csv"
+        "build/national/rooftop-area-per-capita.csv"
     run:
         import pandas as pd
         population = pd.read_csv(input.population, index_col=0)["population_sum"]
@@ -267,16 +266,40 @@ rule regional_capacity_factors:
         national_cps.to_csv(output[0], header=True)
 
 
-rule necessary_land:
+rule unconstrained_potentials:
     message:
-        "Determine fraction of land necessary to supply demand per region for scenario {wildcards.scenario} "
-        "of layer {wildcards.layer}."
+        "Determine the unconstrained renewable potentials for all eligibility types of layer {wildcards.layer}."
     input:
-        "src/necessary_land.py",
-        rules.population.output,
-        rules.demand.output,
+        "src/potentials_unconstrained.py",
         rules.regional_eligibility.output,
         rules.regional_capacity_factors.output
+    output:
+        prefer_pv = "build/{layer}/unconstrained-potentials-prefer-pv.csv",
+        prefer_wind = "build/{layer}/unconstrained-potentials-prefer-wind.csv"
+    shell:
+        PYTHON_SCRIPT + " {CONFIG_FILE}"
+
+
+rule constrained_potentials:
+    message:
+        "Determine constrained potentials for layer {wildcards.layer} in scenario {wildcards.scenario}."
+    input:
+        "src/potentials_constrained.py",
+        rules.unconstrained_potentials.output
+    output:
+        "build/{layer}/{scenario}/constrained-potentials.csv"
+    shell:
+        PYTHON_SCRIPT + " {wildcards.scenario} {CONFIG_FILE}"
+
+
+rule necessary_land:
+    message:
+        "Determine fraction of land necessary to supply demand per region of layer {wildcards.layer} "
+        "in scenario {wildcards.scenario}."
+    input:
+        "src/necessary_land.py",
+        rules.demand.output,
+        rules.constrained_potentials.output
     output:
         "build/{layer}/{scenario}/necessary-land.csv"
     shell:
@@ -324,15 +347,13 @@ rule potential_plot:
     message: "Plot potentials of renewable power for scenario {wildcards.scenario}."
     input:
         "src/vis/potentials.py",
-        "build/national/regions.geojson",
         "build/national/demand.csv",
-        "build/national/{scenario}/land-eligibility-with-rooftop-pv.csv",
-        "build/national/{scenario}/offshore-eligibility.csv",
-        rules.renewable_capacity_factors.output
+        "build/national/unconstrained-potentials-prefer-pv.csv",
+        "build/national/unconstrained-potentials-prefer-wind.csv"
     output:
         "build/{scenario}/potentials.png"
     shell:
-        PYTHON_SCRIPT + " {CONFIG_FILE}"
+        PYTHON_SCRIPT + " {wildcards.scenario} {CONFIG_FILE}"
 
 
 rule solution_matrix_plot:
@@ -340,25 +361,11 @@ rule solution_matrix_plot:
     input:
         "src/vis/solution.py",
         "build/municipal/demand.csv",
-        "build/municipal/capacity-factors.csv",
         "build/municipal/population.csv",
-        "build/municipal/full-protection/regional-eligibility.csv",
-        "build/municipal/zero-protection/regional-eligibility.csv",
+        "build/municipal/full-protection/constrained-potentials.csv",
+        "build/municipal/zero-protection/constrained-potentials.csv",
     output:
         "build/solution-matrix.png"
-    shell:
-        PYTHON_SCRIPT + " {CONFIG_FILE}"
-
-
-rule kassel_plot:
-    message: "Plot the map of land necessary for Germany and point to Kassel for scenario {wildcards.scenario}."
-    input:
-        "src/vis/kassel.py",
-        "build/municipal/regions.geojson",
-        "build/municipal/{scenario}/necessary-land.csv",
-        "build/national/regions.geojson"
-    output:
-        "build/{scenario}/kassel-map.png"
     shell:
         PYTHON_SCRIPT
 

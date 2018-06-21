@@ -59,10 +59,10 @@ def _apply_scaling_factor(building_share, config):
 
 def _correct_eligibilities(path_to_regional_eligibility, available_rooftop_share):
     regional_eligibility = pd.read_csv(path_to_regional_eligibility, index_col=0)
-    total_unusable_area = regional_eligibility[Eligibility.NOT_ELIGIBLE.property_name]
+    total_unusable_area = regional_eligibility[Eligibility.NOT_ELIGIBLE.area_column_name]
     rooftop_area = total_unusable_area * available_rooftop_share
-    regional_eligibility[Eligibility.ROOFTOP_PV.property_name] = rooftop_area
-    regional_eligibility[Eligibility.NOT_ELIGIBLE.property_name] = total_unusable_area - rooftop_area
+    regional_eligibility[Eligibility.ROOFTOP_PV.area_column_name] = rooftop_area
+    regional_eligibility[Eligibility.NOT_ELIGIBLE.area_column_name] = total_unusable_area - rooftop_area
     return regional_eligibility
 
 

@@ -448,7 +448,7 @@ rule raw_population_zipped:
 rule raw_population:
     message: "Extract population data as zip."
     input: rules.raw_population_zipped.output
-    output: "build/GHS_POP_GPW42015_GLOBE_R2015A_54009_250_v1_0.tif"
+    output: temp("build/GHS_POP_GPW42015_GLOBE_R2015A_54009_250_v1_0.tif")
     shadow: "full"
     shell:
         """

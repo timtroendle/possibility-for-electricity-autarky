@@ -4,9 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from src.utils import Config
-from src.necessary_land import determine_fraction_land_necessary
-from src.vis.necessary_land import GREEN, LAND_THRESHOLD
+from src.vis.necessary_land import GREEN
 
 NET_IMPORTS = [0.4, 0.3, 0.2, 0.1, 0.0]
 PROTECTION_DROPS = [0.0, 0.1, 0.2, 0.3, 1.0]
@@ -14,12 +12,11 @@ PROTECTION_DROPS = [0.0, 0.1, 0.2, 0.3, 1.0]
 
 @click.command()
 @click.argument("paths_to_region_attributes", nargs=-1)
-@click.argument("path_to_eligibility_full")
-@click.argument("path_to_eligibility_zero")
+@click.argument("path_to_potentials_full")
+@click.argument("path_to_potentials_zero")
 @click.argument("path_to_plot")
-@click.argument("config", type=Config())
-def solution_matrix(paths_to_region_attributes, path_to_eligibility_full, path_to_eligibility_zero,
-                    path_to_plot, config):
+def solution_matrix(paths_to_region_attributes, path_to_potentials_full, path_to_potentials_zero,
+                    path_to_plot):
     """Plot the solution matrix showing how sufficient power supply can be reached."""
     sns.set_context('paper')
 
@@ -27,19 +24,17 @@ def solution_matrix(paths_to_region_attributes, path_to_eligibility_full, path_t
         [pd.read_csv(path_to_attribute).set_index("id") for path_to_attribute in paths_to_region_attributes],
         axis=1
     )
-    eligibility_full = pd.read_csv(path_to_eligibility_full).set_index("id")
-    eligibility_zero = pd.read_csv(path_to_eligibility_zero).set_index("id")
+    potentials_full = pd.read_csv(path_to_potentials_full).set_index("id").sum(axis=1)
+    potentials_zero = pd.read_csv(path_to_potentials_zero).set_index("id").sum(axis=1)
 
     def __population_share_satisfied(protection_drop, net_import):
         return _population_share_satisfied(
             population=attributes["population_sum"],
             demand=attributes["demand_twh_per_year"],
-            capacity_factors=attributes[[column for column in attributes.columns if "capacity_factor in column"]],
-            eligibility_full=eligibility_full,
-            eligibility_zero=eligibility_zero,
+            potentials_full=potentials_full,
+            potentials_zero=potentials_zero,
             protection_drop=protection_drop,
-            net_import=net_import,
-            config=config)
+            net_import=net_import)
     heatmap = pd.DataFrame(
         index=NET_IMPORTS,
         data={
@@ -71,17 +66,11 @@ def solution_matrix(paths_to_region_attributes, path_to_eligibility_full, path_t
     fig.savefig(path_to_plot, dpi=300)
 
 
-def _population_share_satisfied(population, demand, capacity_factors, eligibility_full, eligibility_zero,
-                                protection_drop, net_import, config):
-    demand = demand - net_import * demand
-    eligibility = eligibility_full + (eligibility_zero - eligibility_full) * protection_drop
-    fraction_land_necessary = determine_fraction_land_necessary(
-        demand_twh_per_year=demand,
-        eligibilities=eligibility,
-        capacity_factors=capacity_factors,
-        config=config
-    )
-    satisfied_population = population[fraction_land_necessary <= LAND_THRESHOLD].sum()
+def _population_share_satisfied(population, demand, potentials_full, potentials_zero,
+                                protection_drop, net_import):
+    demand = (demand - net_import * demand).reindex(potentials_full.index)
+    potentials = potentials_full + (potentials_zero - potentials_full) * protection_drop
+    satisfied_population = population[potentials > demand].sum()
     return satisfied_population / population.sum()
 
 

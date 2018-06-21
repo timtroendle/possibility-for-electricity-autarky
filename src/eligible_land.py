@@ -14,13 +14,37 @@ class Eligibility(IntEnum):
     """Categories defining land eligibility for renewable power."""
     NOT_ELIGIBLE = 0
     ROOFTOP_PV = 250
-    ONSHORE_WIND_OR_PV_FARM = 200
-    ONSHORE_WIND_FARM = 150
-    OFFSHORE_WIND_FARM = 80
+    ONSHORE_WIND_AND_PV_OTHER = 200
+    ONSHORE_WIND_OTHER = 180
+    ONSHORE_WIND_FARMLAND = 160
+    ONSHORE_WIND_FOREST = 140
+    ONSHORE_WIND_AND_PV_FARMLAND = 120
+    OFFSHORE_WIND = 110
+    ONSHORE_WIND_AND_PV_OTHER_PROTECTED = 100
+    ONSHORE_WIND_OTHER_PROTECTED = 80
+    ONSHORE_WIND_FARMLAND_PROTECTED = 60
+    ONSHORE_WIND_FOREST_PROTECTED = 40
+    ONSHORE_WIND_AND_PV_FARMLAND_PROTECTED = 20
+    OFFSHORE_WIND_PROTECTED = 10
 
     @property
-    def property_name(self):
+    def area_column_name(self):
         return "eligibility_{}_km2".format(self.name.lower())
+
+    @property
+    def energy_column_name(self):
+        return "eligibility_{}_twh_per_year".format(self.name.lower())
+
+    @staticmethod
+    def protected():
+        return [
+            Eligibility.ONSHORE_WIND_AND_PV_OTHER_PROTECTED,
+            Eligibility.ONSHORE_WIND_OTHER_PROTECTED,
+            Eligibility.ONSHORE_WIND_FARMLAND_PROTECTED,
+            Eligibility.ONSHORE_WIND_FOREST_PROTECTED,
+            Eligibility.ONSHORE_WIND_AND_PV_FARMLAND_PROTECTED,
+            Eligibility.OFFSHORE_WIND_PROTECTED
+        ]
 
 
 class GlobCover(IntEnum):
@@ -61,6 +85,8 @@ VEGETATION = [GlobCover.MOSAIC_GRASSLAND, GlobCover.CLOSED_TO_OPEN_SHRUBLAND,
               GlobCover.CLOSED_TO_OPEN_HERBS, GlobCover.SPARSE_VEGETATION,
               GlobCover.CLOSED_TO_OPEN_REGULARLY_FLOODED_GRASSLAND]
 BARE = [GlobCover.BARE_AREAS]
+URBAN = [GlobCover.ARTIFICAL_SURFACES_AND_URBAN_AREAS]
+WATER = [GlobCover.WATER_BODIES]
 
 
 class ProtectedArea(IntEnum):
@@ -77,11 +103,10 @@ class ProtectedArea(IntEnum):
 @click.argument("path_to_building_share")
 @click.argument("path_to_urban_green_share")
 @click.argument("path_to_result")
-@click.argument("scenario")
 @click.argument("config", type=Config())
 def determine_eligible_land(path_to_land_cover, path_to_protected_areas, path_to_slope,
                             path_to_bathymetry, path_to_building_share, path_to_urban_green_share,
-                            path_to_result, scenario, config):
+                            path_to_result, config):
     """Determines eligibility of land for renewables."""
     with rasterio.open(path_to_land_cover) as src:
         raster_affine = src.affine
@@ -89,11 +114,8 @@ def determine_eligible_land(path_to_land_cover, path_to_protected_areas, path_to
         crs = src.crs
     with rasterio.open(path_to_slope) as src:
         slope = src.read(1)
-    if config["scenarios"][scenario]["use-protected-areas"]:
-        with rasterio.open(path_to_protected_areas) as src:
-            protected_areas = src.read(1)
-    else:
-        protected_areas = np.ones_like(land_cover) * ProtectedArea.NOT_PROTECTED
+    with rasterio.open(path_to_protected_areas) as src:
+        protected_areas = src.read(1)
     with rasterio.open(path_to_bathymetry) as src:
         bathymetry = src.read(1)
     with rasterio.open(path_to_building_share) as src:
@@ -116,30 +138,42 @@ def determine_eligible_land(path_to_land_cover, path_to_protected_areas, path_to
 
 
 def determine_eligibility(land_cover, protected_areas, slope, bathymetry, building_share, urban_green_share, config):
+    # parameters
     max_slope_pv = config["parameters"]["max-slope"]["pv"]
     max_slope_wind = config["parameters"]["max-slope"]["wind"]
     max_building_share = config["parameters"]["max-building-share"]
     max_urban_green_share = config["parameters"]["max-urban-green-share"]
-    eligibility = np.ones_like(land_cover, dtype=DATATYPE) * Eligibility.NOT_ELIGIBLE
-    eligibility[(np.isin(land_cover, VEGETATION + BARE)) &
-                (protected_areas == ProtectedArea.NOT_PROTECTED) &
-                (slope <= max_slope_pv) &
-                (building_share <= max_building_share) &
-                (urban_green_share <= max_urban_green_share)] = Eligibility.ONSHORE_WIND_OR_PV_FARM
-    eligibility[(np.isin(land_cover, VEGETATION + BARE)) &
-                (protected_areas == ProtectedArea.NOT_PROTECTED) &
-                (slope <= max_slope_wind) & (slope > max_slope_pv) &
-                (building_share <= max_building_share) &
-                (urban_green_share <= max_urban_green_share)] = Eligibility.ONSHORE_WIND_FARM
-    eligibility[(np.isin(land_cover, FOREST + FARM)) &
-                (protected_areas == ProtectedArea.NOT_PROTECTED) &
-                (slope <= max_slope_wind) &
-                (building_share <= max_building_share) &
-                (urban_green_share <= max_urban_green_share)] = Eligibility.ONSHORE_WIND_FARM
-    eligibility[(land_cover == GlobCover.WATER_BODIES) &
-                (protected_areas == ProtectedArea.NOT_PROTECTED) &
-                (bathymetry > config["parameters"]["max-depth-offshore"])] = Eligibility.OFFSHORE_WIND_FARM
-    return eligibility
+
+    # prepare masks
+    settlements = (building_share > max_building_share) | (urban_green_share > max_urban_green_share)
+    pv = (slope <= max_slope_pv) & ~settlements
+    wind = (slope <= max_slope_wind) & ~settlements
+    offshore = np.isin(land_cover, WATER) & (bathymetry > config["parameters"]["max-depth-offshore"])
+    protected = protected_areas == ProtectedArea.PROTECTED
+    farm = np.isin(land_cover, FARM)
+    forest = np.isin(land_cover, FOREST)
+    other = np.isin(land_cover, VEGETATION + BARE)
+
+    # allocate eligibility
+    land = np.ones_like(land_cover, dtype=DATATYPE) * Eligibility.NOT_ELIGIBLE
+    _add_eligibility(land, Eligibility.ONSHORE_WIND_AND_PV_OTHER, wind & pv & other & ~protected)
+    _add_eligibility(land, Eligibility.ONSHORE_WIND_AND_PV_OTHER_PROTECTED, wind & pv & other & protected)
+    _add_eligibility(land, Eligibility.ONSHORE_WIND_OTHER, wind & ~pv & other & ~protected)
+    _add_eligibility(land, Eligibility.ONSHORE_WIND_OTHER_PROTECTED, wind & ~pv & other & protected)
+    _add_eligibility(land, Eligibility.ONSHORE_WIND_FARMLAND, wind & ~pv & farm & ~protected)
+    _add_eligibility(land, Eligibility.ONSHORE_WIND_FARMLAND_PROTECTED, wind & ~pv & farm & protected)
+    _add_eligibility(land, Eligibility.ONSHORE_WIND_FOREST, wind & forest & ~protected)
+    _add_eligibility(land, Eligibility.ONSHORE_WIND_FOREST_PROTECTED, wind & forest & protected)
+    _add_eligibility(land, Eligibility.ONSHORE_WIND_AND_PV_FARMLAND, wind & pv & farm & ~protected)
+    _add_eligibility(land, Eligibility.ONSHORE_WIND_AND_PV_FARMLAND_PROTECTED, wind & pv & farm & protected)
+    _add_eligibility(land, Eligibility.OFFSHORE_WIND, offshore & ~protected)
+    _add_eligibility(land, Eligibility.OFFSHORE_WIND_PROTECTED, offshore & protected)
+    return land
+
+
+def _add_eligibility(land, eligibility, mask):
+    assert all(land[mask] == Eligibility.NOT_ELIGIBLE), f"Overwriting other eligibility with {eligibility}."
+    land[mask] = eligibility
 
 
 if __name__ == "__main__":
