@@ -10,7 +10,7 @@ import seaborn as sns
 from src.conversion import area_in_squaremeters
 from src.eligible_land import FARM, FOREST, GlobCover, ProtectedArea
 
-LAND_THRESHOLD = 0.5 # fraction of land that can be used for energy farming
+LAND_THRESHOLD = 1 # fraction of land that can be used for energy farming
 GREEN = "#679436"
 RED = "#A01914"
 EPSG_3035_PROJ4 = "+proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs "
