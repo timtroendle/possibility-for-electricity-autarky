@@ -9,7 +9,9 @@ include: "rules/data-preprocessing.smk"
 
 rule all:
     message: "Run entire analysis and compile report."
-    input: "build/report.pdf"
+    input:
+        "build/report.pdf",
+        "build/scenario-overview.csv"
 
 
 rule eligible_land:
@@ -370,14 +372,38 @@ rule solution_matrix_plot:
         PYTHON_SCRIPT
 
 
+rule scenario_overview:
+    message: "Brief overview over results of all scenarios."
+    input:
+        expand("build/municipal/{scenario}/constrained-potentials.csv", scenario=config["scenarios"].keys()),
+        "build/municipal/population.csv",
+        "build/municipal/demand.csv"
+    output:
+        "build/scenario-overview.csv"
+    run:
+        import pandas as pd
+
+        demand = pd.read_csv(input[-1], index_col=0)["demand_twh_per_year"]
+        population = pd.read_csv(input[-2], index_col=0)["population_sum"].reindex(demand.index)
+        potentials = [pd.read_csv(path, index_col=0).sum(axis=1).reindex(demand.index) for path in input[:-2]]
+        scenario_names = [path.split("/")[2] for path in input[:-2]]
+        satisfied_population = pd.Series(
+            index=scenario_names,
+            data=[population[pot > demand].sum() / population.sum()
+                  for pot in potentials]
+        )
+        satisfied_population.name = "population share with sufficient supply"
+        satisfied_population.to_csv(output[0], header=True, float_format="%.4f")
+
+
 rule report:
     message: "Compile report."
     input:
         "report/literature.bib",
         "report/main.md",
         "report/pandoc-metadata.yml",
-        expand("build/{scenario}/necessary-land-map.png", scenario=config["scenarios"].keys()),
-        expand("build/{scenario}/potentials.png", scenario=config["scenarios"].keys()),
+        "build/full-protection/necessary-land-map.png",
+        "build/full-protection/potentials.png",
         rules.solution_matrix_plot.output
     output:
         "build/report.pdf"
