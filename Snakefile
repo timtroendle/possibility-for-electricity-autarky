@@ -396,6 +396,20 @@ rule scenario_overview:
         satisfied_population.to_csv(output[0], header=True, float_format="%.4f")
 
 
+rule sensitivities:
+    message: "Perform sensitivity analysis on layer {wildcards.layer}."
+    input:
+        "src/sensitivity.py",
+        "build/{layer}/unconstrained-potentials-prefer-pv.csv",
+        "build/{layer}/unconstrained-potentials-prefer-wind.csv",
+        "build/{layer}/demand.csv",
+        "build/{layer}/population.csv"
+    output:
+        "build/{layer}/sensitivities.txt"
+    shell:
+        PYTHON_SCRIPT
+
+
 rule report:
     message: "Compile report."
     input:
