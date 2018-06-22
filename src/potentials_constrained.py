@@ -19,6 +19,7 @@ def constrained_potentials(path_to_unconstrained_potentials_prefer_pv, path_to_u
                            path_to_result, scenario, config):
     unconstrained_prefer_pv = pd.read_csv(path_to_unconstrained_potentials_prefer_pv, index_col=0)
     unconstrained_prefer_wind = pd.read_csv(path_to_unconstrained_potentials_prefer_wind, index_col=0)
+    _assert_pv_has_higher_energy_density(unconstrained_prefer_pv, unconstrained_prefer_wind)
 
     constrained = _constrain_potential(unconstrained_prefer_pv, unconstrained_prefer_wind,
                                        config["scenarios"][scenario])
@@ -26,7 +27,6 @@ def constrained_potentials(path_to_unconstrained_potentials_prefer_pv, path_to_u
 
 
 def _constrain_potential(unconstrained_prefer_pv, unconstrained_prefer_wind, scenario_config):
-    _assert_pv_has_higher_energy_density(unconstrained_prefer_pv, unconstrained_prefer_wind)
     factor_pv = pd.DataFrame(
         index=unconstrained_prefer_pv.index,
         data={eligibility.energy_column_name: _scaling_factor(eligibility, scenario_config)[0]

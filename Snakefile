@@ -397,17 +397,21 @@ rule scenario_overview:
 
 
 rule sensitivities:
-    message: "Perform sensitivity analysis on layer {wildcards.layer}."
+    message: "Perform sensitivity analysis on layer {wildcards.layer} using {threads} threads."
     input:
         "src/sensitivity.py",
         "build/{layer}/unconstrained-potentials-prefer-pv.csv",
         "build/{layer}/unconstrained-potentials-prefer-wind.csv",
         "build/{layer}/demand.csv",
-        "build/{layer}/population.csv"
+        "build/{layer}/population.csv",
+        "build/{layer}/regions.geojson"
     output:
-        "build/{layer}/sensitivities.txt"
+        "build/{layer}/sensitivities-urban-population.txt",
+        "build/{layer}/sensitivities-rural-population.txt",
+        "build/{layer}/sensitivities-number.txt"
+    threads: config["snakemake"]["max-threads"]
     shell:
-        PYTHON_SCRIPT
+        PYTHON_SCRIPT + " {threads}"
 
 
 rule report:
