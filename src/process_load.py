@@ -60,11 +60,9 @@ def _check_completeness(load):
 
 
 def _handle_outliers(all_time_series):
-    # considers all data < 1 and > 2 * mean invalid and replaces with last valid value
-    all_time_series[all_time_series < 1] = np.nan
-    for region in all_time_series:
-        ts = all_time_series[region]
-        all_time_series.loc[ts > 2 * ts.mean(), region] = np.nan
+    # considers all data < 0.25 * mean and > 2 * mean invalid and replaces with last valid value
+    normed_load = all_time_series / all_time_series.mean()
+    all_time_series[(normed_load < 0.25) | (normed_load > 2)] = np.nan
     return all_time_series.fillna(method="ffill")
 
 
