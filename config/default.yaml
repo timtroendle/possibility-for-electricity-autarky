@@ -21,7 +21,6 @@ scope:
         - "Latvia"
         - "Lithuania"
         - "Luxembourg"
-        - "Malta"
         - "Netherlands"
         - "Poland"
         - "Portugal"
@@ -63,7 +62,6 @@ layers:
         Latvia: nuts0
         Lithuania: nuts0
         Luxembourg: nuts0
-        Malta: nuts0
         Netherlands: nuts0
         Poland: nuts0
         Portugal: nuts0
@@ -103,7 +101,6 @@ layers:
         Latvia: gadm1 # gadm1 5 regions; wiki 119 regions
         Lithuania: gadm1 # match 10
         Luxembourg: gadm1 # gadm1: 3 regions; wiki 12 regions
-        Malta: gadm1 # match 5
         Netherlands: gadm1 # gadm1 14 regions; wiki 12 regions
         Poland: gadm1 # match 16
         Portugal: gadm1 # match 18
@@ -139,7 +136,6 @@ layers:
         Latvia: lau2
         Lithuania: lau2
         Luxembourg: lau2
-        Malta: lau2
         Netherlands: lau2
         Poland: lau2
         Portugal: lau2
@@ -165,7 +161,6 @@ parameters:
     onshore-capacity-factor-replacement: # replace missing onshore cp from country_code
         Albania: Greece
         Bosnia and Herzegovina: Croatia
-        Malta: Italy
         Montenegro: Croatia
         Serbia: Romania
     max-slope:
