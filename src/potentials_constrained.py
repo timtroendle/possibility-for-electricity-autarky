@@ -43,6 +43,12 @@ def _constrain_potential(unconstrained_prefer_pv, unconstrained_prefer_wind, sce
 def _scaling_factor(eligibility, scenario_config):
     # Returns a tuple: first for prefer_pv, second for prefer_wind
     # Uses the assumption that pv's energy density is higher than the one from onshore wind.
+    # FIXME the handling of protected areas is conservative:
+    # When protected forest cannot be used more due to the fact that forest in general cannot
+    # be used, in the current implementation this "allowance" of using protected areas is lost.
+    # In reality one might allow to use more of the other land in such a case.
+    # Should I intend to make strong conclusions about protected areas, I will need to review
+    # this approach (probably could be best solved with linear programming).
     share_protected_areas_used = scenario_config["share-protected-areas-used"]
     share_rooftops_used = scenario_config["share-rooftops-used"]
     share_other_land_used = scenario_config["share-other-land-used"]
@@ -61,13 +67,14 @@ def _scaling_factor(eligibility, scenario_config):
         Eligibility.ONSHORE_WIND_FOREST: [share_forest_used_for_wind, 0],
         Eligibility.ONSHORE_WIND_AND_PV_FARMLAND: [share_pv_on_farmland, share_remain_on_farmland],
         Eligibility.OFFSHORE_WIND: [share_offshore_used, 0],
-        Eligibility.ONSHORE_WIND_AND_PV_OTHER_PROTECTED: [share_other_land_used * share_protected_areas_used, 0],
-        Eligibility.ONSHORE_WIND_OTHER_PROTECTED: [share_other_land_used * share_protected_areas_used, 0],
-        Eligibility.ONSHORE_WIND_FARMLAND_PROTECTED: [share_farmland_used * share_protected_areas_used, 0],
-        Eligibility.ONSHORE_WIND_FOREST_PROTECTED: [share_forest_used_for_wind * share_protected_areas_used, 0],
-        Eligibility.ONSHORE_WIND_AND_PV_FARMLAND_PROTECTED: [share_pv_on_farmland * share_protected_areas_used,
-                                                             share_remain_on_farmland * share_protected_areas_used],
-        Eligibility.OFFSHORE_WIND_PROTECTED: [share_offshore_used * share_protected_areas_used, 0]
+        Eligibility.ONSHORE_WIND_AND_PV_OTHER_PROTECTED: [min(share_other_land_used, share_protected_areas_used), 0],
+        Eligibility.ONSHORE_WIND_OTHER_PROTECTED: [min(share_other_land_used, share_protected_areas_used), 0],
+        Eligibility.ONSHORE_WIND_FARMLAND_PROTECTED: [min(share_farmland_used, share_protected_areas_used), 0],
+        Eligibility.ONSHORE_WIND_FOREST_PROTECTED: [min(share_forest_used_for_wind, share_protected_areas_used), 0],
+        Eligibility.ONSHORE_WIND_AND_PV_FARMLAND_PROTECTED: [min(share_pv_on_farmland, share_protected_areas_used),
+                                                             min(share_remain_on_farmland,
+                                                                 share_protected_areas_used)],
+        Eligibility.OFFSHORE_WIND_PROTECTED: [min(share_offshore_used, share_protected_areas_used), 0]
     }[eligibility]
 
 
