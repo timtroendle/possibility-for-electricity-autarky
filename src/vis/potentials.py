@@ -95,7 +95,7 @@ def _absolute_potentials(prefer_pv, prefer_wind):
     )
     potentials["rooftop-pv"] = prefer_pv[Eligibility.ROOFTOP_PV.energy_column_name]
     potentials["pv-farm"] = prefer_pv[[eligibility.energy_column_name for eligibility in PV_FARM]].sum(axis=1)
-    potentials["onshore wind"] = prefer_pv[[eligibility.energy_column_name for eligibility in ONSHORE]].sum(axis=1)
+    potentials["onshore wind"] = prefer_wind[[eligibility.energy_column_name for eligibility in ONSHORE]].sum(axis=1)
     potentials["offshore wind"] = prefer_pv[[eligibility.energy_column_name for eligibility in OFFSHORE]].sum(axis=1)
     return potentials
 
