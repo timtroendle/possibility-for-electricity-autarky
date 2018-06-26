@@ -97,7 +97,7 @@ rule population:
         fio cat --dst_crs "$crs" {input.regions} | \
         rio zonalstats -r {input.population} --prefix 'population_' --stats sum | \
         {PYTHON} {input.src_geojson} -a id -a population_sum -a proper | \
-        {PYTHON} {input.src_population} {input.land_cover} > \
+        {PYTHON} {input.src_population} {input.regions} {input.land_cover} > \
         {output}
         """
 
@@ -385,15 +385,31 @@ rule scenario_overview:
 
         demand = pd.read_csv(input[-1], index_col=0)["demand_twh_per_year"]
         population = pd.read_csv(input[-2], index_col=0)["population_sum"].reindex(demand.index)
+        pop_density = pd.read_csv(input[-2], index_col=0)["density_p_per_km2"].reindex(demand.index)
         potentials = [pd.read_csv(path, index_col=0).sum(axis=1).reindex(demand.index) for path in input[:-2]]
         scenario_names = [path.split("/")[2] for path in input[:-2]]
-        satisfied_population = pd.Series(
+        overview = pd.DataFrame(
             index=scenario_names,
-            data=[population[pot > demand].sum() / population.sum()
-                  for pot in potentials]
+            columns=[
+                "population share with insufficient supply",
+                "of which urban",
+                "urban pop affected",
+                "rural pop affected"
+            ]
         )
-        satisfied_population.name = "population share with sufficient supply"
-        satisfied_population.to_csv(output[0], header=True, float_format="%.4f")
+        overview["population share with insufficient supply"] = [
+            population[pot < demand].sum() / population.sum() for pot in potentials
+        ]
+        overview["of which urban"] = [
+            population[(pot < demand) & (pop_density > 1500)].sum() / population[pot < demand].sum() for pot in potentials
+        ]
+        overview["urban pop affected"] = [
+            population[(pot < demand) & (pop_density > 1500)].sum() / population[pop_density > 1500].sum() for pot in potentials
+        ]
+        overview["rural pop affected"] = [
+            population[(pot < demand) & (pop_density <= 1500)].sum() / population[pop_density <= 1500].sum() for pot in potentials
+        ]
+        overview.to_csv(output[0], header=True, float_format="%.4f")
 
 
 rule sensitivities:
