@@ -15,10 +15,12 @@ Plot the rulegraph like so:
 The statistics that result from this analysis have been manually added to the
 main workflow.
 """
+import sys; sys.path.append(os.getcwd()) # this is necessary to be able to import "src", not sure why
 RAW_SONNENDACH_DATA = "data/sonnendach/SOLKAT_R1-R9_20180418.gdb/"
 LAYER_NAME = "SOLKAT_CH_DACH"
 DATA_AVAILABLE = 255
 RASTER_RESOLUTION_IN_M = 100
+THEORETIC_TO_REAL_POTENTIAL = 0.7 # FIXME replace with proper method from "Berechnung Potential in Gemeinden"
 CONFIG_FILE = "config/default.yaml"
 
 configfile: CONFIG_FILE
@@ -92,7 +94,7 @@ rule total_size_swiss_rooftops_according_to_sonnendach_data:
         import pandas as pd
 
         sonnendach = pd.read_csv(input[0])
-        total_size_km2 = sonnendach["FLAECHE"].sum() / 1e6
+        total_size_km2 = sonnendach["FLAECHE"].sum() / 1e6 * THEORETIC_TO_REAL_POTENTIAL # FIXME
         with open(output[0], "w") as f_out:
             f_out.write(f"{total_size_km2}")
 

@@ -165,11 +165,11 @@ parameters:
         Serbia: Romania
     max-slope:
         pv: 3
-        wind: 20
+        wind: 20 # (McKenna:2014)
     max-depth-offshore: -50
     max-building-share: 0.01 # Above, a pixel cannot be used for energy farms. Equals roughly 900m2
     max-urban-green-share: 0.01 # Above, a pixel cannot be used for energy farms. Equals roughly 900m2. Removes e.g. Berlin's Tempelhofer Feld.
-    available-rooftop-share: 0.82 # Share of all rooftop areas available for PV. Determined in rules/sonnendach.smk
+    available-rooftop-share: 0.57 # Share of all rooftop areas available for PV. Determined in rules/sonnendach.smk
 scenarios:
     technical-potential:
         share-protected-areas-used: 1.0
@@ -182,32 +182,40 @@ scenarios:
     full-protection:
         share-protected-areas-used: 0.0
         share-pv-on-farmland: 0.0
-        share-farmland-used: 0.3
-        share-forest-used-for-wind: 0.3
-        share-other-land-used: 0.3
-        share-offshore-used: 0.3
-        share-rooftops-used: 0.8
+        share-farmland-used: 0.1
+        share-forest-used-for-wind: 0.1
+        share-other-land-used: 0.1
+        share-offshore-used: 0.1
+        share-rooftops-used: 1.0
     zero-protection:
         share-protected-areas-used: 1.0
         share-pv-on-farmland: 0.0
-        share-farmland-used: 0.3
-        share-forest-used-for-wind: 0.3
-        share-other-land-used: 0.3
-        share-offshore-used: 0.3
-        share-rooftops-used: 0.8
-    reduced-rooftop-pv:
+        share-farmland-used: 0.1
+        share-forest-used-for-wind: 0.1
+        share-other-land-used: 0.1
+        share-offshore-used: 0.1
+        share-rooftops-used: 1.0
+    no-rooftop-pv:
         share-protected-areas-used: 1.0
         share-pv-on-farmland: 1.0
         share-farmland-used: 1.0
         share-forest-used-for-wind: 1.0
         share-other-land-used: 1.0
         share-offshore-used: 1.0
-        share-rooftops-used: 0.5
-    reduced-everything-outside-rooftop-pv:
-        share-protected-areas-used: 0.5
-        share-pv-on-farmland: 0.5
-        share-farmland-used: 0.5
-        share-forest-used-for-wind: 0.5
-        share-other-land-used: 0.5
-        share-offshore-used: 0.5
+        share-rooftops-used: 0.0
+    only-rooftop-pv:
+        share-protected-areas-used: 0.0
+        share-pv-on-farmland: 0.0
+        share-farmland-used: 0.0
+        share-forest-used-for-wind: 0.0
+        share-other-land-used: 0.0
+        share-offshore-used: 0.0
         share-rooftops-used: 1.0
+    harakiri:
+        share-protected-areas-used: 0.0
+        share-pv-on-farmland: 0.0
+        share-farmland-used: 0.0
+        share-forest-used-for-wind: 0.0
+        share-other-land-used: 0.0
+        share-offshore-used: 0.0
+        share-rooftops-used: 0.25
