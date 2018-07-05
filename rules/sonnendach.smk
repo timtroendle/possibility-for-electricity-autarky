@@ -32,7 +32,8 @@ include: "./data-preprocessing.smk"
 rule all:
     input:
         "build/swiss/overestimation-settlement-data.txt",
-        "build/swiss/roof-statistics.csv"
+        "build/swiss/roof-statistics.csv",
+        "build/swiss/pv-simulation-parameters.csv"
 
 
 rule rasterise_sonnendach:
@@ -124,11 +125,9 @@ rule sonnendach_rooftop_data:
     output:
         "build/swiss/roofs-without-geometry.csv"
     shell:
-        """
-        ogr2ogr -dialect sqlite -f csv \
+        "ogr2ogr -dialect sqlite -f csv \
         -sql 'SELECT DF_UID, FLAECHE, AUSRICHTUNG, NEIGUNG, MSTRAHLUNG, GSTRAHLUNG FROM {LAYER_NAME}' \
-        {output} {input}
-        """
+        {output} {input}"
 
 
 rule sonnendach_statistics:
@@ -160,3 +159,58 @@ rule sonnendach_statistics:
         )
         roof_categories.loc["flat", "tilt"] = 0.0
         roof_categories.reset_index()[["orientation", "tilt", "relative_area"]].to_csv(output[0], header=True, index=False)
+
+
+rule pv_simulation_parameters:
+    message: "Create input parameters for simulation of photovoltaics."
+    input:
+        roof_categories = rules.sonnendach_statistics.output,
+        nuts = rules.administrative_borders_nuts.output
+    output:
+        "build/swiss/pv-simulation-parameters.csv"
+    run:
+        import pandas as pd
+        import geopandas as gpd
+
+        def orientation_to_azimuth(orientation):
+            if orientation == "S":
+                return 180
+            elif orientation == "W":
+                return -90
+            elif orientation == "N":
+                return 0
+            elif orientation == "E":
+                return 90
+            elif orientation == "flat":
+                return 180
+            else:
+                raise ValueError()
+
+        def optimal_tilt(latitude):
+            # based on @Jacobson:2018
+            optimal_tilt = 1.3793 + latitude * (1.2011 + latitude * (-0.014404 + latitude * 0.000080509))
+            assert 90 > optimal_tilt >= 0
+            return optimal_tilt
+
+        roof_categories = pd.read_csv(input.roof_categories[0])
+        nuts = gpd.read_file(input.nuts[0], layer="nuts2").set_index("id")
+        lat_long = pd.DataFrame(
+            index=nuts.index,
+            data={
+                "lat": nuts.centroid.map(lambda point: point.y),
+                "long": nuts.centroid.map(lambda point: point.x)
+            }
+        )
+
+        index = pd.MultiIndex.from_product((nuts.index, roof_categories.index), names=["nuts_id", "roof_cat_id"])
+        data = pd.DataFrame(index=index).reset_index()
+        data = data.merge(roof_categories, left_on="roof_cat_id", right_index=True).drop(columns=["relative_area"])
+        data = data.merge(lat_long, left_on="nuts_id", right_index=True)
+        data["azim"] = data["orientation"].map(orientation_to_azimuth)
+        data["site_id"] = data.apply(
+            lambda row: "{}_{}_{}".format(row.nuts_id, row.orientation, round(row.tilt)),
+            axis=1
+        )
+        flat_mask = data["orientation"] == "flat"
+        data.loc[flat_mask, "tilt"] = data.loc[flat_mask, "lat"].map(optimal_tilt)
+        data[["site_id", "lat", "long", "tilt", "azim"]].sort_index().to_csv(output[0], header=True, index=False)
