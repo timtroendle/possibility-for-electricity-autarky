@@ -11,6 +11,7 @@ rule all:
     message: "Run entire analysis and compile report."
     input:
         "build/report.pdf",
+        "build/paper.pdf",
         "build/scenario-overview.csv"
 
 
@@ -446,6 +447,26 @@ rule report:
         cd ./report
         pandoc --filter pantable --filter pandoc-fignos --filter pandoc-tablenos \
         --filter pandoc-citeproc main.md pandoc-metadata.yml -t latex -o ../build/report.pdf
+        """
+
+
+rule paper:
+    message: "Compile paper."
+    input:
+        "report/literature.bib",
+        "report/paper.md",
+        "report/pandoc-metadata.yml",
+        "build/technical-potential/potentials.png",
+        "build/technical-potential/necessary-land-boxplots.png",
+        "build/full-protection/necessary-land-map.png",
+        "build/full-protection/potentials.png",
+    output:
+        "build/paper.pdf"
+    shell:
+        """
+        cd ./report
+        pandoc --filter pantable --filter pandoc-fignos --filter pandoc-tablenos \
+        --filter pandoc-citeproc paper.md pandoc-metadata.yml -t latex -o ../build/paper.pdf
         """
 
 
