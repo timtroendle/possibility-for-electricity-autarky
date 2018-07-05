@@ -21,6 +21,8 @@ LAYER_NAME = "SOLKAT_CH_DACH"
 DATA_AVAILABLE = 255
 RASTER_RESOLUTION_IN_M = 100
 THEORETIC_TO_REAL_POTENTIAL = 0.7 # FIXME replace with proper method from "Berechnung Potential in Gemeinden"
+MIN_ROOF_SIZE = 10 # @BFE:2016 "Berechnung Potential in Gemeinden"
+MAX_FLAT_TILT = 10 # @BFE:2016 "Berechnung Potential in Gemeinden"
 CONFIG_FILE = "config/default.yaml"
 
 configfile: CONFIG_FILE
@@ -136,32 +138,25 @@ rule sonnendach_statistics:
     run:
         import pandas as pd
         data = pd.read_csv(input[0], index_col=0)
-        data.rename(columns={"AUSRICHTUNG": "orientation", "NEIGUNG": "tilt"}, inplace=True)
-        orientation = pd.cut(
+        data.rename(columns={"AUSRICHTUNG": "orientation", "NEIGUNG": "tilt", "FLAECHE": "area"}, inplace=True)
+        data = data[data.area > MIN_ROOF_SIZE]
+        data["relative_area"] = data.area.transform(lambda x: x / x.sum())
+        orientation_categories = pd.cut(
             data["orientation"],
             bins=[-180, -135, -45, 45, 135, 180],
             include_lowest=True,
             labels=["N", "E", "S", "W", "N2"]
         ).replace({"N2": "N"})
-        # the following categories aim at splitting the data into equally sized chunks (apart from flat roofs)
-        categories = pd.Series(pd.np.nan, index=data.index)
-        categories[(data.tilt < 1)] = "flat"
-        categories[(orientation == "N") & (data.tilt >= 1) & (data.tilt < 18)] = "N [1.0, 18.0)"
-        categories[(orientation == "N") & (data.tilt >= 18) & (data.tilt < 26)] = "N [18.0, 26.0)"
-        categories[(orientation == "N") & (data.tilt >= 26) & (data.tilt < 35)] = "N [26.0, 35.0)"
-        categories[(orientation == "N") & (data.tilt >= 35)] = "N [35.0, 69.0)"
-        categories[(orientation == "S") & (data.tilt < 18)] = "S [1.0, 18.0)"
-        categories[(orientation == "S") & (data.tilt >= 18) & (data.tilt < 26)] = "S [18.0, 26.0)"
-        categories[(orientation == "S") & (data.tilt >= 26) & (data.tilt < 34)] = "S [26.0, 34.0)"
-        categories[(orientation == "S") & (data.tilt >= 34)] = "S [34.0, 69.0)"
-        categories[(orientation == "E") & (data.tilt < 18)] = "E [1.0, 18.0)"
-        categories[(orientation == "E") & (data.tilt >= 18) & (data.tilt < 26)] = "E [18.0, 26.0)"
-        categories[(orientation == "E") & (data.tilt >= 26) & (data.tilt < 34)] = "E [26.0, 34.0)"
-        categories[(orientation == "E") & (data.tilt >= 34)] = "E [34.0, 69.0)"
-        categories[(orientation == "W") & (data.tilt < 18)] = "W [1.0, 18.0)"
-        categories[(orientation == "W") & (data.tilt >= 18) & (data.tilt < 26)] = "W [18.0, 26.0)"
-        categories[(orientation == "W") & (data.tilt >= 26) & (data.tilt < 34)] = "W [26.0, 34.0)"
-        categories[(orientation == "W") & (data.tilt >= 34)] = "W [34.0, 69.0)"
-        stats = data.groupby(categories).FLAECHE.sum().transform(lambda x: x / x.sum())
-        stats.name = "relative_size"
-        stats.to_csv(output[0], header=True)
+        orientation_categories[data.tilt <= MAX_FLAT_TILT] = "flat"
+        tilt_categories = pd.Series(pd.np.nan, index=data.index)
+        tilt_categories[orientation_categories == "flat"] = "0"
+        for orientation_category in ["N", "S", "E", "W"]:
+            mask = (orientation_categories == orientation_category)
+            tilt_categories[mask] = pd.qcut(data.tilt[mask], q=4)
+        assert not tilt_categories.isnull().any()
+
+        roof_categories = data.groupby([orientation_categories, tilt_categories]).agg(
+            {"relative_area": "sum", "tilt": "mean"}
+        )
+        roof_categories.loc["flat", "tilt"] = 0.0
+        roof_categories.reset_index()[["orientation", "tilt", "relative_area"]].to_csv(output[0], header=True, index=False)
