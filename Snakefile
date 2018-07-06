@@ -216,7 +216,8 @@ rule regional_eligibility:
 
         all = pd.concat(
             [pd.read_csv(path).set_index("id") for path in [input.land[0], input.offshore[0]]],
-            axis=1
+            axis=1,
+            sort=True
         )
         all.index.name = "id"
         all.to_csv(output[0], header=True)

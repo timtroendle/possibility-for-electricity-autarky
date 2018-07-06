@@ -22,7 +22,8 @@ def solution_matrix(paths_to_region_attributes, path_to_potentials_full, path_to
 
     attributes = pd.concat(
         [pd.read_csv(path_to_attribute).set_index("id") for path_to_attribute in paths_to_region_attributes],
-        axis=1
+        axis=1,
+        sort=True
     )
     potentials_full = pd.read_csv(path_to_potentials_full).set_index("id").sum(axis=1)
     potentials_zero = pd.read_csv(path_to_potentials_zero).set_index("id").sum(axis=1)
