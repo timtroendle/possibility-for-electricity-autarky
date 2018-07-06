@@ -55,17 +55,17 @@ What's the potential on the European level? Then, on the national level (TODO ra
 
 ![Technical Potential of renewable power technologies to fulfil national demand.](../build/technical-potential/potentials.png){#fig:technical-potentials .class}
 
-![Ranges of demand to technical potential ratio.](../build/technical-potential/necessary-land-boxplots.png){#fig:necessary-land-boxplots-technical .class}
+![Ranges of demand to technical potential ratio.](../build/technical-potential/normed-potentials-boxplots.png){#fig:normed-potentials-boxplots-technical .class}
 
-8% of Europe's population affected, of which 95% live in urban administrative units.
+8% of Europe's population affected, of which 98% live in administrative units with high population density (93% DEGURBA cities / 7% towns / 0% rural); 4% live in industrial areas (with share > 50%), 1% lives in mountaineous areas (with median steepness > 20).
 
 ## Social-ecological potential
 
 In here, we prohibit the use of all protected land, PV on farmland, and 10% of all other technical potential be used, including offshore wind. We allow the use of all eligible roof areas.
 
-![Ranges of demand to social-ecological potential ratio.](../build/full-protection/necessary-land-boxplots.png){#fig:necessary-land-boxplots-social-ecological .class}
+![Ranges of demand to social-ecological potential ratio.](../build/full-protection/normed-potentials-boxplots.png){#fig:normed-potentials-boxplots-social-ecological .class}
 
-![Regions with sufficient yearly aggregated renewable power (green) and with insufficient power (red).](../build/full-protection/necessary-land-map.png){#fig:necessary-land-map-social-ecological .class}
+![Regions with sufficient yearly aggregated renewable power (green) and with insufficient power (red).](../build/full-protection/normed-potentials-map.png){#fig:normed-potentials-map-social-ecological .class}
 
 14% of Europe's population affected, of which 84% live in urban administrative units. Now, more rural population is affected.
 

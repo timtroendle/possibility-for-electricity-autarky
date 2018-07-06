@@ -1,4 +1,4 @@
-"""Visualises the fraction of land needed to fulfill demand in each region."""
+"""Visualises the potentials relative to demand in each region."""
 import click
 import pandas as pd
 import geopandas as gpd
@@ -10,7 +10,6 @@ import seaborn as sns
 from src.conversion import area_in_squaremeters
 from src.eligible_land import FARM, FOREST, GlobCover, ProtectedArea
 
-LAND_THRESHOLD = 1 # fraction of land that can be used for energy farming
 GREEN = "#679436"
 RED = "#A01914"
 EPSG_3035_PROJ4 = "+proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs "
@@ -31,9 +30,9 @@ SERBIA_PATCH_MAX_Y = 2340000
 @click.argument("path_to_boxplot")
 @click.argument("path_to_map")
 @click.argument("path_to_correlation")
-def visualise_necessary_land(paths_to_results, path_to_countries, path_to_world,
-                             path_to_boxplot, path_to_map, path_to_correlation):
-    """Visualise fraction of necessary land needed to fulfill demand in each region.
+def visualise_normed_potentials(paths_to_results, path_to_countries, path_to_world,
+                                path_to_boxplot, path_to_map, path_to_correlation):
+    """Visualises the potentials relative to demand in each region.
 
     Creates:
     * boxplot for each country
@@ -71,13 +70,13 @@ def _boxplot(region_sets, path_to_plot):
     ax = fig.add_subplot(111)
     sns.boxplot(
         data=data,
-        x="fraction_land_necessary",
+        x="normed_potential",
         y="country_code",
         hue="layer_id",
-        order=data.groupby("country_code").fraction_land_necessary.quantile(0.75).sort_values().index,
+        order=data.groupby("country_code").normed_potential.quantile(0.75).sort_values().index,
         ax=ax
     )
-    ax.set_xlabel("fraction land necessary")
+    ax.set_xlabel("potential relative to demand [-]")
     ax.set_ylabel("country code")
     ax.set_xscale('log')
     ax.axvline(1, color="r", linewidth=0.75)
@@ -85,8 +84,8 @@ def _boxplot(region_sets, path_to_plot):
 
 
 def _map(regions, countries, third_countries, path_to_plot):
-    winners = regions[regions["fraction_land_necessary"] <= LAND_THRESHOLD]
-    loosers = regions[regions["fraction_land_necessary"] > LAND_THRESHOLD]
+    winners = regions[regions["normed_potential"] <= 1]
+    loosers = regions[regions["normed_potential"] > 1]
     invalids = regions[~regions.isin(pd.concat([winners, loosers]))].dropna()
 
     fig = plt.figure(figsize=(16, 16))
@@ -119,7 +118,7 @@ def _correlation(region_sets, path_to_plot):
         sns.regplot(
             data=region_set,
             x="area_km2",
-            y="fraction_land_necessary",
+            y="normed_potential",
             label=layer_id,
             fit_reg=False,
             ax=ax1
@@ -127,12 +126,12 @@ def _correlation(region_sets, path_to_plot):
     ax1.axhline(1, color="r", linewidth=0.75)
     berlin = region_sets[1].set_index("name").loc["Berlin"]
     ax1.plot(
-        [berlin.area_km2], [berlin.fraction_land_necessary],
+        [berlin.area_km2], [berlin.normed_potential],
         color="red", marker="o", markersize=6
     )
-    ax1.text(x=berlin.area_km2 + 500, y=berlin.fraction_land_necessary - 0.02, s="Berlin")
+    ax1.text(x=berlin.area_km2 + 500, y=berlin.normed_potential - 0.02, s="Berlin")
     ax1.set_xlabel("region size [km^2]")
-    ax1.set_ylabel("fraction of eligible land necessary")
+    ax1.set_ylabel("potential relative to demand")
     ax1.set_xlim(0.1,)
     ax1.set_ylim(0, 2)
     ax1.set_xscale("log")
@@ -145,7 +144,7 @@ def _correlation(region_sets, path_to_plot):
         sns.regplot(
             data=region_set,
             x="population_density",
-            y="fraction_land_necessary",
+            y="normed_potential",
             label=layer_id,
             fit_reg=False,
             ax=ax2
@@ -153,10 +152,10 @@ def _correlation(region_sets, path_to_plot):
     ax2.axhline(1, color="r", linewidth=0.75)
     berlin = region_sets[1].set_index("name").loc["Berlin"]
     ax2.plot(
-        [berlin.population_density], [berlin.fraction_land_necessary],
+        [berlin.population_density], [berlin.normed_potential],
         color="red", marker="o", markersize=6
     )
-    ax2.text(x=berlin.population_density + 2000, y=berlin.fraction_land_necessary - 0.02, s="Berlin")
+    ax2.text(x=berlin.population_density + 2000, y=berlin.normed_potential - 0.02, s="Berlin")
     ax2.set_ylabel("")
     ax2.set_xlabel("population density [p/km^2]")
     ax2.set_xlim(0.1,)
@@ -172,7 +171,7 @@ def _correlation(region_sets, path_to_plot):
         sns.regplot(
             data=region_set,
             x="protection_share",
-            y="fraction_land_necessary",
+            y="normed_potential",
             label=layer_id,
             fit_reg=False,
             ax=ax3
@@ -180,10 +179,10 @@ def _correlation(region_sets, path_to_plot):
     ax3.axhline(1, color="r", linewidth=0.75)
     berlin = region_sets[1].set_index("name").loc["Berlin"]
     ax3.plot(
-        [berlin.protection_share], [berlin.fraction_land_necessary],
+        [berlin.protection_share], [berlin.normed_potential],
         color="red", marker="o", markersize=6
     )
-    ax3.text(x=berlin.protection_share, y=berlin.fraction_land_necessary - 0.02, s="Berlin")
+    ax3.text(x=berlin.protection_share, y=berlin.normed_potential - 0.02, s="Berlin")
     ax3.set_ylabel("")
     ax3.set_xlabel("share of environmental protection [-]")
     ax3.set_xlim(0, 1.0)
@@ -199,7 +198,7 @@ def _correlation(region_sets, path_to_plot):
         sns.regplot(
             data=region_set,
             x="farmland_share",
-            y="fraction_land_necessary",
+            y="normed_potential",
             label=layer_id,
             fit_reg=False,
             ax=ax4
@@ -207,12 +206,12 @@ def _correlation(region_sets, path_to_plot):
     ax4.axhline(1, color="r", linewidth=0.75)
     berlin = region_sets[1].set_index("name").loc["Berlin"]
     ax4.plot(
-        [berlin.farmland_share], [berlin.fraction_land_necessary],
+        [berlin.farmland_share], [berlin.normed_potential],
         color="red", marker="o", markersize=6
     )
-    ax4.text(x=berlin.farmland_share, y=berlin.fraction_land_necessary - 0.02, s="Berlin")
+    ax4.text(x=berlin.farmland_share, y=berlin.normed_potential - 0.02, s="Berlin")
     ax4.set_xlabel("farmland share [-]")
-    ax4.set_ylabel("fraction of eligible land necessary")
+    ax4.set_ylabel("potential relative to demand")
     ax4.set_xlim(0, 1.0)
     ax4.set_ylim(0, 2)
     ax4.legend()
@@ -226,7 +225,7 @@ def _correlation(region_sets, path_to_plot):
         sns.regplot(
             data=region_set,
             x="forest_share",
-            y="fraction_land_necessary",
+            y="normed_potential",
             label=layer_id,
             fit_reg=False,
             ax=ax5
@@ -234,10 +233,10 @@ def _correlation(region_sets, path_to_plot):
     ax5.axhline(1, color="r", linewidth=0.75)
     berlin = region_sets[1].set_index("name").loc["Berlin"]
     ax5.plot(
-        [berlin.forest_share], [berlin.fraction_land_necessary],
+        [berlin.forest_share], [berlin.normed_potential],
         color="red", marker="o", markersize=6
     )
-    ax5.text(x=berlin.forest_share, y=berlin.fraction_land_necessary - 0.02, s="Berlin")
+    ax5.text(x=berlin.forest_share, y=berlin.normed_potential - 0.02, s="Berlin")
     ax5.set_ylabel("")
     ax5.set_xlabel("forest share [-]")
     ax5.set_xlim(0, 1.0)
@@ -250,7 +249,7 @@ def _correlation(region_sets, path_to_plot):
         sns.regplot(
             data=region_set,
             x="industrial_demand_fraction",
-            y="fraction_land_necessary",
+            y="normed_potential",
             label=layer_id,
             fit_reg=False,
             ax=ax6
@@ -258,10 +257,10 @@ def _correlation(region_sets, path_to_plot):
     ax6.axhline(1, color="r", linewidth=0.75)
     berlin = region_sets[1].set_index("name").loc["Berlin"]
     ax6.plot(
-        [berlin.industrial_demand_fraction], [berlin.fraction_land_necessary],
+        [berlin.industrial_demand_fraction], [berlin.normed_potential],
         color="red", marker="o", markersize=6
     )
-    ax6.text(x=berlin.industrial_demand_fraction, y=berlin.fraction_land_necessary - 0.02, s="Berlin")
+    ax6.text(x=berlin.industrial_demand_fraction, y=berlin.normed_potential - 0.02, s="Berlin")
     ax6.set_ylabel("")
     ax6.set_xlabel("share of industrial demand [-]")
     ax6.set_xlim(0, 1.0)
@@ -300,4 +299,4 @@ def _serbia_montenegro_patch(regions):
 
 
 if __name__ == "__main__":
-    visualise_necessary_land()
+    visualise_normed_potentials()

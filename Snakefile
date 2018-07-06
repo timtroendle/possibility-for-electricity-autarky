@@ -295,30 +295,30 @@ rule constrained_potentials:
         PYTHON_SCRIPT + " {wildcards.scenario} {CONFIG_FILE}"
 
 
-rule necessary_land:
+rule normed_potentials:
     message:
-        "Determine fraction of land necessary to supply demand per region of layer {wildcards.layer} "
+        "Determine potentials relative to demand for layer {wildcards.layer} "
         "in scenario {wildcards.scenario}."
     input:
-        "src/necessary_land.py",
+        "src/potentials_normed.py",
         rules.demand.output,
         rules.constrained_potentials.output
     output:
-        "build/{layer}/{scenario}/necessary-land.csv"
+        "build/{layer}/{scenario}/normed-potentials.csv"
     shell:
-        PYTHON_SCRIPT + " {CONFIG_FILE}"
+        PYTHON_SCRIPT
 
 
-rule necessary_land_plots:
+rule normed_potential_plots:
     message: "Plot fraction of land necessary for scenario {wildcards.scenario}."
     input:
-        src = "src/vis/necessary_land.py",
+        src = "src/vis/potentials_normed.py",
         national_regions = "build/national/regions.geojson",
         subnational_regions = "build/subnational/regions.geojson",
         municipal_regions = "build/municipal/regions.geojson",
-        national_necessary_land = "build/national/{scenario}/necessary-land.csv",
-        subnational_necessary_land = "build/subnational/{scenario}/necessary-land.csv",
-        municipal_necessary_land = "build/municipal/{scenario}/necessary-land.csv",
+        national_normed_potential = "build/national/{scenario}/normed-potentials.csv",
+        subnational_normed_potential = "build/subnational/{scenario}/normed-potentials.csv",
+        municipal_normed_potential = "build/municipal/{scenario}/normed-potentials.csv",
         national_land_cover = "build/national/land-cover.csv",
         subnational_land_cover = "build/subnational/land-cover.csv",
         municipal_land_cover = "build/municipal/land-cover.csv",
@@ -333,14 +333,14 @@ rule necessary_land_plots:
         municipal_demand = "build/municipal/demand.csv",
         worldwide_countries = rules.country_shapes.output
     output:
-        "build/{scenario}/necessary-land-boxplots.png",
-        "build/{scenario}/necessary-land-map.png",
-        "build/{scenario}/necessary-land-correlations.png"
+        "build/{scenario}/normed-potentials-boxplots.png",
+        "build/{scenario}/normed-potentials-map.png",
+        "build/{scenario}/normed-potentials-correlations.png"
     shell:
         PYTHON + " {input.src} "
-                 "{input.national_regions},{input.national_necessary_land},{input.national_population},{input.national_land_cover},{input.national_protected_areas},{input.national_demand} "
-                 "{input.subnational_regions},{input.subnational_necessary_land},{input.subnational_population},{input.subnational_land_cover},{input.subnational_protected_areas},{input.subnational_demand} "
-                 "{input.municipal_regions},{input.municipal_necessary_land},{input.municipal_population},{input.municipal_land_cover},{input.municipal_protected_areas},{input.municipal_demand} "
+                 "{input.national_regions},{input.national_normed_potential},{input.national_population},{input.national_land_cover},{input.national_protected_areas},{input.national_demand} "
+                 "{input.subnational_regions},{input.subnational_normed_potential},{input.subnational_population},{input.subnational_land_cover},{input.subnational_protected_areas},{input.subnational_demand} "
+                 "{input.municipal_regions},{input.municipal_normed_potential},{input.municipal_population},{input.municipal_land_cover},{input.municipal_protected_areas},{input.municipal_demand} "
                  "{input.national_regions} "
                  "{input.worldwide_countries} "
                  "{output}"
@@ -454,7 +454,7 @@ rule report:
         "report/literature.bib",
         "report/main.md",
         "report/pandoc-metadata.yml",
-        "build/full-protection/necessary-land-map.png",
+        "build/full-protection/normed-potentials-map.png",
         "build/full-protection/potentials.png",
         rules.solution_matrix_plot.output
     output:
@@ -474,8 +474,8 @@ rule paper:
         "report/paper.md",
         "report/pandoc-metadata.yml",
         "build/technical-potential/potentials.png",
-        "build/technical-potential/necessary-land-boxplots.png",
-        "build/full-protection/necessary-land-map.png",
+        "build/technical-potential/normed-potentials-boxplots.png",
+        "build/full-protection/normed-potentials-map.png",
         "build/full-protection/potentials.png",
     output:
         "build/paper.pdf"

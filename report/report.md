@@ -187,9 +187,9 @@ Using these factors together with the eligible land estimation of all steps befo
 
 ![Potential of renewable power technologies to fulfil national demand.](../build/full-protection/potentials.png){#fig:potentials .class}
 
-![Ranges of fraction of land necessary to fulfil demand in different countries.](../build/full-protection/necessary-land-boxplots.png){#fig:necessary-land-boxplots .class}
+![Ranges of fraction of land necessary to fulfil demand in different countries.](../build/full-protection/normed-potentials-boxplots.png){#fig:normed-potentials-boxplots .class}
 
-![Regions with sufficient yearly aggregated renewable power (green) and with insufficient power (red).](../build/full-protection/necessary-land-map.png){#fig:necessary-land-map .class}
+![Regions with sufficient yearly aggregated renewable power (green) and with insufficient power (red).](../build/full-protection/normed-potentials-map.png){#fig:normed-potentials-map .class}
 
 ![European population with access to enough energy with autarky on the municipal level and relaxed electricity imports and environmental protection constraints.](../build/solution-matrix.png){#fig:solution-map .class}
 
