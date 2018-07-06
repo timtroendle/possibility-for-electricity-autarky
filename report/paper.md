@@ -49,7 +49,7 @@ The electricity demand of each autarkic region is determined using the national 
 
 # Results
 
- ## Technical potential
+## Technical potential
 
 What's the potential on the European level? Then, on the national level (TODO rather show data than plot, the plot is ugly):
 

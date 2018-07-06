@@ -9,6 +9,7 @@ PYTHON_SCRIPT_WITH_CONFIG = PYTHON_SCRIPT + " {CONFIG_FILE}"
 URL_LOAD = "https://data.open-power-system-data.org/time_series/2018-03-13/time_series_60min_stacked.csv"
 URL_NUTS = "http://ec.europa.eu/eurostat/cache/GISCO/geodatafiles/NUTS_2013_01M_SH.zip"
 URL_LAU = "http://ec.europa.eu/eurostat/cache/GISCO/geodatafiles/COMM-01M-2013-SH.zip"
+URL_DEGURBA = "http://ec.europa.eu/eurostat/cache/GISCO/geodatafiles/DGURBA_2014_SH.zip"
 URL_LAND_COVER = "http://due.esrin.esa.int/files/Globcover2009_V2.3_Global_.zip"
 URL_PROTECTED_AREAS = "https://www.protectedplanet.net/downloads/WDPA_Jan2018?type=shapefile"
 URL_CGIAR_TILE = "http://droppr.org/srtm/v4.1/6_5x5_TIFs/"
@@ -131,6 +132,34 @@ rule administrative_borders_lau:
         ./build/COMM_01M_2013_SH/data/COMM_AT_2013.dbf ./build/raw-lau.gpkg
         {PYTHON} {input.src} normalise ./build/raw-lau.gpkg {output} {CONFIG_FILE}
         """
+
+
+rule raw_urbanisation_zipped:
+    message: "Download DEGURBA regions as zip."
+    output:
+        protected("data/automatic/raw-degurba-regions.zip")
+    shell:
+        "curl -sLo {output} '{URL_DEGURBA}'"
+
+
+rule lau2_urbanisation_degree:
+    message: "Urbanisation degrees on LAU2 level."
+    input:
+        src = "src/lau.py",
+        lau2 = rules.raw_lau_regions_zipped.output,
+        degurba = rules.raw_urbanisation_zipped.output
+    output:
+        "build/administrative-borders-lau-urbanisation.csv"
+    shadow: "full"
+    shell:
+        """
+        unzip {input.lau2} -d ./build
+        unzip {input.degurba} -d ./build
+        {PYTHON} {input.src} merge ./build/COMM_01M_2013_SH/data/COMM_RG_01M_2013.shp \
+        ./build/COMM_01M_2013_SH/data/COMM_AT_2013.dbf ./build/raw-lau.gpkg
+        {PYTHON} {input.src} degurba ./build/raw-lau.gpkg ./build/DGURBA_2014_SH/data/DGURBA_RG_01M_2014.shp {output}
+        """
+
 
 rule raw_land_cover_zipped:
     message: "Download land cover data as zip."

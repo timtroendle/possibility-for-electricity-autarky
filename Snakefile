@@ -377,6 +377,7 @@ rule scenario_overview:
     message: "Brief overview over results of all scenarios."
     input:
         expand("build/municipal/{scenario}/constrained-potentials.csv", scenario=config["scenarios"].keys()),
+        rules.lau2_urbanisation_degree.output,
         "build/municipal/population.csv",
         "build/municipal/demand.csv"
     output:
@@ -386,29 +387,45 @@ rule scenario_overview:
 
         demand = pd.read_csv(input[-1], index_col=0)["demand_twh_per_year"]
         population = pd.read_csv(input[-2], index_col=0)["population_sum"].reindex(demand.index)
-        pop_density = pd.read_csv(input[-2], index_col=0)["density_p_per_km2"].reindex(demand.index)
-        potentials = [pd.read_csv(path, index_col=0).sum(axis=1).reindex(demand.index) for path in input[:-2]]
-        scenario_names = [path.split("/")[2] for path in input[:-2]]
+        high_density = pd.read_csv(input[-2], index_col=0)["density_p_per_km2"].reindex(demand.index) > 1000
+        potentials = [pd.read_csv(path, index_col=0).sum(axis=1).reindex(demand.index) for path in input[:-3]]
+        urbanisation = pd.read_csv(input[-3], index_col=0)["urbanisation_class"].reindex(demand.index)
+        urban = urbanisation == 1
+        town = urbanisation == 2
+        rural = urbanisation == 3
+        scenario_names = [path.split("/")[2] for path in input[:-3]]
         overview = pd.DataFrame(
             index=scenario_names,
             columns=[
                 "population share with insufficient supply",
                 "of which urban",
-                "urban pop affected",
-                "rural pop affected"
+                "of which town",
+                "of which rural",
+                "of which high density",
+                "high density pop affected",
+                "low density pop affected"
             ]
         )
         overview["population share with insufficient supply"] = [
             population[pot < demand].sum() / population.sum() for pot in potentials
         ]
         overview["of which urban"] = [
-            population[(pot < demand) & (pop_density > 1500)].sum() / population[pot < demand].sum() for pot in potentials
+            population[(pot < demand) & urban].sum() / population[pot < demand].sum() for pot in potentials
         ]
-        overview["urban pop affected"] = [
-            population[(pot < demand) & (pop_density > 1500)].sum() / population[pop_density > 1500].sum() for pot in potentials
+        overview["of which town"] = [
+            population[(pot < demand) & town].sum() / population[pot < demand].sum() for pot in potentials
         ]
-        overview["rural pop affected"] = [
-            population[(pot < demand) & (pop_density <= 1500)].sum() / population[pop_density <= 1500].sum() for pot in potentials
+        overview["of which rural"] = [
+            population[(pot < demand) & rural].sum() / population[pot < demand].sum() for pot in potentials
+        ]
+        overview["of which high density"] = [
+            population[(pot < demand) & high_density].sum() / population[pot < demand].sum() for pot in potentials
+        ]
+        overview["high density pop affected"] = [
+            population[(pot < demand) & high_density].sum() / population[high_density].sum() for pot in potentials
+        ]
+        overview["low density pop affected"] = [
+            population[(pot < demand) & ~high_density].sum() / population[~high_density].sum() for pot in potentials
         ]
         overview.to_csv(output[0], header=True, float_format="%.4f")
 

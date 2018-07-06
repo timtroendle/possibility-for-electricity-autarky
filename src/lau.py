@@ -36,6 +36,22 @@ def merge(path_to_shapes, path_to_attributes, path_to_output):
 
 @lau.command()
 @click.argument("path_to_lau")
+@click.argument("path_to_degurba")
+@click.argument("path_to_output")
+def degurba(path_to_lau, path_to_degurba, path_to_output):
+    """Merge LAU2 regions with DEGURBA data."""
+    lau2 = gpd.read_file(path_to_lau)
+    degurba = gpd.read_file(path_to_degurba)
+    degurba_codes = lau2.merge(degurba, how="left", on=["CNTR_CODE", "NSI_CODE"])
+    degurba_codes = pd.DataFrame(degurba_codes) # to be able to remove the geo information
+    degurba_codes.rename(columns={
+        "COMM_ID": "id",
+        "DGURBA_CLA": "urbanisation_class"
+    })[["id", "urbanisation_class"]].to_csv(path_to_output, header=True, index=False)
+
+
+@lau.command()
+@click.argument("path_to_lau")
 @click.argument("path_to_output")
 @click.argument("config", type=Config())
 def normalise(path_to_lau, path_to_output, config):
