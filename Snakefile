@@ -65,6 +65,24 @@ rule regional_land_cover:
         """
 
 
+rule regional_slope:
+    message: "Slope statistics per region of layer {wildcards.layer}."
+    input:
+        regions = rules.regions.output,
+        slope = rules.slope_in_europe.output,
+        src = "src/geojson_to_csv.py"
+    output:
+        "build/{layer}/slope.csv"
+    shell:
+        """
+        fio cat {input.regions} | \
+        rio zonalstats -r {input.slope} --stats "min max median percentile_25 percentile_75" | \
+        {PYTHON} {input.src} -a id -a _min -a _max -a _median -a _percentile_25 -a _percentile_75 |
+        sed -e 's/None/NaN/g' > \
+        {output}
+        """
+
+
 rule regional_protected_areas:
     message: "Protected area statistics per region of layer {wildcards.layer}."
     input:
@@ -321,6 +339,33 @@ rule technology_potentials:
         PYTHON_SCRIPT + " {wildcards.scenario} {CONFIG_FILE}"
 
 
+rule european_potentials:
+    message: "Summarise potentials on European level for scenario {wildcards.scenario}."
+    input:
+        constrained_potentials = "build/national/{scenario}/constrained-potentials.csv",
+        technology_potentials = "build/national/{scenario}/technology-potentials.csv",
+        demand = "build/national/demand.csv"
+    output:
+        "build/{scenario}/european-potentials.csv"
+    run:
+        import pandas as pd
+        demand = pd.read_csv(input.demand, index_col=0)["demand_twh_per_year"]
+        constrained_potentials = pd.read_csv(input.constrained_potentials, index_col=0).reindex(demand.index)
+        technology_potentials = pd.read_csv(input.technology_potentials, index_col=0).reindex(demand.index)
+        pd.Series({
+            "Total potential [TWh/a]": constrained_potentials.sum().sum(),
+            "Normed potential [-]": constrained_potentials.sum().sum() / demand.sum(),
+            "Roof mounted PV potential [TWh/a]": technology_potentials["rooftop-pv"].sum(),
+            "Open field PV potential [TWh/a]": technology_potentials["pv-farm"].sum(),
+            "Onshore wind potential [TWh/a]": technology_potentials["onshore wind"].sum(),
+            "Offshore wind potential [TWh/a]": technology_potentials["offshore wind"].sum(),
+            "Roof mounted PV potential [-]": technology_potentials["rooftop-pv"].sum() / demand.sum(),
+            "Open field PV potential [-]": technology_potentials["pv-farm"].sum() / demand.sum(),
+            "Onshore wind potential [-]": technology_potentials["onshore wind"].sum() / demand.sum(),
+            "Offshore wind potential [-]": technology_potentials["offshore wind"].sum() / demand.sum(),
+        }).to_csv(output[0], index=True, header=True, float_format="%.2f")
+
+
 rule normed_potential_plots:
     message: "Plot fraction of land necessary for scenario {wildcards.scenario}."
     input:
@@ -385,9 +430,10 @@ rule solution_matrix_plot:
 
 
 rule scenario_overview:
-    message: "Brief overview over results of all scenarios."
+    message: "Brief overview over results of all scenarios on the municipal level."
     input:
         expand("build/municipal/{scenario}/constrained-potentials.csv", scenario=config["scenarios"].keys()),
+        "build/municipal/slope.csv",
         rules.lau2_urbanisation_degree.output,
         "build/municipal/population.csv",
         "build/municipal/demand.csv"
@@ -397,40 +443,55 @@ rule scenario_overview:
         import pandas as pd
 
         demand = pd.read_csv(input[-1], index_col=0)["demand_twh_per_year"]
+        industrial = pd.read_csv(input[-1], index_col=0)["industrial_demand_fraction"] > 0.5
         population = pd.read_csv(input[-2], index_col=0)["population_sum"].reindex(demand.index)
         high_density = pd.read_csv(input[-2], index_col=0)["density_p_per_km2"].reindex(demand.index) > 1000
-        potentials = [pd.read_csv(path, index_col=0).sum(axis=1).reindex(demand.index) for path in input[:-3]]
+        potentials = [pd.read_csv(path, index_col=0).sum(axis=1).reindex(demand.index) for path in input[:-4]]
         urbanisation = pd.read_csv(input[-3], index_col=0)["urbanisation_class"].reindex(demand.index)
+        steep = pd.read_csv(input[-4], index_col=0).reindex(demand.index)._median > 20
         urban = urbanisation == 1
         town = urbanisation == 2
         rural = urbanisation == 3
-        scenario_names = [path.split("/")[2] for path in input[:-3]]
+        classified = urban | town | rural
+        scenario_names = [path.split("/")[2] for path in input[:-4]]
         overview = pd.DataFrame(
             index=scenario_names,
             columns=[
+                "unit share with insufficient supply",
                 "population share with insufficient supply",
                 "of which urban",
                 "of which town",
                 "of which rural",
-                "of which high density",
+                "of which densely populated",
+                "of which in industrial area",
+                "of which in steep area",
                 "high density pop affected",
-                "low density pop affected"
+                "low density pop affected",
             ]
         )
+        overview["unit share with insufficient supply"] = [
+            population[pot < demand].count() / population.count() for pot in potentials
+        ]
         overview["population share with insufficient supply"] = [
             population[pot < demand].sum() / population.sum() for pot in potentials
         ]
         overview["of which urban"] = [
-            population[(pot < demand) & urban].sum() / population[pot < demand].sum() for pot in potentials
+            population[(pot < demand) & urban].sum() / population[(pot < demand) & classified].sum() for pot in potentials
         ]
         overview["of which town"] = [
-            population[(pot < demand) & town].sum() / population[pot < demand].sum() for pot in potentials
+            population[(pot < demand) & town].sum() / population[(pot < demand) & classified].sum() for pot in potentials
         ]
         overview["of which rural"] = [
-            population[(pot < demand) & rural].sum() / population[pot < demand].sum() for pot in potentials
+            population[(pot < demand) & rural].sum() / population[(pot < demand) & classified].sum() for pot in potentials
         ]
-        overview["of which high density"] = [
+        overview["of which densely populated"] = [
             population[(pot < demand) & high_density].sum() / population[pot < demand].sum() for pot in potentials
+        ]
+        overview["of which in industrial area"] = [
+            population[(pot < demand) & industrial].sum() / population[pot < demand].sum() for pot in potentials
+        ]
+        overview["of which in steep area"] = [
+            population[(pot < demand) & steep].sum() / population[pot < demand].sum() for pot in potentials
         ]
         overview["high density pop affected"] = [
             population[(pot < demand) & high_density].sum() / population[high_density].sum() for pot in potentials
