@@ -85,8 +85,8 @@ def _boxplot(region_sets, path_to_plot):
 
 
 def _map(regions, countries, third_countries, path_to_plot):
-    winners = regions[regions["normed_potential"] <= 1]
-    loosers = regions[regions["normed_potential"] > 1]
+    winners = regions[regions["normed_potential"] >= 1]
+    loosers = regions[regions["normed_potential"] < 1]
     invalids = regions[~regions.isin(pd.concat([winners, loosers]))].dropna()
 
     fig = plt.figure(figsize=(16, 16))
