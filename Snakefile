@@ -415,6 +415,19 @@ rule technology_potentials_plot:
         PYTHON_SCRIPT
 
 
+rule necessary_land_plot:
+    message: "Plot the fraction of land needed to become autarkic."
+    input:
+        "src/vis/necessary_land.py",
+        "build/municipal/unconstrained-potentials-prefer-pv.csv",
+        "build/municipal/unconstrained-potentials-prefer-wind.csv",
+        "build/municipal/demand.csv"
+    output:
+        "build/necessary-land.png"
+    shell:
+        PYTHON_SCRIPT
+
+
 rule solution_matrix_plot:
     message: "Plot the solution matrix showing pathways to reach 100% sufficent power supply."
     input:
@@ -545,10 +558,11 @@ rule paper:
         "report/literature.bib",
         "report/paper.md",
         "report/pandoc-metadata.yml",
-        "build/technical-potential/potentials.png",
         "build/technical-potential/normed-potentials-boxplots.png",
+        "build/technical-potential/european-potentials.csv",
         "build/full-protection/normed-potentials-map.png",
-        "build/full-protection/potentials.png",
+        "build/full-protection/european-potentials.csv",
+        "build/necessary-land.png"
     output:
         "build/paper.pdf"
     shell:
