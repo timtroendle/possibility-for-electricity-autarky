@@ -310,6 +310,17 @@ rule normed_potentials:
         PYTHON_SCRIPT
 
 
+rule technology_potentials:
+    message: "Potentials per technology for layer {wildcards.layer} and scenario {wildcards.scenario}."
+    input:
+        "src/potentials_technology.py",
+        rules.unconstrained_potentials.output,
+    output:
+        "build/{layer}/{scenario}/technology-potentials.csv"
+    shell:
+        PYTHON_SCRIPT + " {wildcards.scenario} {CONFIG_FILE}"
+
+
 rule normed_potential_plots:
     message: "Plot fraction of land necessary for scenario {wildcards.scenario}."
     input:
@@ -347,17 +358,16 @@ rule normed_potential_plots:
                  "{output}"
 
 
-rule potential_plot:
+rule technology_potentials_plot:
     message: "Plot potentials of renewable power for scenario {wildcards.scenario}."
     input:
-        "src/vis/potentials.py",
+        "src/vis/potentials_technology.py",
         "build/national/demand.csv",
-        "build/national/unconstrained-potentials-prefer-pv.csv",
-        "build/national/unconstrained-potentials-prefer-wind.csv"
+        "build/national/{scenario}/technology-potentials.csv",
     output:
-        "build/{scenario}/potentials.png"
+        "build/{scenario}/technology-potentials.png"
     shell:
-        PYTHON_SCRIPT + " {wildcards.scenario} {CONFIG_FILE}"
+        PYTHON_SCRIPT
 
 
 rule solution_matrix_plot:
