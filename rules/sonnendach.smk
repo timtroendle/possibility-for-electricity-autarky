@@ -165,7 +165,7 @@ rule pv_simulation_parameters:
     message: "Create input parameters for simulation of photovoltaics."
     input:
         roof_categories = rules.sonnendach_statistics.output,
-        nuts = rules.administrative_borders_nuts.output
+        regions = "build/subnational/regions.geojson"
     output:
         "build/swiss/pv-simulation-parameters.csv"
     run:
@@ -193,22 +193,22 @@ rule pv_simulation_parameters:
             return optimal_tilt
 
         roof_categories = pd.read_csv(input.roof_categories[0])
-        nuts = gpd.read_file(input.nuts[0], layer="nuts2").set_index("id")
+        regions = gpd.read_file(input.regions).set_index("id")
         lat_long = pd.DataFrame(
-            index=nuts.index,
+            index=regions.index,
             data={
-                "lat": nuts.centroid.map(lambda point: point.y),
-                "long": nuts.centroid.map(lambda point: point.x)
+                "lat": regions.centroid.map(lambda point: point.y),
+                "long": regions.centroid.map(lambda point: point.x)
             }
         )
 
-        index = pd.MultiIndex.from_product((nuts.index, roof_categories.index), names=["nuts_id", "roof_cat_id"])
+        index = pd.MultiIndex.from_product((regions.index, roof_categories.index), names=["id", "roof_cat_id"])
         data = pd.DataFrame(index=index).reset_index()
         data = data.merge(roof_categories, left_on="roof_cat_id", right_index=True).drop(columns=["relative_area"])
-        data = data.merge(lat_long, left_on="nuts_id", right_index=True)
+        data = data.merge(lat_long, left_on="id", right_index=True)
         data["azim"] = data["orientation"].map(orientation_to_azimuth)
         data["site_id"] = data.apply(
-            lambda row: "{}_{}_{}".format(row.nuts_id, row.orientation, round(row.tilt)),
+            lambda row: "{}_{}_{}".format(row.id, row.orientation, round(row.tilt)),
             axis=1
         )
         flat_mask = data["orientation"] == "flat"
