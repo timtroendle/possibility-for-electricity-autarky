@@ -26,13 +26,10 @@ MAX_FLAT_TILT = 10 # @BFE:2016 "Berechnung Potential in Gemeinden"
 CONFIG_FILE = "config/default.yaml"
 
 configfile: CONFIG_FILE
-include: "./data-preprocessing.smk"
 
 
-rule all:
+rule all_sonnendach:
     input:
-        "build/swiss/overestimation-settlement-data.txt",
-        "build/swiss/roof-statistics.csv",
         "build/swiss/pv-simulation-parameters.csv"
 
 
@@ -102,21 +99,21 @@ rule total_size_swiss_rooftops_according_to_sonnendach_data:
             f_out.write(f"{total_size_km2}")
 
 
-rule overestimation_settlement_data:
-    message: "Determine the overestimation given in the settlement data."
+rule ratio_esm_estimation_available:
+    message: "Determine the share of roof areas from settlement data actually available."
     input:
         sonnendach = rules.total_size_swiss_rooftops_according_to_sonnendach_data.output,
         settlement = rules.total_size_swiss_rooftop_area_according_to_settlement_data.output
     output:
-        "build/swiss/overestimation-settlement-data.txt"
+        "build/swiss/ratio-esm-available.txt"
     run:
         with open(input.sonnendach[0], "r") as f_in:
             sonnendach = float(f_in.read())
         with open(input.settlement[0], "r") as f_in:
             settlement = float(f_in.read())
-        overestimation = settlement / sonnendach
+        ratio = sonnendach / settlement
         with open(output[0], "w") as f_out:
-            f_out.write(f"{overestimation:.3f}")
+            f_out.write(f"{ratio:.3f}")
 
 
 rule sonnendach_rooftop_data:
@@ -133,13 +130,15 @@ rule sonnendach_rooftop_data:
 rule sonnendach_statistics:
     message: "Create statistics of roofs in Switzerland."
     input: rules.sonnendach_rooftop_data.output
-    output: "build/swiss/roof-statistics.csv"
+    output:
+        raw = "build/swiss/roof-statistics.csv",
+        publish = "build/swiss/roof-statistics-publish.csv"
     run:
         import pandas as pd
         data = pd.read_csv(input[0], index_col=0)
         data.rename(columns={"AUSRICHTUNG": "orientation", "NEIGUNG": "tilt", "FLAECHE": "area"}, inplace=True)
         data = data[data.area > MIN_ROOF_SIZE]
-        data["relative_area"] = data.area.transform(lambda x: x / x.sum())
+        data["share of roof areas"] = data.area.transform(lambda x: x / x.sum())
         orientation_categories = pd.cut(
             data["orientation"],
             bins=[-180, -135, -45, 45, 135, 180],
@@ -155,10 +154,20 @@ rule sonnendach_statistics:
         assert not tilt_categories.isnull().any()
 
         roof_categories = data.groupby([orientation_categories, tilt_categories]).agg(
-            {"relative_area": "sum", "tilt": "mean"}
+            {"share of roof areas": "sum", "tilt": "mean"}
         )
         roof_categories.loc["flat", "tilt"] = 0.0
-        roof_categories.reset_index()[["orientation", "tilt", "relative_area"]].to_csv(output[0], header=True, index=False)
+        roof_categories = roof_categories.reset_index()[["orientation", "tilt", "share of roof areas"]]
+        roof_categories.to_csv(output.raw, header=True, index=False)
+        roof_categories.rename(
+            columns={
+                "share of roof areas": "share of roof areas [%]",
+                "tilt": "average tilt [%]"
+            },
+            inplace=True
+        )
+        roof_categories["share of roof areas [%]"] = roof_categories["share of roof areas [%]"] * 100
+        roof_categories.to_csv(output.publish, header=True, index=False, float_format="%.1f")
 
 
 rule pv_simulation_parameters:
@@ -204,7 +213,7 @@ rule pv_simulation_parameters:
 
         index = pd.MultiIndex.from_product((regions.index, roof_categories.index), names=["id", "roof_cat_id"])
         data = pd.DataFrame(index=index).reset_index()
-        data = data.merge(roof_categories, left_on="roof_cat_id", right_index=True).drop(columns=["relative_area"])
+        data = data.merge(roof_categories, left_on="roof_cat_id", right_index=True).drop(columns=["share of roof areas"])
         data = data.merge(lat_long, left_on="id", right_index=True)
         data["azim"] = data["orientation"].map(orientation_to_azimuth)
         data["site_id"] = data.apply(

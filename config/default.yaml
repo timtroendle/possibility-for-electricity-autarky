@@ -164,12 +164,11 @@ parameters:
         Montenegro: Croatia
         Serbia: Romania
     max-slope:
-        pv: 3
-        wind: 20 # (McKenna:2014)
+        pv: 3 # [°]
+        wind: 20 # [°] (McKenna:2014)
     max-depth-offshore: -50
     max-building-share: 0.01 # Above, a pixel cannot be used for energy farms. Equals roughly 900m2
     max-urban-green-share: 0.01 # Above, a pixel cannot be used for energy farms. Equals roughly 900m2. Removes e.g. Berlin's Tempelhofer Feld.
-    available-rooftop-share: 0.57 # Share of all rooftop areas available for PV. Determined in rules/sonnendach.smk
 scenarios:
     technical-potential:
         share-protected-areas-used: 1.0

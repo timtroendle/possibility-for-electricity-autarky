@@ -5,6 +5,7 @@ CONFIG_FILE = "config/default.yaml"
 
 configfile: CONFIG_FILE
 include: "rules/data-preprocessing.smk"
+include: "rules/sonnendach.smk"
 
 
 rule all:
@@ -215,7 +216,8 @@ rule regional_eligibility_rooftop_pv:
         rules.settlements.output.buildings,
         rules.eligible_land.output,
         rules.regions.output,
-        rules.regional_land_eligibility.output
+        rules.regional_land_eligibility.output,
+        rules.ratio_esm_estimation_available.output
     output:
         "build/{layer}/land-eligibility-with-rooftop-pv.csv"
     shell:
@@ -562,7 +564,8 @@ rule paper:
         "build/technical-potential/european-potentials.csv",
         "build/full-protection/normed-potentials-map.png",
         "build/full-protection/european-potentials.csv",
-        "build/necessary-land.png"
+        "build/necessary-land.png",
+        rules.sonnendach_statistics.output.publish
     output:
         "build/paper.pdf"
     shell:

@@ -17,10 +17,11 @@ NO_DATA_VALUE = -1
 @click.argument("path_to_eligibility")
 @click.argument("path_to_regions")
 @click.argument("path_to_regional_eligibility")
+@click.argument("path_to_availability_share")
 @click.argument("path_to_output")
 @click.argument("config", type=Config())
 def rooftop_correction(path_to_rooftop_area_share, path_to_eligibility, path_to_regions,
-                       path_to_regional_eligibility, path_to_output, config):
+                       path_to_regional_eligibility, path_to_availability_share, path_to_output, config):
     """Calculate the rooftop area that is available in each region.
 
     This is based on using only those areas that have been identified as roofs in the
@@ -45,15 +46,16 @@ def rooftop_correction(path_to_rooftop_area_share, path_to_eligibility, path_to_
             index=[feat["properties"]["id"] for feat in src],
             data=[stat["mean"] for stat in zs]
         ).fillna(0.0) # happens if there is no building in the region
-    available_rooftop_share = _apply_scaling_factor(building_share, config)
+    available_rooftop_share = _apply_scaling_factor(building_share, path_to_availability_share)
     corrected_eligibilites = _correct_eligibilities(path_to_regional_eligibility, available_rooftop_share)
     corrected_eligibilites.to_csv(path_to_output, header=True)
     _test_land_allocation(path_to_regions, path_to_output)
 
 
-def _apply_scaling_factor(building_share, config):
+def _apply_scaling_factor(building_share, path_to_availability_share):
     # This accounts for the fact that not all rooftops areas are usable for PV.
-    factor = config["parameters"]["available-rooftop-share"]
+    with open(path_to_availability_share, "r") as f_factor:
+        factor = float(f_factor.readline())
     return building_share * factor
 
 
