@@ -8,44 +8,54 @@
 
 # Method
 
-We assume autarky is a political decision and henceforth analyse autarky on administrative layers: all Europe, nations, regions, and municipalities. For each administrative unit on each administrative layer we quantify the renewable potentials and the current electricity demand. We will then reject autarky based on renewable electricity for those units for which the demand exceeds the potential. Data is NUTS / GADM + EEZ. (also discuss how to allocate EEZ to units)
+The degree of local electricity autarky in a region in Europe is shaped by political decisions: despite the liberalised energy market, support schemes and concessions can foster or hinder local generation and storage. Strong collaboration and trading between regions -- the alternative to autarky -- requires the deployment and maintenance of sufficient transfer capacities, which remains a public responsibility. We therefore analyse autarky for regions in Europe with their own administration on different scales: European, national, regional, and municipal scale. For each administrative unit on each administrative layer we quantify the renewable potentials and the current electricity demand. We will then reject autarky based on renewable electricity for those units for which the annual demand exceeds the annual potential.
+
+To identify administrative units including their geographic shape on all scales we use data from NUTS 2013 [@eurostat:2015] and the global administrative areas database (GADM) [@GADM:2018]. The scope of our analysis is EU-28 excluding Malta for which no data was available, plus Switzerland, Norway, and the Balkan countries Albania, Bosnia and Herzegovina, Macedonia, Montenegro, and Serbia. Together, they form the European scale; in isolation they form the national scale. Country shapes for EU-28 countries and Switzerland and Norway are defined by NUTS 2013, and for the balkan countries by GADM. The regional scale is defined by the first-level administrative division, e.g. cantones in Switzerland, régions in France, or oblasti in Bulgaria, of which GADM identifies 570 in the study area. Lastly, 124404 communes in the 34 countries form the municipal scale. These communes are defined for most countries by the Local Administrative Unit 2 (LAU2) layer of NUTS 2013, and for Albania, Bosnia and Herzegovina, and Montenegro we took their definitions from GADM. Lastly, we estimate the size of maritime areas over which regions have sovereignty by allocating Exclusive Economic Zones (EEZ) to regions on all scales. We divide and allocate to all regions that share a coast with the EEZ. The share is proportional to the length of the shared coast. We use EEZ shape data from @Claus:2018.
 
 ## Renewable potential
 
-First we determine the amount of eligible land per administrative unit, then we estimate the magnitude of electrical energy that can be generate on the available land.
+To quantify the renewable potential in each administrative unit, we first estimate the amount of eligible land for generation of renewable electricity, and then we estimate the magnitude of electrical energy that can be generated annually on the eligible land.
 
 ### Open field land eligibility
 
-* we divide Europe in a grid with 3 arcseconds (< 300m x 300m) resolution
+To decide which fractions of the land of an administrative unit can be used for open field PV, or on- and offshore wind farms, we divide Europe in a grid of 10 arcseconds resolution, whose cell size varies with the longitude but never exceeds 0.09 km^2^. For each cell we derive the current land cover and use [@EuropeanSpaceAgency:2010], the average slope of the terrain [@Reuter:2007; @Danielson:2011] or its maximum water depths [@Amante:2009], and whether it belongs to an area which is environmentally protected [@UNEP-WCMC:2017]. We prohibit energy generation next to settlements by amending the coarse land cover data with more detailed data on settlements with a cell size of 6.25m^2^ [@Ferri:2017]. Using this dataset we classify each 10 arcseconds cell as built-up area when more than 1% of its land are buildings or urban parks and prohibit energy generation on it. To quantify the technical potential, we use the following rules: We allow wind farms to be built on farmland, forests, open vegetation and bare land with slope below 20°. We furthermore allow open field PV to be built on farmland, vegetation and bare land with slope below 3°. Lastly, we allow offshore wind farms to be built in water depths of less than 50m. For environmentally and socially restricted potentials, we limit the land eligibility for renewable electricity, for example by prohibiting the use of environmentally protected land or the use of farmland for open field PV as that may lead to land use conflicts.
 
-* for each pixel we determine slope, environmental protection and land cover
+### Roofs for PV
 
-* we allow wind on farms, forests, vegetation and bare land with slope < 20
+The rooftop PV potential not only depends on the amount of roof areas available, but also on the orientation and the tilt of those roofs. We mix an analytical approach with a statistical one to derive the potential. First, we analytically derive the rooftop areas in each unit. We then use a data set of Swiss roofs to correct the area estimation and to amend it with tilt and orientation statistically.
 
-* we allow pv on farms, vegetation and bare land with slope < 3
+We use the European Settlement Map (ESM) [@Ferri:2017] to identify the amount of rooftop area in each unit. The map is based on satellite images of 2.5m resolution. Together with auxiliary data e.g. on population or national data on infrastructure each cell is automatically classified as building, street, urban green, etc. For each of our 10 arcseconds cell we sum up the space that is classified as buildings. We are considering only those cells that had been classified as built-up areas before and which are hence not used for other renewable generation.
 
-* we allow offshore wind in water depths of less than 50m.
+We then amend this first estimation with data from sonnendach.ch for Switzerland [@SwissFederalOfficeofEnergy:2018]. We use this dataset in two ways: First we improve the area estimation based on the European Settlement Map. This estimation is less precise due to the coarse methodology compared to sonnendach.ch, underestimates the area due to a lack of tilt, and overestimates the area as it ignores unavailable parts of the roof, e.g. those covered with windows or chimneys. For the roofs included in the sonnendach.ch dataset, the European Settlement Map identifies 768km^2^ roof areas, where sonnendach.ch finds only 630km^2^. After applying the expert estimation of available areas [@SwissFederalOfficeofEnergy:2016], this is reduced to 441km^2^ (TODO update!). The ESM data overestimates the actual potential hence by 74%. We assume this overestimation is representative for all Europe and apply this factor to all areas identified by the European Settlement Map.
 
-* for the technical potential, we assume all land can be used, including the environmentally protected; for environmentally and socially restricted potential we limit the land use for renewables
+The second use we make out of the Swiss data is to identify the tilt and orientation of the roof areas. For that, we cluster all roofs in 17 categories: flat roofs, and roofs with south-, west-, north-, and east-wards orientation with 4 groups of tilt each. We then quantify the relative area share of each category, see Table @tbl:roof-statistics. We again assume the distribution of these attributes of the Swiss housing stock is representative for Europe and apply it to all regions.
 
-### Rooftop PV eligibility
-
-We mix a statistical approach with an analytical. First, we analytically derive the rooftop areas in each unit. We then use a detailed Swiss data set to correct the area estimation and to amend it with roof attributes necessary to derive pv potential like tilt and orientation of the roof.
-
-First, we are using the European Settlement Map to identify the amount of rooftop area in each unit. We are considering only those pixels that had been classified as not eligible for other renewable generation before.
-
-The European Settlement Map determines the fraction of rooftop areas in those areas which we rescale to match the sonnendach.ch data for Switzerland (assuming roof statistics are approximately equally distributed over Europe) and in this way we know the amount of rooftop area in each unit. Furthermore, we use the Swiss dataset to derive statistics about the distribution of roof attributes, assuming the Swiss housing stock is representative in Europe. TODO add table of statistical model.
+```table
+---
+caption: 'Area share of Swiss roof categories in the sonnendach.ch data set. {#tbl:roof-statistics}'
+alignment: CCC
+include: ../build/swiss/roof-statistics-publish.csv
+markdown: True
+---
+```
 
 ### Renewable electricity yield
 
-For wind, we assume a capacity density of onshore-wind: 8 [MW/km^2] and offshore-wind: 15 [MW/km^2] which allows us to derive the installable capacity of each administrative unit. We then use historically observed capacity factors from renewable.ninja per NUTS2 region to map from installable capacity to annual electricity yield.
+Based on the previous steps we can quantify the amount of land in each administrative unit that is eligible for renewable generation. To estimate the annual generation for wind power, we first assume a capacity density of 8 MW/km^2^ and 15 MW/km^2^ for onshore and offshore wind respectively [@EuropeanEnvironmentAgency:2009] which allows us to derive the installable capacity for each unit. We then use historically observed capacity factors per NUTS2 region from renewables.ninja [@Staffell:2016] to determine the annual electricity yield from installable capacity.
 
-For open field PV and roof-mounted PV, we assume a capacity density of ?? [MWp/km^2], southward facing and with tilt optimisation as defined by [@Jacobson:2018]. For PV of tilted roofs, we assume a capacity density of ?? [MWp/km^2] and we use the statistical model above to derive 16 different deployment situations. We then use renewable.ninja to simulate the renewable electricity yield.
+For open field PV and flat roof-mounted PV, we assume a capacity density of ?? MWp/km^2^, southward facing and with tilt optimisation as defined by [@Jacobson:2018]. For PV of tilted roofs, we assume a capacity density of ?? MWp/km^2^ and we use the statistical model from Table @tbl:roof-statistics to derive 16 different deployment situations. We then use renewables.ninja [@Staffell:2016; @Pfenninger:2016] to simulate the renewable electricity yield of each deployment situation in each administrative unit of the regional scale. In Switzerland for example, this leads to 442 simulations, based on 17 deployment situations in 26 cantons.
 
+The aggregated yield of onshore wind, offshore wind, open field PV and roof-mounted PV represents the technical renewable electricity potential for each administrative unit.
 
 ## Current electricity demand
 
-The electricity demand of each autarkic region is determined using the national electricity demand data, industrial demand data, the gridded population data, and the administrative areas data set. In a first step, the gridded population is mapped to the regions to determine the local population. After that, industrial demand is allocated to the regions in which they are located. Finally, the national non-industrial electricity demand is allocated to the regions proportional to the local population.
+We relate the renewable electricity potential to the local electricity demand of today. As a base, we are using the load data from 2017 for each country [@OpenPowerSystemData:2018] originally published by ENTSO-e. For subnational scales, we upsample the data by the use of a dataset on industrial demand and on population in Europe.
+
+We derive a dataset of electricity intensive industries from the European Emission Trading Scheme (ETS). Using ETS as a base means, we are neglecting industries in Switzerland and the Western Balkan countries which do not take part in the scheme. We consider those steel, aluminium, and chloralkali factories, that are responsible for more then 0.5% of the respective ETS activity. Based on the ETS address registry and manual research, we identify the exact location of those factories.
+
+As there is no comprehensive and/or consistent data set for industry production, we make two important assumptions to determine the production, and hence the electricity demand, of each installation. First, we assume that the product output of each plant is homogenous, corresponding to “steel”, “aluminium”, etc.: we do thus not differentiate between different types of steel or different aluminium products. Hence, each product comes with a generic electricity intensity factor (MWh/t output) [@Ecorys:2009; @Paulus:2011; @Eurofer:2015; @Klobasa:2007; @EAA:2012; @Eurochlor:2014]. Second, we assume that the production of each facility is directly proportional to its emissions: a factory emitting 10% of the Activity’s CO~2~ emissions (after all installations contributing 0.5% or less have been removed) is assumed to produce 10% of the output of all facilities in the filtered list under each Activity. As base for the yearly European production, we take industry organisation data [@Eurofer:2015; @EAA:2012; @Cembuerau:2015; @Eurochlor:2014; @Paulus:2011] for the most recent year available. For chloralkali plants, we assume the lowest electricity intensity in the range given by @Klobasa:2007, given the efficiency improvements (-8% intensity since 2001) over the last decade [@Eurochlor:2014].
+
+We use the dataset of industries to localise electricity-intensive industrial demand to administrative units. We assume the remaining electricity demand of non-electricity-intensive industries, commerce, and households is spatially distributed over the country proportional to the population. We use the Global Human Settlement Population Grid which maps population in 2015 with a resolution of 250m [@JRC:2015] in Europe and globally. It is based on national censuses and population registers. With that, we define the local, annual electricity demand in each administrative unit of each administrative scale.
 
 # Results
 
