@@ -296,7 +296,8 @@ rule unconstrained_potentials:
     input:
         "src/potentials_unconstrained.py",
         rules.regional_eligibility.output,
-        rules.regional_capacity_factors.output
+        rules.regional_capacity_factors.output,
+        rules.sonnendach_statistics.output.raw
     output:
         prefer_pv = "build/{layer}/unconstrained-potentials-prefer-pv.csv",
         prefer_wind = "build/{layer}/unconstrained-potentials-prefer-wind.csv"
