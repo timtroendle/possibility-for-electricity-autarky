@@ -18,4 +18,5 @@ abstract: |
 bibliography:
     - 'literature.bib'
 csl: 'energy-strategy-reviews.csl'
+link-citations: True
 ---
