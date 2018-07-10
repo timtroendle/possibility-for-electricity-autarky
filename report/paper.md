@@ -168,11 +168,19 @@ How low can we go with the 10% to have a large impact?
 
 ![Number of municipalities whose land demand for becoming autarkic is greater than a certain fraction.](../build/necessary-land.png){#fig:nnecessary-land .class}
 
+![Total land demand (25/50%/75% quantile) on the national (blue), subnational (orange), and municipal (green) layer, when only a certain fraction of the demand can be supplied by rooftop PV.](../build/necessary-land-all-layers.png){#fig:nnecessary-land-all-layers .class}
+
 # Conclusion
+
+TODO Whats important here is the difference between European and municipal level! The actual numbers are very uncertain, but the relation is not. So I should rather show the differences it makes in land use.
 
 TODO somewhere here discuss future trends that might become important: rising electricity demand from heat and mobility (important), urbanisation (important, but not huge), other technologies
 
 TODO somewhere here discuss technical restrictions: distribution and transmission grid, intermittency of renewable infeed
+
+TODO somewhere here discuss economic restrictions: LCOE e.g. from slope, access to roads, magnitude of resources (north facing rooftop pv anyone?)
+
+TODO somewhere here discuss short comings of this approach: [@Holtinger:2016] e.g. reports that distance to settlements in Austria and Germany have a large impact; ignoreing suitable zones;
 
 the whole thing is mainly a problem of densely populated regions. rooftop pv is of major importance. as long as enough rooftop pv can be build, land demand is low for most municipalities. should less rooftop pv be useable, e.g. due to technical issues discussed above, many municipalities will need to use much higher shares of their land.
 

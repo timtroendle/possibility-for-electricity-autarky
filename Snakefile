@@ -431,6 +431,25 @@ rule necessary_land_plot:
         PYTHON_SCRIPT
 
 
+rule necessary_land_plot_all_layers:
+    message: "Plot the fraction of land needed to become autarkic."
+    input:
+        "build/national/demand.csv",
+        "build/subnational/demand.csv",
+        "build/municipal/demand.csv",
+        "build/national/unconstrained-potentials-prefer-pv.csv",
+        "build/subnational/unconstrained-potentials-prefer-pv.csv",
+        "build/municipal/unconstrained-potentials-prefer-pv.csv",
+        "build/national/regional-eligibility.csv",
+        "build/subnational/regional-eligibility.csv",
+        "build/municipal/regional-eligibility.csv",
+        src = "src/vis/necessary_land_all_layers.py",
+    output:
+        "build/necessary-land-all-layers.png"
+    shell:
+        PYTHON + " {input.src} {output}"
+
+
 rule solution_matrix_plot:
     message: "Plot the solution matrix showing pathways to reach 100% sufficent power supply."
     input:
@@ -566,6 +585,7 @@ rule paper:
         "build/full-protection/normed-potentials-map.png",
         "build/full-protection/european-potentials.csv",
         "build/necessary-land.png",
+        "build/necessary-land-all-layers.png",
         rules.sonnendach_statistics.output.publish
     output:
         "build/paper.pdf"
