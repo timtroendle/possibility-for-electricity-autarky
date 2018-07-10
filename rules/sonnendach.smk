@@ -1,28 +1,16 @@
-"""These rules analyse statistics of the Swiss Sonnendach dataset.
+"""These rules analyse statistics of the Swiss Sonnendach dataset."""
 
-These rules are not part of the main workflow and can be executed separately given
-that you have the Sonnendach dataset available (www.sonnendach.ch). At the time of
-this writing, the dataset is available only on request.
-
-Run it like so:
-
-    snakemake -s rules/sonnendach.smk
-
-Plot the rulegraph like so:
-
-    snakemake -s rules/sonnendach.smk --rulegraph | dot -Tpdf > dag.pdf
-
-The statistics that result from this analysis have been manually added to the
-main workflow.
-"""
 import sys; sys.path.append(os.getcwd()) # this is necessary to be able to import "src", not sure why
 RAW_SONNENDACH_DATA = "data/sonnendach/SOLKAT_R1-R9_20180418.gdb/"
+RAW_BUILDING_CATEGORIES = "data/gwr/Table_GEB-01.txt"
 LAYER_NAME = "SOLKAT_CH_DACH"
 DATA_AVAILABLE = 255
 RASTER_RESOLUTION_IN_M = 100
-THEORETIC_TO_REAL_POTENTIAL = 0.7 # FIXME replace with proper method from "Berechnung Potential in Gemeinden"
 MIN_ROOF_SIZE = 10 # @BFE:2016 "Berechnung Potential in Gemeinden"
 MAX_FLAT_TILT = 10 # @BFE:2016 "Berechnung Potential in Gemeinden"
+SINGLE_FAMILY_BUILDING = 1021 # GKAT @BFE:2016 "Berechnung Potential in Gemeinden"
+MULTI_FAMILY_BUILDING = 1025 # GKAT @BFE:2016 "Berechnung Potential in Gemeinden"
+FALLBACK_BUILDING_TYPE = 1010 # GKAT @BFE:2016 "Berechnung Potential in Gemeinden"
 CONFIG_FILE = "config/default.yaml"
 
 configfile: CONFIG_FILE
@@ -31,6 +19,35 @@ configfile: CONFIG_FILE
 rule all_sonnendach:
     input:
         "build/swiss/pv-simulation-parameters.csv"
+
+
+rule building_categories:
+    message: "Preprocess the building category data."
+    input:
+        RAW_BUILDING_CATEGORIES
+    output:
+        "build/swiss/building-categories.csv"
+    run:
+        import pandas as pd
+        categories = pd.read_table(
+            input[0],
+            header=None,
+            usecols=[0, 11],
+            names=["EGID", "GKAT"],
+            index_col=0
+        )
+        categories.to_csv(output[0], index=True, header=True)
+
+
+rule sonnendach_rooftop_data:
+    message: "Extract necessary data from sonnendach to create a statistical model."
+    input: RAW_SONNENDACH_DATA
+    output:
+        "build/swiss/roofs-without-geometry.csv"
+    shell:
+        "ogr2ogr -dialect sqlite -f csv \
+        -sql 'SELECT DF_UID, GWR_EGID, FLAECHE, AUSRICHTUNG, NEIGUNG, MSTRAHLUNG, GSTRAHLUNG FROM {LAYER_NAME}' \
+        {output} {input}"
 
 
 rule rasterise_sonnendach:
@@ -78,23 +95,49 @@ rule total_size_swiss_rooftop_area_according_to_settlement_data:
             f_out.write(f"{rooftop_area_km2}")
 
 
-rule size_swiss_rooftops_according_to_sonnendach_data:
-    message: "Select the size of rooftops from Sonnendach data."
-    input: RAW_SONNENDACH_DATA
-    output: "build/swiss/rooftop-areas-according-to-sonnendach-data.csv"
-    shell:
-        "ogr2ogr -select DF_UID,FLAECHE -f csv {output} {input} {LAYER_NAME}"
-
-
 rule total_size_swiss_rooftops_according_to_sonnendach_data:
     message: "Sum the size of rooftops from Sonnendach data."
-    input: rules.size_swiss_rooftops_according_to_sonnendach_data.output
+    input:
+        sonnendach = rules.sonnendach_rooftop_data.output,
+        categories = rules.building_categories.output
     output: "build/swiss/total-rooftop-area-according-to-sonnendach-data-km2.txt"
     run:
         import pandas as pd
 
-        sonnendach = pd.read_csv(input[0])
-        total_size_km2 = sonnendach["FLAECHE"].sum() / 1e6 * THEORETIC_TO_REAL_POTENTIAL # FIXME
+
+        def theoretic_to_actual_area(row):
+            # method and values from @BFE:2016 "Berechnung Potential in Gemeinden"
+            if row.NEIGUNG <= 10:
+                return row.FLAECHE * _theoretic_to_actual_area_flat_roofs_factor(row)
+            else:
+                return row.FLAECHE * 0.7
+
+
+        def _theoretic_to_actual_area_flat_roofs_factor(row):
+            if row.GKAT == SINGLE_FAMILY_BUILDING:
+                return 0.7
+            elif row.GKAT == MULTI_FAMILY_BUILDING:
+                if row.FLAECHE < 1000:
+                    return 0.6 * 0.7
+                else:
+                    return 0.6 * 0.8
+            else:
+                if row.FLAECHE < 1000:
+                    return 0.7
+                else:
+                    return 0.8
+
+        sonnendach = pd.read_csv(input.sonnendach[0])
+        sonnendach = sonnendach.merge(
+            pd.read_csv(input.categories[0], index_col=0),
+            left_on="GWR_EGID",
+            right_index=True,
+            how="left"
+        )
+        sonnendach["GKAT"].fillna(value=FALLBACK_BUILDING_TYPE, inplace=True)
+        sonnendach["GKAT"] = sonnendach["GKAT"].astype(pd.np.int16)
+        sonnendach = sonnendach[sonnendach.FLAECHE >= MIN_ROOF_SIZE]
+        total_size_km2 = sonnendach.apply(theoretic_to_actual_area, axis=1).sum() / 1e6
         with open(output[0], "w") as f_out:
             f_out.write(f"{total_size_km2}")
 
@@ -114,17 +157,6 @@ rule ratio_esm_estimation_available:
         ratio = sonnendach / settlement
         with open(output[0], "w") as f_out:
             f_out.write(f"{ratio:.3f}")
-
-
-rule sonnendach_rooftop_data:
-    message: "Extract necessary data from sonnendach to create a statistical model."
-    input: RAW_SONNENDACH_DATA
-    output:
-        "build/swiss/roofs-without-geometry.csv"
-    shell:
-        "ogr2ogr -dialect sqlite -f csv \
-        -sql 'SELECT DF_UID, FLAECHE, AUSRICHTUNG, NEIGUNG, MSTRAHLUNG, GSTRAHLUNG FROM {LAYER_NAME}' \
-        {output} {input}"
 
 
 rule sonnendach_statistics:
