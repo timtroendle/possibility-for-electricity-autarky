@@ -32,7 +32,7 @@ European Settlement Map 2012, Release 2017
 
 World Database on Protected Areas
 
-:   The world database on protected areas [@UNEP-WCMC:2017] maps areas that are protected by national law. It is provided as a vector database.
+:   The world database on protected areas [@UNEP-WCMC:2018] maps areas that are protected by national law. It is provided as a vector database.
 
 Global Human Settlement Population Grid
 
