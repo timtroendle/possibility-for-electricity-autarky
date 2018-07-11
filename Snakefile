@@ -464,6 +464,24 @@ rule solution_matrix_plot:
         PYTHON_SCRIPT
 
 
+rule exclusion_layers_plot:
+    message: "Visualise the exlusion layers for {params.country_code}."
+    input:
+        "src/vis/exclusion_layers.py",
+        "build/national/regions.geojson",
+        rules.land_cover_in_europe.output,
+        rules.slope_in_europe.output,
+        rules.protected_areas_in_europe.output,
+        rules.settlements.output.buildings,
+    output:
+        "build/exclusion-layers.png"
+    params:
+        country_code = "CH"
+    shell:
+        PYTHON_SCRIPT + " {params.country_code}"
+
+
+
 rule scenario_overview:
     message: "Brief overview over results of all scenarios on the municipal level."
     input:
@@ -586,7 +604,8 @@ rule paper:
         "build/full-protection/european-potentials.csv",
         "build/necessary-land.png",
         "build/necessary-land-all-layers.png",
-        rules.sonnendach_statistics.output.publish
+        rules.sonnendach_statistics.output.publish,
+        rules.exclusion_layers_plot.output
     output:
         "build/paper.pdf"
     shell:
