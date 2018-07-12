@@ -156,4 +156,6 @@ Thank you, good night!
 
 # Acknowledgements
 
+The work of Tim Tröndle and Johan Lilliestam was supported by  Starting Grant ERC-2016-STG of the European Research Council received for the TRIPOD project at ETH Zürich.
+
 # Bibliography
