@@ -124,18 +124,36 @@ We will first consider municipalities only. In the following, we still prohibit 
 
 Turning our view from municipalities to the administrative levels above, we ask the question of how the land demand differs between autarky on the levels. While the total land demand obviously is the same on all levels, its distribution and   in particular the density differs. High levels like the national and European level offer the opportunity to disperse the generation units over the given land or to move it to areas which are thinly-populated, less used, and not environmentally protected. We show the ranges of available total land (FIXME should be harmonised with Figure above; either total land or available land) per level in Figure @fig:necessary-land-all-layers for different diffusion levels of roof mounted PV. We consider total land to exclude maritime regions and hence we exclude offshore wind generation as well. The national level is shown in blue, the regional level is shown in orange, and the municipal level is shown in green. The saturation of each bar shows the 25% quantile, the median, and the 75% quantile respectively. The median for all roof mounted PV shares vary only little between the levels. For the 80% case for example, half of the countries, regions, and municipalities need less than 2% of the total land. The top 25% of each level vary strongly though: while for the same case 25% of the countries need more than 2% of the total land, the same fraction of municipalities needs almost 20% of their total land. For lower diffusions of roof-mounted PV that difference becomes even more pronounced: Considering 40% diffusion of roof mounted PV for example the fractions of total land needed are more than 6% and more than 50% respectively. Using half of the total land in a municipality is very likely infeasible. The Figure shows that autarky on higher administrative levels can relieve the stress on land use for electricity generation in highly populated regions and offer the possibility to disperse the generation units more equally.
 
-![Total land demand (25/50%/75% quantile) on the national (blue), regional (orange), and municipal (green) layer, when only a certain fraction of the demand can be supplied by rooftop PV. Total land refers excludes maritime regions and hence offshore wind is not considered.](../build/necessary-land-all-layers.png){#fig:necessary-land-all-layers .class}
+![Total land demand (25/50%/75% quantile) on the national (blue), regional (orange), and municipal (green) layer, when only a certain fraction of the demand can be supplied by rooftop PV. Total land refers excludes maritime regions and hence offshore wind is not considered.](../build/necessary-land-all-layers.png){#fig:necessary-land-all-layers .
 
-# Conclusion
+# Discussion
 
 TODO somewhere here discuss future trends that might become important: rising electricity demand from heat and mobility (important), urbanisation (important, but not huge), other technologies, energy efficiency (mentioned by several proponents of autarky, e.g. [@Rae:2012][@Muller:2011]
 
 TODO somewhere here discuss technical restrictions: distribution and transmission grid, intermittency of renewable infeed
 
-TODO somewhere here discuss economic restrictions: LCOE e.g. from slope, access to roads, magnitude of resources (north facing rooftop pv anyone?). What does that mean for autarky?
+TODO somewhere here discuss economic restrictions: LCOE e.g. from slope, access to roads, magnitude of resources (north facing rooftop pv anyone?).
 
-TODO somewhere here discuss short comings of this approach: [@Holtinger:2016] e.g. reports that distance to settlements in Austria and Germany have a large impact; ignoreing suitable zones;
+TODO somewhere here discuss autarky: "Niemand hat vor, autark zu werden.". Aspiring high rates of self-sufficiency instead of autarky (which is anyway more realistic in Europe) relieves the issues shown here.
 
-the whole thing is mainly a problem of densely populated regions. rooftop pv is of major importance. as long as enough rooftop pv can be build, land demand is low for most municipalities. should less rooftop pv be useable, e.g. due to technical issues discussed above, many municipalities will need to use much higher shares of their land.
+TODO somewhere here discuss the found importance on population density which in reality is lower due to industrial demand (which we ignore to good parts)
+
+TODO discuss sensitivity of conclusions to uncertainties in the total European potential (and the methods, e.g. [@Holtinger:2016]): we do not care too much about absolute values, but the relative values between the levels are important and we claim they are insensitive (can we show that?)
+
+# Conclusion
+
+we have assessed the potential to generate electricity from renewable source for all Europe on different administrative levels. we show that 
+
+* potentials are in many cases too low on the municipal level, even for tolerantly defined technical potential, but even more so when adding social and ecological constraints;
+* the issue is mainly driven by population density;
+* higher administrative levels like the national or European allow to relieve the stress on land in regions of high demand and to disperse generation more equally.
+
+this study is the first (is it?) to assess autarky on municipal level with European scope. considering only these results suggests to either target autarky (or rather: higher levels of self-sufficiency) on the national or European level, or use more location-specific borders for autarky (mainly cities connect with their surrounding -- future research!).
+
+We hypothesis this result is supported by the issues of intermittency and costs, which are to be shown on the European scale. Further research also should be done on other aspects of autarky (like local value addition, jobs, etc) but on the European scale.
+
+Thank you, good night!
+
+# Acknowledgements
 
 # Bibliography
