@@ -4,6 +4,7 @@ import pandas as pd
 import geopandas as gpd
 import shapely
 from descartes import PolygonPatch
+import matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -12,6 +13,7 @@ from src.eligible_land import FARM, FOREST, GlobCover, ProtectedArea
 
 GREEN = "#679436"
 RED = "#A01914"
+BLUE = "#1E3F92"
 EPSG_3035_PROJ4 = "+proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs "
 MAP_MIN_X = 2400000
 MAP_MIN_Y = 1300000
@@ -56,7 +58,7 @@ def visualise_normed_potentials(paths_to_results, path_to_countries, path_to_wor
         region["layer_id"] = _infer_layer_id(paths_to_region[0])
     countries = gpd.read_file(path_to_countries).to_crs(EPSG_3035_PROJ4)
     third_countries = _third_countries(countries, gpd.read_file(path_to_world)).to_crs(EPSG_3035_PROJ4)
-    _boxplot([region_sets[0], region_sets[-1]], path_to_boxplot)
+    _boxplot([region_sets[-1]], path_to_boxplot)
     _correlation(region_sets, path_to_correlation)
     _map(region_sets[-1], countries, third_countries, path_to_map)
 
@@ -73,14 +75,30 @@ def _boxplot(region_sets, path_to_plot):
         data=data,
         x="normed_potential",
         y="country_code",
-        hue="layer_id",
-        order=data.groupby("country_code").normed_potential.quantile(0.75).sort_values().index,
-        ax=ax
+        order=data.groupby("country_code").normed_potential.quantile(0.5).sort_values().index,
+        ax=ax,
+        color=GREEN,
+        whis=1.5,
+        saturation=0.85,
+        linewidth=1.3,
+        width=0.7,
+        boxprops=dict(linewidth=1.3, edgecolor=GREEN),
+        whiskerprops=dict(linewidth=1, color=GREEN),
+        flierprops=dict(markerfacecolor="k", markeredgecolor="k", markersize=2, marker="o"),
+        capprops=dict(color=GREEN)
+
     )
     ax.set_xlabel("potential relative to demand [-]")
     ax.set_ylabel("country code")
     ax.set_xscale('log')
-    ax.axvline(1, color="r", linewidth=0.75)
+    ax.set_xlim(0.008, 1000)
+    ax.axvline(1, color=RED, linewidth=1.5)
+    eu_position = list(data.groupby("country_code").normed_potential.quantile(0.5).sort_values().index).index("EUR")
+    eu_patch = [child for child in ax.get_children() if isinstance(child, matplotlib.patches.PathPatch)][eu_position]
+    eu_patch.set_facecolor(BLUE)
+    eu_patch.set_edgecolor(BLUE)
+    eu_patch.set_alpha(0.8)
+    eu_patch.set_zorder(100000)
     fig.savefig(path_to_plot, dpi=300)
 
 
