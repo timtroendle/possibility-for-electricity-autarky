@@ -1,4 +1,5 @@
 PYTHON = "PYTHONPATH=./ python"
+PANDOC = "pandoc --filter pantable --filter pandoc-fignos --filter pandoc-tablenos --filter pandoc-citeproc"
 PYTHON_SCRIPT = "PYTHONPATH=./ python {input} {output}"
 
 CONFIG_FILE = "config/default.yaml"
@@ -611,8 +612,20 @@ rule paper:
     shell:
         """
         cd ./report
-        pandoc --filter pantable --filter pandoc-fignos --filter pandoc-tablenos \
-        --filter pandoc-citeproc paper.md pandoc-metadata.yml -t latex -o ../build/paper.pdf
+        {PANDOC} paper.md pandoc-metadata.yml -t latex -o ../build/paper.pdf
+        """
+
+rule paper_docx:
+    message: "Compile paper to docx."
+    input:
+        paper = "report/paper.md",
+        metadata = "report/pandoc-metadata.yml",
+        all_other = rules.paper.output # to avoid repeating actual depdencies
+    output: "build/paper.docx"
+    shell:
+        """
+        cd ./report
+        {PANDOC} ../report/paper.md ../report/pandoc-metadata.yml -t docx -o ../build/paper.docx
         """
 
 
