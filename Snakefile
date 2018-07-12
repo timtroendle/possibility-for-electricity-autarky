@@ -351,23 +351,34 @@ rule european_potentials:
         demand = "build/national/demand.csv"
     output:
         "build/{scenario}/european-potentials.csv"
+    params: scenario = "{scenario}"
     run:
         import pandas as pd
         demand = pd.read_csv(input.demand, index_col=0)["demand_twh_per_year"]
         constrained_potentials = pd.read_csv(input.constrained_potentials, index_col=0).reindex(demand.index)
         technology_potentials = pd.read_csv(input.technology_potentials, index_col=0).reindex(demand.index)
         pd.Series({
-            "Total potential [TWh/a]": constrained_potentials.sum().sum(),
-            "Normed potential [-]": constrained_potentials.sum().sum() / demand.sum(),
-            "Roof mounted PV potential [TWh/a]": technology_potentials["rooftop-pv"].sum(),
-            "Open field PV potential [TWh/a]": technology_potentials["pv-farm"].sum(),
-            "Onshore wind potential [TWh/a]": technology_potentials["onshore wind"].sum(),
-            "Offshore wind potential [TWh/a]": technology_potentials["offshore wind"].sum(),
-            "Roof mounted PV potential [-]": technology_potentials["rooftop-pv"].sum() / demand.sum(),
-            "Open field PV potential [-]": technology_potentials["pv-farm"].sum() / demand.sum(),
-            "Onshore wind potential [-]": technology_potentials["onshore wind"].sum() / demand.sum(),
-            "Offshore wind potential [-]": technology_potentials["offshore wind"].sum() / demand.sum(),
-        }).to_csv(output[0], index=True, header=True, float_format="%.2f")
+            "Total [TWh/a]": constrained_potentials.sum().sum(),
+            "Normed [%]": constrained_potentials.sum().sum() / demand.sum() * 100,
+            "Roof mounted PV [TWh/a]": technology_potentials["rooftop-pv"].sum(),
+            "Open field PV [TWh/a]": technology_potentials["pv-farm"].sum(),
+            "Onshore wind [TWh/a]": technology_potentials["onshore wind"].sum(),
+            "Offshore wind [TWh/a]": technology_potentials["offshore wind"].sum(),
+            "Roof mounted PV [%]": technology_potentials["rooftop-pv"].sum() / demand.sum() * 100,
+            "Open field PV [%]": technology_potentials["pv-farm"].sum() / demand.sum() * 100,
+            "Onshore wind [%]": technology_potentials["onshore wind"].sum() / demand.sum() * 100,
+            "Offshore wind [%]": technology_potentials["offshore wind"].sum() / demand.sum() * 100,
+        }, name=params.scenario).to_csv(output[0], index=True, header=True, float_format="%.0f")
+
+
+rule european_potentials_aggregation:
+    message: "Aggregate the European potentials to create table for paper."
+    input: expand("build/{scenario}/european-potentials.csv", scenario=config["paper"]["europe-level-results"]),
+    output: "build/european-potentials.csv"
+    run:
+        import pandas as pd
+        summaries = [pd.read_csv(summary_path, index_col=0) for summary_path in input]
+        pd.concat(summaries, axis=1).to_csv(output[0], header=True, index=True)
 
 
 rule normed_potential_plots:
@@ -457,7 +468,7 @@ rule solution_matrix_plot:
         "src/vis/solution.py",
         "build/municipal/demand.csv",
         "build/municipal/population.csv",
-        "build/municipal/full-protection/constrained-potentials.csv",
+        "build/municipal/social-ecological-potential/constrained-potentials.csv",
         "build/municipal/zero-protection/constrained-potentials.csv",
     output:
         "build/solution-matrix.png"
@@ -580,8 +591,8 @@ rule report:
         "report/literature.bib",
         "report/main.md",
         "report/pandoc-metadata.yml",
-        "build/full-protection/normed-potentials-map.png",
-        "build/full-protection/potentials.png",
+        "build/social-ecological-potential/normed-potentials-map.png",
+        "build/social-ecological-potential/potentials.png",
         rules.solution_matrix_plot.output
     output:
         "build/report.pdf"
@@ -600,9 +611,8 @@ rule paper:
         "report/paper.md",
         "report/pandoc-metadata.yml",
         "build/technical-potential/normed-potentials-boxplots.png",
-        "build/technical-potential/european-potentials.csv",
-        "build/full-protection/normed-potentials-map.png",
-        "build/full-protection/european-potentials.csv",
+        "build/social-ecological-potential/normed-potentials-map.png",
+        "build/european-potentials.csv",
         "build/necessary-land.png",
         "build/necessary-land-all-layers.png",
         rules.sonnendach_statistics.output.publish,

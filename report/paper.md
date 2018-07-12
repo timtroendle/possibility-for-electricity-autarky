@@ -34,7 +34,7 @@ To quantify the renewable potential in each administrative unit, we first estima
 
 To decide which fractions of the land of an administrative unit can be used for open field PV, or on- and offshore wind farms, we divide Europe in a grid of 10 arcseconds resolution, whose cell size varies with the longitude but never exceeds 0.09 km^2^. For each cell we derive the current land cover and use [@EuropeanSpaceAgency:2010], the average slope of the terrain [@Reuter:2007; @Danielson:2011] or its maximum water depths [@Amante:2009], and whether it belongs to an area which is environmentally protected [@UNEP-WCMC:2018]. We prohibit energy generation next to settlements by amending the coarse land cover data with more detailed data on settlements with a cell size of 6.25m^2^ [@Ferri:2017]. Using this dataset we classify each 10 arcseconds cell as built-up area when more than 1% of its land are buildings or urban parks and prohibit energy generation on it. To quantify the technical potential, we use the following rules: We allow wind farms to be built on farmland, forests, open vegetation and bare land with slope below 20°. An example of exclusion layers for Switzerland is shown in Figure @fig:exclusion-layers. We furthermore allow open field PV to be built on farmland, vegetation and bare land with slope below 3°. Lastly, we allow offshore wind farms to be built in water depths of less than 50m. For environmentally and socially restricted potentials, we limit the land eligibility for renewable electricity further, for example by prohibiting the use of environmentally protected land or the use of farmland for open field PV as it may lead to land use conflicts.
 
-![Exclusion layers for determining the technical potential of wind power in Switzerland.](../build/exclusion-layers.png){#fig:exclusion-layers .class}
+![Exclusion layers for determining the potential of wind power in Switzerland.](../build/exclusion-layers.png){#fig:exclusion-layers .class}
 
 ### Roofs for PV
 
@@ -77,114 +77,54 @@ We use the dataset of industries to localise electricity intensive industrial de
 
 ## Technical potential
 
-What's the potential on the European level? Total potential [TWh/a],235463.32
-Normed potential [-],73.52
-Roof mounted PV potential [TWh/a],7000.07
-Open field PV potential [TWh/a],151276.25
-Onshore wind potential [TWh/a],54642.86
-Offshore wind potential [TWh/a],37417.57
-Roof mounted PV potential [-],2.19
-Open field PV potential [-],47.24
-Onshore wind potential [-],17.06
-Offshore wind potential [-],11.68
+We first assess the technical potential of electricity generation from renewable energy at the European level. Aggregating the potential of roof mounted PV, open field PV, and on- and offshore wind results in an electricity yield of 159164 TWh/a. With an annual demand of 3203 TWh/a in 2016, this is a huge potential and exceeds the demand almost 50 times. The contribution to the technical potential of the different technologies are 4.0% from roof mounted PV, 47.5% from open field PV, 34.3% from onshore wind, and 23.5% from offshore wind, where open field PV and onshore wind compete for those areas on which both technologies can be built. Table @tbl:european-potentials gives an overview of the potentials on the European level.
 
-Then, on the national level:
+```table
+---
+caption: 'Potentials of electricity generation from renewable source for all Europe. {#tbl:european-potentials}'
+alignment: LRR
+include: ../build/european-potentials.csv
+markdown: True
+---
+```
 
-id	normed_potential
-CH	3.99
-BE	10.43
-LU	10.91
-SI	14.91
-AT	21.73
+While the potential exceeds the demand almost 50 times, the resources and the demand are not equally distributed over Europe. Hence, on the national level the technical potential is in some countries greater than in others. Latvia has the highest relative potential, with a yield that exceeds its demand more than 300 times. Switzerland has the lowest relative potential which exceeds its demand only 3.3 times. Still, such potentials allow all countries in Europe to aspire self-sufficiency.
 
-Subnational:
+On the regional level, the technical potential is not sufficient to supply all regions with enough electricity. The relative potentials are particularly low for those first-level administrative units, which are within city borders. Bruxelles in Belgium, Basel in Switzerland, Vienna in Austria, and Oslo in Norway are the four regions whose technical potential is too low to be self-sufficient. Other cities with a potential less than 1.5 times their current electricity demand are Berlin, Genève, Prague, Čair (FIXME this is a municipality of Skopje), Butel (FIXME same),  and Šuto Orizari (FIXME same).
 
-id	normed_potential
-BEL.1_1	0.54
-CHE.5_1	0.74
-NOR.12_1	0.96
-AUT.9_1	1.05
-DEU.3_1	1.24
-MKD.10_1	1.42
-CHE.8_1	1.46
-MKD.9_1	1.59
-ESP.7_1	1.62
-MKD.12_1	1.73
-CHE.26_1	1.76
-CZE.11_1	1.81
-CHE.4_1	1.81
-ROU.10_1	1.82
-HUN.5_1	1.97
-MKD.71_1	2.08
+Despite the abundant potential on the European level, there are many municipalities in Europe for which not even the tolerantly defined technical potential is sufficient to become autarkic. Roughly 2% of the 124404 municipalities are impacted, in which 11% of Europe's population lives. As from these numbers can be seen, this is largely an issue of densely populated municipalities: 98% of the impacted population lives in municipalities with a population density higher than 1000 people per squarekilometer. According to the definition of the European Commission and the OECD of the degree of urbanisation (DEGURBA) [@Dijkstra:2014], 92% of the impacted population lives in cities, 8% in towns and suburbs, and 0% in rural areas. Figure @fig:normed-potentials-boxplots-technical shows the ranges of relative technical potential for all countries. It reveals that not only the total potential per country differs significantly, but also the distribution of the country's potential onto the municipalities varies strongly between countries.
 
-
-Municipal:
-
-2% of the municipalities and 8% of Europe's population affected, of which 98% live in administrative units with high population density (93% DEGURBA cities / 7% towns / 0% rural); 4% live in industrial areas (with share > 50%), 1% lives in mountaineous areas (with median steepness > 20).
-
-![Ranges of demand to technical potential ratio.](../build/technical-potential/normed-potentials-boxplots.png){#fig:normed-potentials-boxplots-technical .class}
+![Ranges of demand to technical potential ratio for all countries.](../build/technical-potential/normed-potentials-boxplots.png){#fig:normed-potentials-boxplots-technical .class}
 
 ## Social-ecological potential
 
-In here, we prohibit the use of all protected land, PV on farmland, and 10% of all other technical potential be used, including offshore wind. We allow the use of all eligible roof areas.
+The technical potential defines an upper bound to the electricity that can be generated in each region and its definition is relatively straight forward and less controversial. It is hence instructive to study. It is though a strong overestimation of any feasible potential: in our case, it allows onshore wind and open field PV to be built on all environmentally protected areas, which not only might have severe consequences for the local flora and fauna, but also might breach the directives on habitats [@EuropeanUnion:1992] and birds [@EuropeanUnion:2010] of the European Union. The technical potential also allows open field PV to be build on farmland causing land use conflicts with food and feed production, and furthermore it allows to use all of the available land, potentially leading to very high densities of energy generation. In some parts of Europe this leads to all available land being covered with PV modules or wind turbines. Such a scenario is not realistic.
 
-European level
+To get closer to a feasible scenario we introduce a socially and ecologically constrained potential, in which we prohibit the use of environmentally protected land and we prohibit to build open field PV on farmland. Open field PV can only be build on bare and unused land. Furthermore, only 10% of all available land can be built upon, including maritime regions. We do allow the use of all eligible roof areas for the generation of solar power.
 
-Total potential [TWh/a]	15691.47
-Normed potential [-]	4.90
-Roof mounted PV potential [TWh/a]	7000.07
-Open field PV potential [TWh/a]	11801.71
-Onshore wind potential [TWh/a]	3984.70
-Offshore wind potential [TWh/a]	2452.48
-Roof mounted PV potential [-]	2.19
-Open field PV potential [-]	3.69
-Onshore wind potential [-]	1.24
-Offshore wind potential [-]	0.77
+The resulting potential on the European level is summarised in Table @tbl:european-potentials. The total potential is 13737 TWh/a and hence exceeds today's electricity demand more than 4 times. Roof mounted PV, open field PV, onshore wind, and offshore wind contribute with 46%, 43%, 29%, and 18% respectively to the total potential, where open field PV and onshore wind compete for the areas on which both can be built. Considering these social and environmental constraints, Europe's potential of renewable electricity is by far high enough for Europe to become electricity autarkic.
 
-National level:
+Also all countries in Europe reveal sufficient potentials: while the social-ecological potential, similar to the technical potential, is not equally distributed over Europe, even the lowest relative potential of Switzerland is 50% higher than the local demand. Again we find the highest relative potential in Latvia; a potential that exceeds the local demand 18 times.
 
-id	normed_potential
-CH	1.69
-BE	1.70
-LU	1.93
-AT	2.45
-DE	2.81
+Again we find the lowest relative potentials in those subnational regions which are inside city borders. Oslo reveals the lowest potential, with less than 25% of its demand supplied with local generation. Other urban areas with insufficient generation are: Bruxelles, Vienna, Basel, Prague, Genève, Île-de-France, Šuto Orizari (FIXME no!), Dublin, and Berlin. 97% of all 570 first-level administrative units have a social-ecological potential which exceeds their local demand of today and hence could be self-sufficient.
 
-Subnational level:
+![Ranges of demand to social-ecological potential ratio for all countries.](../build/social-ecological-potential/normed-potentials-boxplots.png){#fig:normed-potentials-boxplots-social-ecological .class}
 
-id	normed_potential
-NOR.12_1	0.2500
-BEL.1_1	0.53
-ESP.7_1	0.57
-AUT.9_1	0.72
-CHE.5_1	0.73
-CZE.11_1	0.850
-CHE.8_1	0.93
-FRA.8_1	1.03
-MKD.71_1	1.070
-DEU.3_1	1.09
-IRL.6_1	1.09
-MKD.9_1	1.16
-NOR.1_1	1.23
+While the fraction of municipalities unable to supply themselves with the social-ecological potential is only slightly higher, namely 4%, still 18% of Europe's population would be impacted. The majority of those, 91%, lives in municipalities with a population density above 1000 people per squarekilometer. According to DEGURBA, 85% of the affected population lives in cities, 12% in towns and suburbs, and only 2% lives in rural areas. Figure @fig:normed-potentials-boxplots-social-ecological plots the ranges of relative potentials for each country, and while it shows that only a small number of municipalities has insufficient supply, it also reveals that in some countries, many municipalities' potential is only slightly above their demand. This is in particular the case for Belgium, the United Kingdom and Switzerland. Should the actually feasible potential be lower than this social-ecological one, those countries will see many more municipalities with insufficient potentials. The Figure also shows that there are many municipalities with very high potentials, including in but not limited to the United Kingdom. Figure @fig:normed-potentials-map-social-ecological shows a map of Europe with all municipalities in red for which the social-ecological potential is insufficient.
 
-Municipal level:
+![Regions where the social-ecological potential is sufficient to supply the electricity demand (green) and where it is insufficient (red).](../build/social-ecological-potential/normed-potentials-map.png){#fig:normed-potentials-map-social-ecological .class}
 
-![Ranges of demand to social-ecological potential ratio.](../build/full-protection/normed-potentials-boxplots.png){#fig:normed-potentials-boxplots-social-ecological .class}
+## Assessing the land demand
 
-![Regions with sufficient yearly aggregated renewable power (green) and with insufficient power (red).](../build/full-protection/normed-potentials-map.png){#fig:normed-potentials-map-social-ecological .class}
+Quantifying the potential for every region in Europe has large uncertainties: the assessment is very sensitive to some of the assumptions which in turn may vary between regions in Europe and which are highly uncertain, like the amount of available land that can be used for electricity generation [@Holtinger:2016]. So instead of asking which fraction of the demand can be satisfied with predefined potentials, we are turning the question around and are asking: Assuming all regions in Europe want to reach electricity autarky, what would be the amount of their land they would need to use for electricity generation?
 
-14% of Europe's population affected, of which 84% live in urban administrative units. Now, more rural population is affected.
-3% of the municipalities and 14% of Europe's population affected, of which 90% live in administrative units with high population density (86% DEGURBA cities / 12% towns / 2% rural); 5% live in industrial areas (with share > 50%), 2% lives in mountaineous areas (with median steepness > 20).
+We will first consider municipalities only. In the following, we still prohibit the use of environmentally protected land and building PV on farmland, but allow to use all other land including farmland for onshore wind and all maritime regions for offshore wind where technically available. Figure @fig:necessary-land-municipalities shows the number of municipalities which need a certain fraction of the available land or more to become autarkic. As roof mounted PV has a large impact, we consider several scenarios in which the use of available roofs varies from 0% to 100% (FIXME like below, I think this should rather be the share of the demand than the share of the roofs to get rid of uncertainty of available roofs). For example, the Figure shows that when 0% of the roofs are used, more than half of the municipalities need more than 5% of the available land for electricity generation. The Figure reveals that for scenarios with 50% rooftops used or more, most municipalities need less than 5% of their available land. In these scenarios, using more than 5% of the available land has benefits only for a small number of municipalities. For scenarios with less than 50% of the rooftops used, large fractions of the available land (above 10%) would be needed for a significant amount of municipalities. The Figure reveals the importance of roof mounted PV and the fact that -- given sufficient roof mounted PV can be used -- the fraction of available land for electricity generation is low for most municipalities.
 
-## Assessing the drivers
+![Number of municipalities whose land demand for becoming autarkic is greater than a certain fraction.](../build/necessary-land.png){#fig:necessary-land-municipalities .class}
 
-Leaving out environmental protection only helps 0.6% of Europe's population.
+Turning our view from municipalities to the administrative levels above, we ask the question of how the land demand differs between autarky on the levels. While the total land demand obviously is the same on all levels, its distribution and   in particular the density differs. High levels like the national and European level offer the opportunity to disperse the generation units over the given land or to move it to areas which are thinly-populated, less used, and not environmentally protected. We show the ranges of available total land (FIXME should be harmonised with Figure above; either total land or available land) per level in Figure @fig:necessary-land-all-layers for different diffusion levels of roof mounted PV. We consider total land to exclude maritime regions and hence we exclude offshore wind generation as well. The national level is shown in blue, the regional level is shown in orange, and the municipal level is shown in green. The saturation of each bar shows the 25% quantile, the median, and the 75% quantile respectively. The median for all roof mounted PV shares vary only little between the levels. For the 80% case for example, half of the countries, regions, and municipalities need less than 2% of the total land. The top 25% of each level vary strongly though: while for the same case 25% of the countries need more than 2% of the total land, the same fraction of municipalities needs almost 20% of their total land. For lower diffusions of roof-mounted PV that difference becomes even more pronounced: Considering 40% diffusion of roof mounted PV for example the fractions of total land needed are more than 6% and more than 50% respectively. Using half of the total land in a municipality is very likely infeasible. The Figure shows that autarky on higher administrative levels can relieve the stress on land use for electricity generation in highly populated regions and offer the possibility to disperse the generation units more equally.
 
-How low can we go with the 10% to have a large impact?
-
-![Number of municipalities whose land demand for becoming autarkic is greater than a certain fraction.](../build/necessary-land.png){#fig:nnecessary-land .class}
-
-![Total land demand (25/50%/75% quantile) on the national (blue), subnational (orange), and municipal (green) layer, when only a certain fraction of the demand can be supplied by rooftop PV.](../build/necessary-land-all-layers.png){#fig:nnecessary-land-all-layers .class}
+![Total land demand (25/50%/75% quantile) on the national (blue), regional (orange), and municipal (green) layer, when only a certain fraction of the demand can be supplied by rooftop PV. Total land refers excludes maritime regions and hence offshore wind is not considered.](../build/necessary-land-all-layers.png){#fig:necessary-land-all-layers .class}
 
 # Conclusion
 
