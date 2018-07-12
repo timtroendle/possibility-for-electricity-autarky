@@ -465,7 +465,7 @@ rule solution_matrix_plot:
 
 
 rule exclusion_layers_plot:
-    message: "Visualise the exlusion layers for {params.country_code}."
+    message: "Visualise the exclusion layers for {params.country_code}."
     input:
         "src/vis/exclusion_layers.py",
         "build/national/regions.geojson",

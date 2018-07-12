@@ -9,6 +9,9 @@ import shapely.geometry
 import matplotlib.pyplot as plt
 
 from src.eligible_land import FARM, FOREST, VEGETATION, BARE, ProtectedArea
+from src.vis.potentials_normed import GREEN, BLUE, RED
+
+YELLOW = "#FABC3C"
 
 
 @click.command()
@@ -35,14 +38,19 @@ def exclusion_layers(path_to_shapes, path_to_land_cover, path_to_slope, path_to_
     )
     fig = plt.figure(figsize=(18, 10), frameon=False)
     ax1 = fig.add_subplot(221)
-    show(land_cover, extent=(x_min, x_max, y_min, y_max), ax=ax1, title="Exclusion from land cover", cmap="Greys_r")
+    from matplotlib.colors import ListedColormap
+    import seaborn as sns
+    show(land_cover, extent=(x_min, x_max, y_min, y_max), ax=ax1, title="Exclusion from land cover",
+         cmap=ListedColormap(sns.light_palette(BLUE, reverse=True).as_hex()))
     ax2 = fig.add_subplot(222)
-    show(slope, extent=(x_min, x_max, y_min, y_max), ax=ax2, title="Exclusion from slope", cmap="Greys_r")
+    show(slope, extent=(x_min, x_max, y_min, y_max), ax=ax2, title="Exclusion from slope",
+         cmap=ListedColormap(sns.light_palette(YELLOW, reverse=True).as_hex()))
     ax3 = fig.add_subplot(223)
     show(protected_areas, extent=(x_min, x_max, y_min, y_max), ax=ax3, title="Exclusion from protected areas",
-         cmap="Greys_r")
+         cmap=ListedColormap(sns.light_palette(GREEN, reverse=True).as_hex()))
     ax4 = fig.add_subplot(224)
-    show(esm, extent=(x_min, x_max, y_min, y_max), ax=ax4, title="Exclusion from urban settlements", cmap="Greys_r")
+    show(esm, extent=(x_min, x_max, y_min, y_max), ax=ax4, title="Exclusion from urban settlements",
+         cmap=ListedColormap(sns.light_palette(RED, reverse=True).as_hex()))
     for ax in [ax1, ax2, ax3, ax4]:
         ax.add_patch(_inverted_shape(shape))
         ax.set_xticks([])
