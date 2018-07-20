@@ -7,6 +7,8 @@ from rasterio.plot import show
 from descartes import PolygonPatch
 import shapely.geometry
 import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
+import seaborn as sns
 
 from src.eligible_land import FARM, FOREST, VEGETATION, BARE, ProtectedArea
 from src.vis.potentials_normed import GREEN, BLUE, RED
@@ -26,7 +28,8 @@ def exclusion_layers(path_to_shapes, path_to_land_cover, path_to_slope, path_to_
                      path_to_settlements, path_to_output, country_code):
     """Visualise the exclusion layers defining land eligibility."""
     with fiona.open(path_to_shapes, "r") as shapefile:
-        shape = [feature["geometry"] for feature in shapefile if feature["properties"]["id"] == country_code][0]
+        shape = [feature["geometry"] for feature in shapefile
+                 if feature["properties"]["country_code"] == country_code][0]
     x_min, y_min, x_max, y_max = shapely.geometry.asShape(shape).bounds
     land_cover, slope, protected_areas, esm = _read_raster(
         x_min, y_min, x_max, y_max,
@@ -38,8 +41,6 @@ def exclusion_layers(path_to_shapes, path_to_land_cover, path_to_slope, path_to_
     )
     fig = plt.figure(figsize=(18, 10), frameon=False)
     ax1 = fig.add_subplot(221)
-    from matplotlib.colors import ListedColormap
-    import seaborn as sns
     show(land_cover, extent=(x_min, x_max, y_min, y_max), ax=ax1, title="Exclusion from land cover",
          cmap=ListedColormap(sns.light_palette(BLUE, reverse=True).as_hex()))
     ax2 = fig.add_subplot(222)
@@ -58,6 +59,7 @@ def exclusion_layers(path_to_shapes, path_to_land_cover, path_to_slope, path_to_
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         ax.spines["bottom"].set_visible(False)
+        ax.spines["left"].set_visible(False)
     fig.savefig(path_to_output, dpi=300)
 
 
@@ -95,9 +97,9 @@ def _read_raster(x_min, y_min, x_max, y_max, path_to_land_cover, path_to_slope,
 def _inverted_shape(shape):
     shape = shapely.geometry.asShape(shape)
     x_min, y_min, x_max, y_max = shape.bounds
-    coords = ((x_min - 0.5, y_min - 1), (x_min - 0.5, y_max + 1),
+    coords = ((x_min - 1, y_min - 1), (x_min - 1, y_max + 1),
               (x_max + 1, y_max + 1), (x_max + 1, y_min - 1),
-              (x_min - 0.5, y_min - 1))
+              (x_min - 1, y_min - 1))
     patch = shapely.geometry.Polygon(coords)
     patch = patch - shape
     return PolygonPatch(patch, edgecolor="k", facecolor="w")

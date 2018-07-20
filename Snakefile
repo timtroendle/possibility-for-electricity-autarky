@@ -477,7 +477,7 @@ rule solution_matrix_plot:
 
 
 rule exclusion_layers_plot:
-    message: "Visualise the exclusion layers for {params.country_code}."
+    message: "Visualise the exclusion layers for {wildcards.country_code}."
     input:
         "src/vis/exclusion_layers.py",
         "build/national/regions.geojson",
@@ -486,12 +486,44 @@ rule exclusion_layers_plot:
         rules.protected_areas_in_europe.output,
         rules.settlements.output.buildings,
     output:
-        "build/exclusion-layers.png"
-    params:
-        country_code = "CH"
+        "build/exclusion-layers-{country_code}.png"
     shell:
-        PYTHON_SCRIPT + " {params.country_code}"
+        PYTHON_SCRIPT + " {wildcards.country_code}"
 
+
+rule layer_overview:
+    message: "Overview table of administrative layers."
+    input:
+        expand("build/{layer}/regions.geojson", layer=config["layers"].keys())
+    output:
+        "build/overview-administrative-levels.csv"
+    run:
+        import pandas as pd
+        import geopandas as gpd
+
+        def format_source(source_name):
+            source = source_name[:-1].upper()
+            if source in ["NUTS", "LAU"]:
+                source = source + " [@eurostat:2015]"
+            elif source == "GADM":
+                source = source + " [@GADM:2018]"
+            return source
+
+        layer_names = [path_to_file.split("/")[1] for path_to_file in input]
+        sources = [[format_source(source) for source in set(config["layers"][layer_name].values())]
+                   for layer_name in layer_names]
+        sources = [", ".join(set(sources_per_layer)) for sources_per_layer in sources]
+        number_regions = [len(gpd.read_file(path_to_file).index) for path_to_file in input]
+
+        layer_names = ["European"] + layer_names
+        number_regions = ["1"] + number_regions
+        sources = [sources[0]] + sources
+
+        pd.DataFrame({
+            "level": layer_names,
+            "number regions": number_regions,
+            "source of shape data": sources
+        }).to_csv(output[0], index=False, header=True)
 
 
 rule scenario_overview:
@@ -616,7 +648,8 @@ rule paper:
         "build/necessary-land.png",
         "build/necessary-land-all-layers.png",
         rules.sonnendach_statistics.output.publish,
-        rules.exclusion_layers_plot.output
+        "build/exclusion-layers-ROU.png",
+        rules.layer_overview.output
     output:
         "build/paper.pdf"
     shell:
@@ -636,6 +669,24 @@ rule paper_docx:
         """
         cd ./report
         {PANDOC} ../report/paper.md ../report/pandoc-metadata.yml -t docx -o ../build/paper.docx
+        """
+
+
+rule supplementary_material:
+    message: "Compile the supplementary material."
+    input:
+        "report/supplementary.md",
+        expand(
+            "build/exclusion-layers-{country_code}.png",
+            country_code=[pycountry.countries.lookup(country).alpha_3
+                          for country in config["scope"]["countries"]]
+        )
+    output:
+        "build/supplementary-material.pdf"
+    shell:
+        """
+        cd ./report
+        {PANDOC} supplementary.md -t latex -o ../build/supplementary-material.pdf
         """
 
 
