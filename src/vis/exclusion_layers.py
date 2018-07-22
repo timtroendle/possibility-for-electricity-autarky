@@ -42,16 +42,16 @@ def exclusion_layers(path_to_shapes, path_to_land_cover, path_to_slope, path_to_
     fig = plt.figure(figsize=(18, 10), frameon=False)
     ax1 = fig.add_subplot(221)
     show(land_cover, extent=(x_min, x_max, y_min, y_max), ax=ax1, title="Exclusion from land cover",
-         cmap=ListedColormap(sns.light_palette(BLUE, reverse=True).as_hex()))
+         cmap=ListedColormap(sns.light_palette(BLUE).as_hex()))
     ax2 = fig.add_subplot(222)
     show(slope, extent=(x_min, x_max, y_min, y_max), ax=ax2, title="Exclusion from slope",
-         cmap=ListedColormap(sns.light_palette(YELLOW, reverse=True).as_hex()))
+         cmap=ListedColormap(sns.light_palette(YELLOW).as_hex()))
     ax3 = fig.add_subplot(223)
     show(protected_areas, extent=(x_min, x_max, y_min, y_max), ax=ax3, title="Exclusion from protected areas",
-         cmap=ListedColormap(sns.light_palette(GREEN, reverse=True).as_hex()))
+         cmap=ListedColormap(sns.light_palette(GREEN).as_hex()))
     ax4 = fig.add_subplot(224)
     show(esm, extent=(x_min, x_max, y_min, y_max), ax=ax4, title="Exclusion from urban settlements",
-         cmap=ListedColormap(sns.light_palette(RED, reverse=True).as_hex()))
+         cmap=ListedColormap(sns.light_palette(RED).as_hex()))
     for ax in [ax1, ax2, ax3, ax4]:
         ax.add_patch(_inverted_shape(shape))
         ax.set_xticks([])
@@ -74,23 +74,23 @@ def _read_raster(x_min, y_min, x_max, y_max, path_to_land_cover, path_to_slope,
         data = src.read(1)
         data = data[slice(x_min, x_max), slice(y_min, y_max)]
         esm = np.zeros_like(data, dtype=np.uint8)
-        esm[data < 0.01] = 1
+        esm[data > 0.01] = 1
     with rasterio.open(path_to_slope, "r") as src:
         data = src.read(1)
         data = data[slice(x_min, x_max), slice(y_min, y_max)]
         slope = np.zeros_like(data, dtype=np.uint8)
-        slope[data < 20] = 1
+        slope[data > 20] = 1
     with rasterio.open(path_to_protected_areas, "r") as src:
         data = src.read(1)
         data = data[slice(x_min, x_max), slice(y_min, y_max)]
         protected_areas = np.zeros_like(data, dtype=np.uint8)
-        protected_areas[data == ProtectedArea.NOT_PROTECTED] = 1
+        protected_areas[data == ProtectedArea.PROTECTED] = 1
     with rasterio.open(path_to_land_cover, "r") as src:
         data = src.read(1)
         data = data[slice(x_min, x_max), slice(y_min, y_max)]
         land_cover = np.zeros_like(data, dtype=np.uint8)
         eligible_for_wind = FARM + FOREST + VEGETATION + BARE
-        land_cover[np.isin(data, eligible_for_wind)] = 1
+        land_cover[~np.isin(data, eligible_for_wind)] = 1
     return land_cover, slope, protected_areas, esm
 
 
