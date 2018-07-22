@@ -2,7 +2,6 @@
 from datetime import datetime
 
 import click
-import pandas as pd
 
 from src.process_load import read_load_profiles
 

@@ -261,10 +261,10 @@ rule rooftop_area_per_capita:
         per_capita.to_csv(output[0], float_format="%.2f")
 
 
-rule renewable_capacity_factors:
+rule national_capacity_factors:
     message: "Merge all renewable capacity factors and replace missing."
     input:
-        "src/renewable_capacity_factors.py",
+        "src/capacity_factors_national.py",
         rules.raw_wind_capacity_factors.output,
         rules.raw_pv_capacity_factors.output
     output:
@@ -273,22 +273,31 @@ rule renewable_capacity_factors:
         PYTHON_SCRIPT + " {CONFIG_FILE}"
 
 
+rule wind_capacity_factors:
+    message: "Create wind capacity factors with highest spatial resolution."
+    input:
+        "src/capacity_factors_wind.py",
+        rules.national_capacity_factors.output,
+        "data/wind/",
+        "build/national/regions.geojson",
+        rules.administrative_borders_nuts.output
+    output:
+        "build/wind-capacity-factors.geojson"
+    shell:
+        PYTHON_SCRIPT + " {CONFIG_FILE}"
+
+
 rule regional_capacity_factors:
     message: "Determine capacity factors for regions of layer {wildcards.layer}."
     input:
-        regions = rules.regions.output,
-        national_capacity_factors = rules.renewable_capacity_factors.output
+        "src/capacity_factors_regional.py",
+        rules.regions.output,
+        rules.wind_capacity_factors.output,
+        rules.national_capacity_factors.output
     output:
         "build/{layer}/capacity-factors.csv"
-    run:
-        import geopandas as gpd
-        import pandas as pd
-
-        regions = gpd.read_file(input.regions[0]).set_index("id")
-        national_cps = pd.read_csv(input.national_capacity_factors[0], index_col=0)
-        national_cps = national_cps.reindex(regions.set_index("country_code").index)
-        national_cps.index = regions.index
-        national_cps.to_csv(output[0], header=True)
+    shell:
+        PYTHON_SCRIPT
 
 
 rule unconstrained_potentials:

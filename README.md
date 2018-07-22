@@ -29,6 +29,7 @@ Whenever possible, data is downloaded automatically. As this is not always possi
 * [World Exclusive Economic Zones v10](http://www.marineregions.org/downloads.php), to be placed in `./data/World_EEZ_v10_20180221`
 * [Sonnendach.ch 2018-04-18](http://www.sonnendach.ch), to be placed in `./data/sonnendach/`
 * [Federal Register of Buildings and Dwellings (RBD/GWR) 2018-07-01](https://www.bfs.admin.ch/bfs/en/home/registers/federal-register-buildings-dwellings.html), to be placed in `./data/gwr/`
+* onshore wind capacity factors from renewable.ninja, to be placed in `./data/wind/`
 
 ## Run the analysis
 
