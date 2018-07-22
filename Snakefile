@@ -282,9 +282,36 @@ rule wind_capacity_factors:
         "build/national/regions.geojson",
         rules.administrative_borders_nuts.output
     output:
-        "build/wind-capacity-factors.geojson"
+        "build/capacity-factors-wind.geojson"
     shell:
         PYTHON_SCRIPT + " {CONFIG_FILE}"
+
+
+rule raw_subnational_pv_capacity_factors:
+    message: "Process renewables.ninja capacity factors."
+    input:
+        "data/pv.nc"
+    output:
+        "build/raw-pv-capacity-factors.csv"
+    run:
+        import xarray as xr
+
+        ds = xr.open_dataset(input[0])
+        pv_cfs = ds.mean(dim="time_utc")
+        pv_cfs.to_dataframe().to_csv(output[0], header=True, index=True)
+
+
+rule pv_capacity_factors:
+    message: "Derive PV capacity factors on subnational level."
+    input:
+        "src/capacity_factors_pv.py",
+        rules.raw_subnational_pv_capacity_factors.output,
+        "build/subnational/regions.geojson",
+        rules.sonnendach_statistics.output.raw,
+    output:
+        "build/capacity-factors-pv.geojson"
+    shell:
+        PYTHON_SCRIPT
 
 
 rule regional_capacity_factors:
@@ -293,7 +320,7 @@ rule regional_capacity_factors:
         "src/capacity_factors_regional.py",
         rules.regions.output,
         rules.wind_capacity_factors.output,
-        rules.national_capacity_factors.output
+        rules.pv_capacity_factors.output
     output:
         "build/{layer}/capacity-factors.csv"
     shell:

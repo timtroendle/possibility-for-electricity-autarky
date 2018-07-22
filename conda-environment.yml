@@ -21,6 +21,7 @@ dependencies:
   - xlrd=1.1.0
   - descartes=1.1
   - salib=1.1.2
+  - xarray=0.10.8
   - pip:
       - pytest-pythonpath # adds the root path "./" to PYTHONPATH
       - pandoc-tablenos
