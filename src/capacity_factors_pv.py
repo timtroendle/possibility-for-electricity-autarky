@@ -1,6 +1,7 @@
 import click
 import pandas as pd
 import geopandas as gpd
+import pycountry
 
 
 @click.command()
@@ -22,9 +23,9 @@ def pv_capacity_factors(path_to_raw_cfs, path_to_regions, path_to_roof_classes, 
     flat_pv_cfs = raw_cfs[raw_cfs["orientation"] == "flat"].set_index("id", drop=True)["pv"].rename(
         "flat_pv_capacity_factor"
     )
-    raw_cfs = raw_cfs[raw_cfs["orientation"] != "flat"]
+    raw_cfs = raw_cfs[raw_cfs["orientation"] != "flat"].copy()
     roof_stats = pd.read_csv(path_to_roof_classes)
-    roof_stats_without_flat = roof_stats[roof_stats["orientation"] != "flat"]
+    roof_stats_without_flat = roof_stats[roof_stats["orientation"] != "flat"].copy()
     roof_stats_without_flat.loc[:, "share of roof areas"] = (roof_stats_without_flat["share of roof areas"] /
                                                              roof_stats_without_flat["share of roof areas"].sum())
     assert roof_stats_without_flat["share of roof areas"].sum() == 1.0
@@ -37,12 +38,27 @@ def pv_capacity_factors(path_to_raw_cfs, path_to_regions, path_to_roof_classes, 
     tilted_pv_cfs = raw_cfs.groupby("id")["tilted_pv_capacity_factor"].sum()
 
     regions = gpd.read_file(path_to_regions).set_index("id")
-    regions["tilted_pv_capacity_factor"] = tilted_pv_cfs.reindex(regions.index)
-    regions["flat_pv_capacity_factor"] = flat_pv_cfs.reindex(regions.index)
-
-    regions.tilted_pv_capacity_factor = regions.tilted_pv_capacity_factor.fillna(0.10) # FIXME
-    regions.flat_pv_capacity_factor = regions.flat_pv_capacity_factor.fillna(0.10) # FIXME
-
+    # fill nulls which stem from incompatible or missing regions (not necessary when
+    # regions of simulated data match real regions)
+    tilted_pv_cfs_country_avg = tilted_pv_cfs.groupby(
+        [pycountry.countries.lookup(country[:3]).alpha_3 for country in tilted_pv_cfs.index]
+    ).mean()
+    flat_pv_cfs_country_avg = flat_pv_cfs.groupby(
+        [pycountry.countries.lookup(country[:3]).alpha_3 for country in flat_pv_cfs.index]
+    ).mean()
+    tilted_pv_cfs = tilted_pv_cfs.reindex(regions.index)
+    flat_pv_cfs = flat_pv_cfs.reindex(regions.index)
+    print("PV capacity factors missing in these regions: {}. Replacing with national average.".format(
+        list(tilted_pv_cfs[tilted_pv_cfs.isnull()].index))
+    )
+    tilted_pv_cfs[tilted_pv_cfs.isnull()] = regions.country_code[tilted_pv_cfs.isnull()].map(
+        lambda country_code: tilted_pv_cfs_country_avg[country_code]
+    )
+    flat_pv_cfs[flat_pv_cfs.isnull()] = regions.country_code[flat_pv_cfs.isnull()].map(
+        lambda country_code: flat_pv_cfs_country_avg[country_code]
+    )
+    regions["tilted_pv_capacity_factor"] = tilted_pv_cfs
+    regions["flat_pv_capacity_factor"] = flat_pv_cfs
     assert ~regions.tilted_pv_capacity_factor.isnull().any()
     assert ~regions.flat_pv_capacity_factor.isnull().any()
 
