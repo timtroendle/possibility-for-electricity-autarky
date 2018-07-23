@@ -265,19 +265,19 @@ rule raw_bathymetry:
 
 
 rule raw_wind_capacity_factors_zipped:
-    message: "Download wind capacity factors as zip."
+    message: "Download national wind capacity factors as zip."
     output: protected("data/automatic/raw-wind-capacity-factors.zip")
     shell: "curl -sLo {output} '{URL_WIND_CP}'"
 
 
 rule raw_pv_capacity_factors_zipped:
-    message: "Download pv capacity factors as zip."
+    message: "Download national pv capacity factors as zip."
     output: protected("data/automatic/raw-pv-capacity-factors.zip")
     shell: "curl -sLo {output} '{URL_PV_CP}'"
 
 
 rule raw_wind_capacity_factors:
-    message: "Extract wind capacity factors from zip."
+    message: "Extract national wind capacity factors from zip."
     input: rules.raw_wind_capacity_factors_zipped.output
     shadow: "full"
     output: temp("build/ninja_wind_europe_v1.1_current_on-offshore.csv")
@@ -285,7 +285,7 @@ rule raw_wind_capacity_factors:
 
 
 rule raw_pv_capacity_factors:
-    message: "Extract pv capacity factors from zip."
+    message: "Extract national pv capacity factors from zip."
     input: rules.raw_pv_capacity_factors_zipped.output
     shadow: "full"
     output: temp("build/ninja_pv_europe_v1.1_sarah.csv")

@@ -262,13 +262,13 @@ rule rooftop_area_per_capita:
 
 
 rule national_capacity_factors:
-    message: "Merge all renewable capacity factors and replace missing."
+    message: "Merge national renewable capacity factors and replace missing."
     input:
         "src/capacity_factors_national.py",
         rules.raw_wind_capacity_factors.output,
         rules.raw_pv_capacity_factors.output
     output:
-        "build/national-capacity-factors.csv"
+        "build/capacity-factors-national.csv"
     shell:
         PYTHON_SCRIPT + " {CONFIG_FILE}"
 
@@ -292,7 +292,7 @@ rule raw_subnational_pv_capacity_factors:
     input:
         "data/pv.nc"
     output:
-        "build/raw-pv-capacity-factors.csv"
+        "build/capacity-factors-pv-raw.csv"
     run:
         import xarray as xr
 
