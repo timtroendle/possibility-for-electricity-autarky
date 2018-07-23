@@ -315,7 +315,7 @@ rule pv_capacity_factors:
 
 
 rule regional_capacity_factors:
-    message: "Determine capacity factors for regions of layer {wildcards.layer}."
+    message: "Determine capacity factors for regions of layer {wildcards.layer} using {threads} threads."
     input:
         "src/capacity_factors_regional.py",
         rules.regions.output,
@@ -323,8 +323,9 @@ rule regional_capacity_factors:
         rules.pv_capacity_factors.output
     output:
         "build/{layer}/capacity-factors.csv"
+    threads: config["snakemake"]["max-threads"]
     shell:
-        PYTHON_SCRIPT
+        PYTHON_SCRIPT + " {threads}"
 
 
 rule unconstrained_potentials:
