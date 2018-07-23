@@ -87,6 +87,9 @@ def cf_region(args):
     if len(intersection) == 1:
         ix = intersection[0]
         return [cfs.loc[ix, cf_name] for cf_name in cf_names]
+    elif len(intersection) == 0:
+        ix = list(cf_index.nearest(region.geometry.bounds))[0]
+        return [cfs.loc[ix, cf_name] for cf_name in cf_names]
     else:
         area = pd.Series(
             data=[region.geometry.intersection(cfs.loc[ix, "geometry"]).area
