@@ -19,7 +19,6 @@ def constrained_potentials(path_to_unconstrained_potentials_prefer_pv, path_to_u
                            path_to_result, scenario, config):
     unconstrained_prefer_pv = pd.read_csv(path_to_unconstrained_potentials_prefer_pv, index_col=0)
     unconstrained_prefer_wind = pd.read_csv(path_to_unconstrained_potentials_prefer_wind, index_col=0)
-    _assert_pv_has_higher_energy_density(unconstrained_prefer_pv, unconstrained_prefer_wind)
 
     constrained = _constrain_potential(unconstrained_prefer_pv, unconstrained_prefer_wind,
                                        config["scenarios"][scenario])
@@ -27,22 +26,23 @@ def constrained_potentials(path_to_unconstrained_potentials_prefer_pv, path_to_u
 
 
 def _constrain_potential(unconstrained_prefer_pv, unconstrained_prefer_wind, scenario_config):
-    factor_pv = pd.DataFrame(
+    constrained_prefer_pv = pd.DataFrame(
         index=unconstrained_prefer_pv.index,
-        data={eligibility.energy_column_name: _scaling_factor(eligibility, scenario_config)[0]
+        data={eligibility.energy_column_name: _scaling_factor(eligibility, scenario_config, prefer_pv=True)
               for eligibility in Eligibility}
-    )
-    factor_wind = pd.DataFrame(
+    ) * unconstrained_prefer_pv
+    constrained_prefer_wind = pd.DataFrame(
         index=unconstrained_prefer_wind.index,
-        data={eligibility.energy_column_name: _scaling_factor(eligibility, scenario_config)[1]
+        data={eligibility.energy_column_name: _scaling_factor(eligibility, scenario_config, prefer_pv=False)
               for eligibility in Eligibility}
+    ) * unconstrained_prefer_wind
+    return constrained_prefer_pv.where(
+        constrained_prefer_pv > constrained_prefer_wind,
+        other=constrained_prefer_wind
     )
-    return factor_pv * unconstrained_prefer_pv + factor_wind * unconstrained_prefer_wind
 
 
-def _scaling_factor(eligibility, scenario_config):
-    # Returns a tuple: first for prefer_pv, second for prefer_wind
-    # Uses the assumption that pv's energy density is higher than the one from onshore wind.
+def _scaling_factor(eligibility, scenario_config, prefer_pv=True):
     # FIXME the handling of protected areas is conservative:
     # When protected forest cannot be used more due to the fact that forest in general cannot
     # be used, in the current implementation this "allowance" of using protected areas is lost.
@@ -54,34 +54,27 @@ def _scaling_factor(eligibility, scenario_config):
     share_other_land_used = scenario_config["share-other-land-used"]
     share_farmland_used = scenario_config["share-farmland-used"]
     share_forest_used_for_wind = scenario_config["share-forest-used-for-wind"]
-    share_pv_on_farmland = scenario_config["share-pv-on-farmland"]
-    share_remain_on_farmland = share_farmland_used - share_pv_on_farmland
+    if prefer_pv:
+        share_wind_pv_on_farmland = share_farmland_used if scenario_config["pv-on-farmland"] else 0
+    else:
+        share_wind_pv_on_farmland = share_farmland_used
     share_offshore_used = scenario_config["share-offshore-used"]
-    assert share_pv_on_farmland <= share_farmland_used
     return {
-        Eligibility.NOT_ELIGIBLE: [1, 0],
-        Eligibility.ROOFTOP_PV: [share_rooftops_used, 0],
-        Eligibility.ONSHORE_WIND_AND_PV_OTHER: [share_other_land_used, 0],
-        Eligibility.ONSHORE_WIND_OTHER: [share_other_land_used, 0],
-        Eligibility.ONSHORE_WIND_FARMLAND: [share_farmland_used, 0],
-        Eligibility.ONSHORE_WIND_FOREST: [share_forest_used_for_wind, 0],
-        Eligibility.ONSHORE_WIND_AND_PV_FARMLAND: [share_pv_on_farmland, share_remain_on_farmland],
-        Eligibility.OFFSHORE_WIND: [share_offshore_used, 0],
-        Eligibility.ONSHORE_WIND_AND_PV_OTHER_PROTECTED: [min(share_other_land_used, share_protected_areas_used), 0],
-        Eligibility.ONSHORE_WIND_OTHER_PROTECTED: [min(share_other_land_used, share_protected_areas_used), 0],
-        Eligibility.ONSHORE_WIND_FARMLAND_PROTECTED: [min(share_farmland_used, share_protected_areas_used), 0],
-        Eligibility.ONSHORE_WIND_FOREST_PROTECTED: [min(share_forest_used_for_wind, share_protected_areas_used), 0],
-        Eligibility.ONSHORE_WIND_AND_PV_FARMLAND_PROTECTED: [min(share_pv_on_farmland, share_protected_areas_used),
-                                                             min(share_remain_on_farmland,
-                                                                 share_protected_areas_used)],
-        Eligibility.OFFSHORE_WIND_PROTECTED: [min(share_offshore_used, share_protected_areas_used), 0]
+        Eligibility.NOT_ELIGIBLE: 1,
+        Eligibility.ROOFTOP_PV: share_rooftops_used,
+        Eligibility.ONSHORE_WIND_AND_PV_OTHER: share_other_land_used,
+        Eligibility.ONSHORE_WIND_OTHER: share_other_land_used,
+        Eligibility.ONSHORE_WIND_FARMLAND: share_farmland_used,
+        Eligibility.ONSHORE_WIND_FOREST: share_forest_used_for_wind,
+        Eligibility.ONSHORE_WIND_AND_PV_FARMLAND: share_wind_pv_on_farmland,
+        Eligibility.OFFSHORE_WIND: share_offshore_used,
+        Eligibility.ONSHORE_WIND_AND_PV_OTHER_PROTECTED: min(share_other_land_used, share_protected_areas_used),
+        Eligibility.ONSHORE_WIND_OTHER_PROTECTED: min(share_other_land_used, share_protected_areas_used),
+        Eligibility.ONSHORE_WIND_FARMLAND_PROTECTED: min(share_farmland_used, share_protected_areas_used),
+        Eligibility.ONSHORE_WIND_FOREST_PROTECTED: min(share_forest_used_for_wind, share_protected_areas_used),
+        Eligibility.ONSHORE_WIND_AND_PV_FARMLAND_PROTECTED: min(share_wind_pv_on_farmland, share_protected_areas_used),
+        Eligibility.OFFSHORE_WIND_PROTECTED: min(share_offshore_used, share_protected_areas_used)
     }[eligibility]
-
-
-def _assert_pv_has_higher_energy_density(prefer_pv, prefer_wind):
-    # In the following I am assuming that the energy density of PV is always better than
-    # wind onshore and hence PV is always preferred over wind.
-    assert (prefer_pv >= prefer_wind).all().all()
 
 
 if __name__ == "__main__":

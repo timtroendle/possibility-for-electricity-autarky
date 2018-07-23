@@ -41,16 +41,14 @@ def sensititivity_analysis(path_to_unconstrained_potentials_prefer_pv, path_to_u
     ).reindex(demand.index)
 
     problem = {
-        'num_vars': 7,
+        'num_vars': 6,
         'names': ['share-protected-areas-used',
-                  'share-pv-on-farmland',
                   'share-farmland-used',
                   'share-forest-used-for-wind',
                   'share-other-land-used',
                   'share-offshore-used',
                   'share-rooftops-used'],
         'bounds': [[0, 1],
-                   [0, 1],
                    [0, 1],
                    [0, 1],
                    [0, 1],
@@ -90,7 +88,6 @@ def evaluate_model(args):
     unconstrained_prefer_pv, unconstrained_prefer_wind, demand, population, urban, x = args
     config = {
         "share-protected-areas-used": x[0],
-        "share-pv-on-farmland": min(x[1], x[2]),
         "share-farmland-used": x[2],
         "share-forest-used-for-wind": x[3],
         "share-other-land-used": x[4],

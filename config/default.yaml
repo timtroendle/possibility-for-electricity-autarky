@@ -172,7 +172,7 @@ parameters:
 scenarios:
     technical-potential:
         share-protected-areas-used: 1.0
-        share-pv-on-farmland: 1.0
+        pv-on-farmland: True
         share-farmland-used: 1.0
         share-forest-used-for-wind: 1.0
         share-other-land-used: 1.0
@@ -180,7 +180,7 @@ scenarios:
         share-rooftops-used: 1.0
     social-ecological-potential:
         share-protected-areas-used: 0.0
-        share-pv-on-farmland: 0.0
+        pv-on-farmland: False
         share-farmland-used: 0.1
         share-forest-used-for-wind: 0.1
         share-other-land-used: 0.1
@@ -188,7 +188,7 @@ scenarios:
         share-rooftops-used: 1.0
     zero-protection:
         share-protected-areas-used: 1.0
-        share-pv-on-farmland: 0.0
+        pv-on-farmland: False
         share-farmland-used: 0.1
         share-forest-used-for-wind: 0.1
         share-other-land-used: 0.1
@@ -196,7 +196,7 @@ scenarios:
         share-rooftops-used: 1.0
     no-rooftop-pv:
         share-protected-areas-used: 1.0
-        share-pv-on-farmland: 1.0
+        pv-on-farmland: True
         share-farmland-used: 1.0
         share-forest-used-for-wind: 1.0
         share-other-land-used: 1.0
@@ -204,7 +204,7 @@ scenarios:
         share-rooftops-used: 0.0
     only-rooftop-pv:
         share-protected-areas-used: 0.0
-        share-pv-on-farmland: 0.0
+        pv-on-farmland: False
         share-farmland-used: 0.0
         share-forest-used-for-wind: 0.0
         share-other-land-used: 0.0
@@ -212,7 +212,7 @@ scenarios:
         share-rooftops-used: 1.0
     harakiri:
         share-protected-areas-used: 0.0
-        share-pv-on-farmland: 0.0
+        pv-on-farmland: False
         share-farmland-used: 0.0
         share-forest-used-for-wind: 0.0
         share-other-land-used: 0.0

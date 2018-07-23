@@ -76,7 +76,7 @@ def necessary_land_factor(share_from_pv, layer):
     assert share_from_pv <= 1
     config = {
         "share-protected-areas-used": 0.0,
-        "share-pv-on-farmland": 0.0,
+        "pv-on-farmland": True,
         "share-farmland-used": 1,
         "share-forest-used-for-wind": 1,
         "share-other-land-used": 1,

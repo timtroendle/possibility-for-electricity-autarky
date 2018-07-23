@@ -46,7 +46,7 @@ def necessary_land_factor(share_rooftops_used, demand, unconstrained_potentials_
                           unconstrained_potentials_prefer_wind):
     config = {
         "share-protected-areas-used": 0.0,
-        "share-pv-on-farmland": 0.0,
+        "pv-on-farmland": True,
         "share-farmland-used": 1,
         "share-forest-used-for-wind": 1,
         "share-other-land-used": 1,
