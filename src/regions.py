@@ -24,6 +24,8 @@ def remix_regions(path_to_nuts, path_to_lau2, path_to_gadm, path_to_output, laye
     _validate_layer_config(config, layer_name)
     layer = _build_layer(config["layers"][layer_name], source_layers)
     _validate_layer(layer, layer_name, config["scope"]["countries"])
+    if layer_name == "european": # treat special case
+        layer = _european_layer(layer)
     _write_layer(layer, path_to_output)
 
 
@@ -69,6 +71,18 @@ def _validate_layer(layer, layer_name, countries):
 
 def _iso3(country_name):
     return pycountry.countries.lookup(country_name).alpha_3
+
+
+def _european_layer(layer):
+    # special case all Europe
+    layer = layer.dissolve(by=[1 for idx in layer.index])
+    index = layer.index[0]
+    layer.loc[index, "id"] = "EUR"
+    layer.loc[index, "country_code"] = "EUR"
+    layer.loc[index, "name"] = "Europe"
+    layer.loc[index, "region_type"] = "continent"
+    layer.loc[index, "proper"] = 1
+    return layer
 
 
 def _write_layer(gpd, path_to_file):

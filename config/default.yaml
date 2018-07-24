@@ -43,6 +43,41 @@ scope:
         y_min: 30  # in degrees north
         y_max: 75  # in degrees north
 layers:
+    european:
+        Austria: nuts0
+        Belgium: nuts0
+        Bulgaria: nuts0
+        Croatia: nuts0
+        Cyprus: nuts0
+        Czech Republic: nuts0
+        Denmark: nuts0
+        Estonia: nuts0
+        Finland: nuts0
+        France: nuts0
+        Germany: nuts0
+        Greece: nuts0
+        Hungary: nuts0
+        Ireland: nuts0
+        Italy: nuts0
+        Latvia: nuts0
+        Lithuania: nuts0
+        Luxembourg: nuts0
+        Netherlands: nuts0
+        Poland: nuts0
+        Portugal: nuts0
+        Romania: nuts0
+        Slovakia: nuts0
+        Slovenia: nuts0
+        Spain: nuts0
+        Sweden: nuts0
+        United Kingdom: nuts0
+        Albania: gadm0
+        Bosnia and Herzegovina: gadm0
+        Macedonia, Republic of: gadm0
+        Montenegro: gadm0
+        Norway: nuts0
+        Serbia: gadm0
+        Switzerland: nuts0
     national:
         Austria: nuts0
         Belgium: nuts0

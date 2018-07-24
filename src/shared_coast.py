@@ -46,7 +46,7 @@ def _share_of_coast_length(args):
     regions = args[1]
     length_of_shared_coast = pd.Series(data=0.0, index=regions.index, dtype=np.float32)
     prep_eez = prep(eez["geometry"]) # increase performance
-    intersection_mask = ((regions["country_code"] == eez["ISO_Ter1"]) &
+    intersection_mask = ((regions["country_code"].isin([eez["ISO_Ter1"], "EUR"])) &
                          (regions["geometry"].map(lambda region: prep_eez.intersects(region))))
     if intersection_mask.sum() == 0:
         msg = dedent("""No shared coast found for {}.

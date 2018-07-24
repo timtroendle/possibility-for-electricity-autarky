@@ -51,12 +51,18 @@ def _determine_industry_demand(industries):
 
 
 def _determine_non_industry_demand(total_demand, regional_industry_demand, regions):
-    national_industry_demand = regional_industry_demand.groupby(regions.country_code).sum()
-    national_non_industry_demand = total_demand["twh_per_year"].sub(national_industry_demand, fill_value=0.0)
-    population_share = regions.groupby(
-        "country_code"
-    )["population_sum"].transform(lambda x: x / sum(x))
-    return regions.country_code.map(national_non_industry_demand) * population_share
+    if (len(regions.index) == 1) and (regions.iloc[0].id == "EUR"): # special case for European level
+        return pd.Series(
+            index=regions.index,
+            data=[total_demand["twh_per_year"].sum() - regional_industry_demand.sum()]
+        )
+    else:
+        national_industry_demand = regional_industry_demand.groupby(regions.country_code).sum()
+        national_non_industry_demand = total_demand["twh_per_year"].sub(national_industry_demand, fill_value=0.0)
+        population_share = regions.groupby(
+            "country_code"
+        )["population_sum"].transform(lambda x: x / sum(x))
+        return regions.country_code.map(national_non_industry_demand) * population_share
 
 
 def _allocate_industry_demand_to_regions(industries, regions):

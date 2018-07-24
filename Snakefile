@@ -383,9 +383,9 @@ rule technology_potentials:
 rule european_potentials:
     message: "Summarise potentials on European level for scenario {wildcards.scenario}."
     input:
-        constrained_potentials = "build/national/{scenario}/constrained-potentials.csv",
-        technology_potentials = "build/national/{scenario}/technology-potentials.csv",
-        demand = "build/national/demand.csv"
+        constrained_potentials = "build/european/{scenario}/constrained-potentials.csv",
+        technology_potentials = "build/european/{scenario}/technology-potentials.csv",
+        demand = "build/european/demand.csv"
     output:
         "build/{scenario}/european-potentials.csv"
     params: scenario = "{scenario}"
@@ -395,16 +395,16 @@ rule european_potentials:
         constrained_potentials = pd.read_csv(input.constrained_potentials, index_col=0).reindex(demand.index)
         technology_potentials = pd.read_csv(input.technology_potentials, index_col=0).reindex(demand.index)
         pd.Series({
-            "Total [TWh/a]": constrained_potentials.sum().sum(),
-            "Normed [%]": constrained_potentials.sum().sum() / demand.sum() * 100,
-            "Roof mounted PV [TWh/a]": technology_potentials["rooftop-pv"].sum(),
-            "Open field PV [TWh/a]": technology_potentials["pv-farm"].sum(),
-            "Onshore wind [TWh/a]": technology_potentials["onshore wind"].sum(),
-            "Offshore wind [TWh/a]": technology_potentials["offshore wind"].sum(),
-            "Roof mounted PV [%]": technology_potentials["rooftop-pv"].sum() / demand.sum() * 100,
-            "Open field PV [%]": technology_potentials["pv-farm"].sum() / demand.sum() * 100,
-            "Onshore wind [%]": technology_potentials["onshore wind"].sum() / demand.sum() * 100,
-            "Offshore wind [%]": technology_potentials["offshore wind"].sum() / demand.sum() * 100,
+            "Total [TWh/a]": constrained_potentials.loc["EUR"].sum(),
+            "Normed [%]": constrained_potentials.loc["EUR"].sum() / demand.loc["EUR"] * 100,
+            "Roof mounted PV [TWh/a]": technology_potentials.loc["EUR", "rooftop-pv"],
+            "Open field PV [TWh/a]": technology_potentials.loc["EUR", "pv-farm"],
+            "Onshore wind [TWh/a]": technology_potentials.loc["EUR", "onshore wind"],
+            "Offshore wind [TWh/a]": technology_potentials.loc["EUR", "offshore wind"],
+            "Roof mounted PV [%]": technology_potentials.loc["EUR", "rooftop-pv"] / demand.loc["EUR"] * 100,
+            "Open field PV [%]": technology_potentials.loc["EUR", "pv-farm"] / demand.loc["EUR"] * 100,
+            "Onshore wind [%]": technology_potentials.loc["EUR", "onshore wind"] / demand.loc["EUR"] * 100,
+            "Offshore wind [%]": technology_potentials.loc["EUR", "offshore wind"] / demand.loc["EUR"] * 100,
         }, name=params.scenario).to_csv(output[0], index=True, header=True, float_format="%.0f")
 
 
