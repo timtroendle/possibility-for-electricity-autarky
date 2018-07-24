@@ -56,17 +56,20 @@ def necessary_land(path_to_output):
 
 
 def _constrain_eligibility(eligibilities, scenario_config):
-    factor_pv = pd.DataFrame(
+    constrained_prefer_pv = pd.DataFrame(
         index=eligibilities.index,
-        data={eligibility.area_column_name: _scaling_factor(eligibility, scenario_config)[0]
+        data={eligibility.area_column_name: _scaling_factor(eligibility, scenario_config, prefer_pv=True)
               for eligibility in Eligibility}
-    )
-    factor_wind = pd.DataFrame(
+    ) * eligibilities
+    constrained_prefer_wind = pd.DataFrame(
         index=eligibilities.index,
-        data={eligibility.area_column_name: _scaling_factor(eligibility, scenario_config)[1]
+        data={eligibility.area_column_name: _scaling_factor(eligibility, scenario_config, prefer_pv=False)
               for eligibility in Eligibility}
+    ) * eligibilities
+    return constrained_prefer_pv.where(
+        constrained_prefer_pv > constrained_prefer_wind,
+        other=constrained_prefer_wind
     )
-    return factor_pv * eligibilities + factor_wind * eligibilities
 
 
 def necessary_land_factor(share_from_pv, layer):
