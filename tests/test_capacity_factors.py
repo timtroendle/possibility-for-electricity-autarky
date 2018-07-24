@@ -1,9 +1,8 @@
 import math
 
-import pytest
 import pandas as pd
 
-from src.capacity_factors import average_capacity_factor
+from src.capacity_factors_demand import average_capacity_factor
 
 
 def test_average_capacity_factor():
