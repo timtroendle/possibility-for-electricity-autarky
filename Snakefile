@@ -499,6 +499,33 @@ rule necessary_land_plot_all_layers:
         PYTHON + " {input.src} {output}"
 
 
+rule necessary_land_map:
+    message: "Plot maps of land needed to become autarkic."
+    input:
+        "build/european/demand.csv",
+        "build/national/demand.csv",
+        "build/subnational/demand.csv",
+        "build/municipal/demand.csv",
+        "build/european/unconstrained-potentials-prefer-pv.csv",
+        "build/national/unconstrained-potentials-prefer-pv.csv",
+        "build/subnational/unconstrained-potentials-prefer-pv.csv",
+        "build/municipal/unconstrained-potentials-prefer-pv.csv",
+        "build/european/regional-eligibility.csv",
+        "build/national/regional-eligibility.csv",
+        "build/subnational/regional-eligibility.csv",
+        "build/municipal/regional-eligibility.csv",
+        src = "src/vis/necessary_land_map.py",
+        european_regions = "build/european/regions.geojson",
+        national_regions = "build/national/regions.geojson",
+        subnational_regions = "build/subnational/regions.geojson",
+        municipal_regions = "build/municipal/regions.geojson"
+    output:
+        "build/necessary-land-map.png"
+    shell:
+        PYTHON + " {input.src} {input.european_regions} {input.national_regions}"
+                 " {input.subnational_regions} {input.municipal_regions} {output}"
+
+
 rule solution_matrix_plot:
     message: "Plot the solution matrix showing pathways to reach 100% sufficent power supply."
     input:
