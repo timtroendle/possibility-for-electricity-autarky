@@ -417,6 +417,30 @@ rule european_potentials_aggregation:
         pd.concat(summaries, axis=1).to_csv(output[0], header=True, index=True)
 
 
+rule scenario_results:
+    message: "Merge all results of scenario {wildcards.scenario} for layer {wildcards.layer}."
+    input:
+        regions = rules.regions.output,
+        demand = rules.demand.output,
+        population = rules.population.output,
+        constrained_potentials = rules.constrained_potentials.output,
+        normed_potentials = rules.normed_potentials.output
+    output:
+        "build/{layer}/{scenario}/merged-results.geojson"
+    run:
+        import pandas as pd
+        import geopandas as gpd
+
+        gpd.read_file(input.regions[0]).merge(
+            pd.concat(
+                [pd.read_csv(path, index_col="id") for path in input[1:]],
+                axis=1
+            ),
+            left_on="id",
+            right_index=True
+        ).to_file(output[0], driver="GeoJSON")
+
+
 rule normed_potential_plots:
     message: "Plot fraction of land necessary for scenario {wildcards.scenario}."
     input:
@@ -452,6 +476,20 @@ rule normed_potential_plots:
                  "{input.national_regions} "
                  "{input.worldwide_countries} "
                  "{output}"
+
+
+rule potentials_sufficiency_map:
+    message: "Plot potential sufficiency maps for scenario {wildcards.scenario}."
+    input:
+        "src/vis/potentials_sufficiency_map.py",
+        "build/european/{scenario}/merged-results.geojson",
+        "build/national/{scenario}/merged-results.geojson",
+        "build/subnational/{scenario}/merged-results.geojson",
+        "build/municipal/{scenario}/merged-results.geojson"
+    output:
+        "build/{scenario}/sufficient-potentials-map.png"
+    shell:
+        PYTHON_SCRIPT
 
 
 rule technology_potentials_plot:
@@ -702,7 +740,8 @@ rule paper:
         "report/paper.md",
         "report/pandoc-metadata.yml",
         "build/technical-potential/normed-potentials-boxplots.png",
-        "build/social-ecological-potential/normed-potentials-map.png",
+        "build/technical-potential/sufficient-potentials-map.png",
+        "build/social-ecological-potential/sufficient-potentials-map.png",
         "build/european-potentials.csv",
         "build/necessary-land.png",
         "build/necessary-land-all-layers.png",
