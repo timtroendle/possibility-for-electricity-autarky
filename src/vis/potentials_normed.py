@@ -47,8 +47,7 @@ def visualise_normed_potentials(paths_to_results, path_to_countries, path_to_wor
         gpd.read_file(paths[0]).to_crs(EPSG_3035_PROJ4).merge(
             pd.concat(
                 [pd.read_csv(p).set_index("id") for p in paths[1:]],
-                axis=1,
-                sort=True
+                axis=1
             ).reset_index().rename(columns={"index": "id"}),
             on="id"
         )

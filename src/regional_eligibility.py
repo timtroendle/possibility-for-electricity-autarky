@@ -18,7 +18,7 @@ from conversion import area_in_squaremeters
 
 EQUAL_AREA_PROJECTION = "EPSG:3035" # projection to use to derive area sizes
 INVALID_DATA = 255
-REL_TOLERANCE = 0.01 # 1%
+REL_TOLERANCE = 0.015 # 1.5%
 ABS_TOLERANCE = 3.5 # km^2
 
 
@@ -83,7 +83,7 @@ def _allocation_eligibility_to_regions(path_to_regions, path_to_eligibility, pat
                                                for region in new_regions]
                 for eligibility in eligibilities
             }
-        )
+        ).reindex([region["properties"]["id"] for region in regions])
         data.index.name = "id"
         data.to_csv(path_to_output, header=True)
     _test_allocation(path_to_regions, path_to_output, offshore)
@@ -160,7 +160,10 @@ def _test_allocation(path_to_regions, path_to_eligibilities, offshore):
         eligibilities.remove(Eligibility.OFFSHORE_WIND)
         eligibilities.remove(Eligibility.OFFSHORE_WIND_PROTECTED)
     regions = gpd.read_file(path_to_regions)
-    regions = regions.merge(pd.read_csv(path_to_eligibilities), on="id")
+    regions = regions.merge(
+        pd.read_csv(path_to_eligibilities, dtype={"id": np.object}), # id must be object, otherwise merge fails
+        on="id"
+    )
     total_allocated_area = regions.loc[:, [eligibility.area_column_name
                                            for eligibility in eligibilities]].sum(axis="columns")
     region_size = area_in_squaremeters(regions) / 1000 / 1000

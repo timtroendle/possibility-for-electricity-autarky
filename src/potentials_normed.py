@@ -14,8 +14,7 @@ def normed_potential(paths_to_region_attributes, path_to_output):
     """Determines the potential relative to demand."""
     attributes = pd.concat(
         [pd.read_csv(path_to_attribute).set_index("id") for path_to_attribute in paths_to_region_attributes],
-        axis=1,
-        sort=True
+        axis=1
     )
     determine_normed_potentials(
         demand_twh_per_year=attributes["demand_twh_per_year"],
