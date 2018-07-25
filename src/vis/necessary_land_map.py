@@ -23,26 +23,25 @@ def necessary_land_map(paths_to_regions, path_to_output):
         )
         for path_to_regions in paths_to_regions
     ]
-    countries = gpd.read_file("build/worldwide-countries.geojson").to_crs(EPSG_3035_PROJ4)
-    _map(region_layers, countries, path_to_output)
+    _map(region_layers, path_to_output)
 
 
-def _map(region_layers, countries, path_to_plot):
+def _map(region_layers, path_to_plot):
     fig = plt.figure(figsize=(8, 8))
     gs = matplotlib.gridspec.GridSpec(2, 3, width_ratios=[5, 5, 1])
     norm = matplotlib.colors.Normalize(vmin=0, vmax=1)
     cmap = sns.light_palette(GREEN, reverse=False, as_cmap=True)
-    _plot_layer(region_layers[0], countries, "(a)", norm, cmap, fig.add_subplot(gs[0]))
-    _plot_layer(region_layers[1], countries, "(b)", norm, cmap, fig.add_subplot(gs[1]))
-    _plot_layer(region_layers[2], countries, "(c)", norm, cmap, fig.add_subplot(gs[3]))
-    _plot_layer(region_layers[3], countries, "(d)", norm, cmap, fig.add_subplot(gs[4]))
+    _plot_layer(region_layers[0], "(a)", norm, cmap, fig.add_subplot(gs[0]))
+    _plot_layer(region_layers[1], "(b)", norm, cmap, fig.add_subplot(gs[1]))
+    _plot_layer(region_layers[2], "(c)", norm, cmap, fig.add_subplot(gs[3]))
+    _plot_layer(region_layers[3], "(d)", norm, cmap, fig.add_subplot(gs[4]))
 
     fig.tight_layout()
     _plot_colorbar(fig, gs, norm, cmap)
     fig.savefig(path_to_plot, dpi=300)
 
 
-def _plot_layer(regions, countries, annotation, norm, cmap, ax):
+def _plot_layer(regions, annotation, norm, cmap, ax):
     ax.set_aspect('equal')
     regions.plot(linewidth=0.1, column="fraction land necessary", vmin=norm.vmin, vmax=norm.vmax, cmap=cmap, ax=ax)
     ax.set_xlim(MAP_MIN_X, MAP_MAX_X)
