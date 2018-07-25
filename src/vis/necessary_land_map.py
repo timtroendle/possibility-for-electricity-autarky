@@ -27,17 +27,16 @@ def necessary_land_map(paths_to_regions, path_to_output):
 
 
 def _map(region_layers, path_to_plot):
-    fig = plt.figure(figsize=(8, 8))
-    gs = matplotlib.gridspec.GridSpec(2, 3, width_ratios=[5, 5, 1])
+    fig = plt.figure(figsize=(8, 8), constrained_layout=True)
+    axes = fig.subplots(2, 2).flatten()
     norm = matplotlib.colors.Normalize(vmin=0, vmax=1)
     cmap = sns.light_palette(GREEN, reverse=False, as_cmap=True)
-    _plot_layer(region_layers[0], "(a)", norm, cmap, fig.add_subplot(gs[0]))
-    _plot_layer(region_layers[1], "(b)", norm, cmap, fig.add_subplot(gs[1]))
-    _plot_layer(region_layers[2], "(c)", norm, cmap, fig.add_subplot(gs[3]))
-    _plot_layer(region_layers[3], "(d)", norm, cmap, fig.add_subplot(gs[4]))
+    _plot_layer(region_layers[0], "(a)", norm, cmap, axes[0])
+    _plot_layer(region_layers[1], "(b)", norm, cmap, axes[1])
+    _plot_layer(region_layers[2], "(c)", norm, cmap, axes[2])
+    _plot_layer(region_layers[3], "(d)", norm, cmap, axes[3])
 
-    fig.tight_layout()
-    _plot_colorbar(fig, gs, norm, cmap)
+    _plot_colorbar(fig, axes, norm, cmap)
     fig.savefig(path_to_plot, dpi=300)
 
 
@@ -48,21 +47,14 @@ def _plot_layer(regions, annotation, norm, cmap, ax):
     ax.set_ylim(MAP_MIN_Y, MAP_MAX_Y)
     ax.set_xticks([])
     ax.set_yticks([])
-    ax.spines["top"].set_visible(False)
-    ax.spines["right"].set_visible(False)
-    ax.spines["bottom"].set_visible(False)
-    ax.spines["left"].set_visible(False)
+    sns.despine(ax=ax, top=True, bottom=True, left=True, right=True)
     ax.annotate(annotation, xy=[0.10, 0.85], xycoords='axes fraction')
 
 
-def _plot_colorbar(fig, gs, norm, cmap):
+def _plot_colorbar(fig, axes, norm, cmap):
     s_m = matplotlib.cm.ScalarMappable(cmap=cmap, norm=norm)
     s_m.set_array([])
-    ax2 = fig.add_subplot(gs[2])
-    ax5 = fig.add_subplot(gs[5])
-    ax2.axis("off")
-    ax5.axis("off")
-    cbar = fig.colorbar(s_m, ax=[ax2, ax5], fraction=1, aspect=35, shrink=0.65)
+    cbar = fig.colorbar(s_m, ax=axes, fraction=1, aspect=35, shrink=0.65)
     cbar.set_ticks(cbar.get_ticks())
     cbar.set_ticklabels(["{:.0f}%".format(tick * 100) for tick in cbar.get_ticks()])
     cbar.outline.set_linewidth(0)
