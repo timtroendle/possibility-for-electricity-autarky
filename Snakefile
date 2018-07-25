@@ -578,10 +578,6 @@ rule layer_overview:
         sources = [", ".join(set(sources_per_layer)) for sources_per_layer in sources]
         number_regions = [len(gpd.read_file(path_to_file).index) for path_to_file in input]
 
-        layer_names = ["European"] + layer_names
-        number_regions = ["1"] + number_regions
-        sources = [sources[0]] + sources
-
         pd.DataFrame({
             "level": layer_names,
             "number regions": number_regions,
