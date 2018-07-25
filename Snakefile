@@ -624,6 +624,45 @@ rule layer_overview:
 
 
 rule scenario_overview:
+    message: "Overview over scenario on all levels."
+    input:
+        normed_potentials = expand("build/{layer}/{{scenario}}/normed-potentials.csv", layer=config["layers"].keys()),
+        population = expand("build/{layer}/population.csv", layer=config["layers"].keys())
+    output:
+        "build/{scenario}/overview.csv"
+    run:
+        import pandas as pd
+
+        def add_layer(df, path_to_file):
+            layer_name = path_to_file.split("/")[1]
+            df["layer"] = layer_name
+            return df
+
+        ALL_LAYERS = ["european", "national", "subnational", "municipal"]
+
+        normed_potential = pd.concat([pd.read_csv(path, index_col="id").pipe(lambda df: add_layer(df, path))
+                                     for path in input.normed_potentials])
+        population = pd.concat([pd.read_csv(path, index_col="id").pipe(lambda df: add_layer(df, path))
+                               for path in input.population])
+
+        affected = normed_potential.normed_potential < 1.0
+        high_density = population.density_p_per_km2 > 1000
+        overview = pd.DataFrame(
+            index=[path_to_file.split("/")[1] for path_to_file in input.normed_potentials]
+        )
+        overview["regions affected [%]"] = (normed_potential.loc[affected].groupby("layer").count() /
+                                            normed_potential.groupby("layer").count() * 100).reindex(ALL_LAYERS).iloc[:, 0]
+        overview["of which dense regions [%]"] = (normed_potential.loc[affected & high_density].groupby("layer").count() /
+                                                  normed_potential.loc[affected].groupby("layer").count() * 100).reindex(ALL_LAYERS).iloc[:, 0]
+        overview["people affected [%]"] = (population.loc[affected].groupby("layer").population_sum.sum() /
+                                           population.groupby("layer").population_sum.sum() * 100).reindex(ALL_LAYERS)
+        overview["of which from dense regions [%]"] = (population.loc[affected & high_density].groupby("layer").population_sum.sum() /
+                                                       population.loc[affected].groupby("layer").population_sum.sum() * 100).reindex(ALL_LAYERS)
+
+        overview.fillna(0).transpose().to_csv(output[0], index=True, header=True, float_format="%.1f")
+
+
+rule scenarios_overview:
     message: "Brief overview over results of all scenarios on the municipal level."
     input:
         expand("build/municipal/{scenario}/constrained-potentials.csv", scenario=config["scenarios"].keys()),
@@ -632,7 +671,7 @@ rule scenario_overview:
         "build/municipal/population.csv",
         "build/municipal/demand.csv"
     output:
-        "build/scenario-overview.csv"
+        "build/overview-scenarios.csv"
     run:
         import pandas as pd
 
@@ -739,10 +778,11 @@ rule paper:
         "report/literature.bib",
         "report/paper.md",
         "report/pandoc-metadata.yml",
+        "build/technical-potential/overview.csv",
+        "build/social-ecological-potential/overview.csv",
         "build/technical-potential/normed-potentials-boxplots.png",
         "build/technical-potential/sufficient-potentials-map.png",
         "build/social-ecological-potential/sufficient-potentials-map.png",
-        "build/european-potentials.csv",
         "build/necessary-land.png",
         "build/necessary-land-all-layers.png",
         rules.sonnendach_statistics.output.publish,

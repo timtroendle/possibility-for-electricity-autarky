@@ -114,6 +114,15 @@ markdown: True
 ---
 ```
 
+```table
+---
+caption: 'Fraction of regions with insufficient supply and fraction of people living in regions with insufficient supply when considering electricity autarky and given the technical potential. {#tbl:impacts-overview-technical}'
+alignment: LRRRR
+include: ../build/technical-potential/overview.csv
+markdown: True
+---
+```
+
 While the potential exceeds the demand almost 50 times, the resources and the demand are not equally distributed over Europe. Hence, on the national level the technical potential is in some countries greater than in others. Latvia has the highest relative potential, with a yield that exceeds its demand more than 300 times. Switzerland has the lowest relative potential which exceeds its demand only 3.3 times. Still, such potentials allow all countries in Europe to aspire self-sufficiency.
 
 On the regional level, the technical potential is not sufficient to supply all regions with enough electricity. The relative potentials are particularly low for those first-level administrative units, which are within city borders. Bruxelles in Belgium, Basel in Switzerland, Vienna in Austria, and Oslo in Norway are the four regions whose technical potential is too low to be self-sufficient. Other cities with a potential less than 1.5 times their current electricity demand are Berlin, Genève, and Prague.
@@ -127,6 +136,15 @@ Despite the abundant potential on the European level, there are many municipalit
 ## Social-ecological potential
 
 The resulting potential on the European level is summarised in Table @tbl:european-potentials. The total potential is 13737 TWh/a and hence exceeds today's electricity demand more than 4 times. Roof mounted PV, open field PV, onshore wind, and offshore wind contribute with 46%, 43%, 29%, and 18% respectively to the total potential, where open field PV and onshore wind compete for the areas on which both can be built. Considering these social and environmental constraints, Europe's potential of renewable electricity is by far high enough for Europe to become electricity autarkic.
+
+```table
+---
+caption: 'Fraction of regions with insufficient supply and fraction of people living in regions with insufficient supply when assuming electricity autarky and given the social-ecological potential. {#tbl:impacts-overview-social-ecological}'
+alignment: LRRRR
+include: ../build/social-ecological-potential/overview.csv
+markdown: True
+---
+```
 
 Also all countries in Europe reveal sufficient potentials: while the social-ecological potential, similar to the technical potential, is not equally distributed over Europe, even the lowest relative potential of Switzerland is 50% higher than the local demand. Again we find the highest relative potential in Latvia; a potential that exceeds the local demand 18 times.
 
