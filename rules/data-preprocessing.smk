@@ -130,7 +130,8 @@ rule administrative_borders_lau:
         unzip {input.zip} -d ./build
         {PYTHON} {input.src} merge ./build/COMM_01M_2013_SH/data/COMM_RG_01M_2013.shp \
         ./build/COMM_01M_2013_SH/data/COMM_AT_2013.dbf ./build/raw-lau.gpkg
-        {PYTHON} {input.src} normalise ./build/raw-lau.gpkg {output} {CONFIG_FILE}
+        {PYTHON} {input.src} identify ./build/raw-lau.gpkg ./build/raw-lau-identified.gpkg
+        {PYTHON} {input.src} normalise ./build/raw-lau-identified.gpkg {output} {CONFIG_FILE}
         """
 
 
