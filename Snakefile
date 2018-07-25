@@ -793,6 +793,7 @@ rule paper:
         "build/technical-potential/normed-potentials-boxplots.png",
         "build/technical-potential/sufficient-potentials-map.png",
         "build/social-ecological-potential/sufficient-potentials-map.png",
+        rules.necessary_land_map.output,
         "build/necessary-land.png",
         "build/necessary-land-all-layers.png",
         rules.sonnendach_statistics.output.publish,
