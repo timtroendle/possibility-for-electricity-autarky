@@ -4,7 +4,6 @@ import pandas as pd
 import geopandas as gpd
 import shapely
 from descartes import PolygonPatch
-import matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -57,48 +56,8 @@ def visualise_normed_potentials(paths_to_results, path_to_countries, path_to_wor
         region["layer_id"] = _infer_layer_id(paths_to_region[0])
     countries = gpd.read_file(path_to_countries).to_crs(EPSG_3035_PROJ4)
     third_countries = _third_countries(countries, gpd.read_file(path_to_world)).to_crs(EPSG_3035_PROJ4)
-    _boxplot([region_sets[-1]], path_to_boxplot)
     _correlation(region_sets, path_to_correlation)
     _map(region_sets[-1], countries, third_countries, path_to_map)
-
-
-def _boxplot(region_sets, path_to_plot):
-    data = pd.concat([pd.DataFrame(gdf) for gdf in region_sets])
-    data_eu = data.copy()
-    data_eu["country_code"] = "EUR"
-    data = pd.concat([data, data_eu])
-
-    fig = plt.figure(figsize=(8, 10))
-    ax = fig.add_subplot(111)
-    sns.boxplot(
-        data=data,
-        x="normed_potential",
-        y="country_code",
-        order=data.groupby("country_code").normed_potential.quantile(0.5).sort_values().index,
-        ax=ax,
-        color=GREEN,
-        whis=1.5,
-        saturation=0.85,
-        linewidth=1.3,
-        width=0.7,
-        boxprops=dict(linewidth=1.3, edgecolor=GREEN),
-        whiskerprops=dict(linewidth=1, color=GREEN),
-        flierprops=dict(markerfacecolor="k", markeredgecolor="k", markersize=2, marker="o"),
-        capprops=dict(color=GREEN)
-
-    )
-    ax.set_xlabel("potential relative to demand [-]")
-    ax.set_ylabel("country code")
-    ax.set_xscale('log')
-    ax.set_xlim(0.008, 1000)
-    ax.axvline(1, color=RED, linewidth=1.5)
-    eu_position = list(data.groupby("country_code").normed_potential.quantile(0.5).sort_values().index).index("EUR")
-    eu_patch = [child for child in ax.get_children() if isinstance(child, matplotlib.patches.PathPatch)][eu_position]
-    eu_patch.set_facecolor(BLUE)
-    eu_patch.set_edgecolor(BLUE)
-    eu_patch.set_alpha(0.8)
-    eu_patch.set_zorder(100000)
-    fig.savefig(path_to_plot, dpi=300)
 
 
 def _map(regions, countries, third_countries, path_to_plot):

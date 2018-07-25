@@ -465,7 +465,6 @@ rule normed_potential_plots:
         municipal_demand = "build/municipal/demand.csv",
         worldwide_countries = rules.country_shapes.output
     output:
-        "build/{scenario}/normed-potentials-boxplots.png",
         "build/{scenario}/normed-potentials-map.png",
         "build/{scenario}/normed-potentials-correlations.png"
     shell:
@@ -476,6 +475,17 @@ rule normed_potential_plots:
                  "{input.national_regions} "
                  "{input.worldwide_countries} "
                  "{output}"
+
+
+rule normed_potential_boxplots:
+    message: "Plot ranges of relative potential for scenario {wildcards.scenario}."
+    input:
+        "src/vis/potentials_normed_boxplot.py",
+        "build/municipal/{scenario}/merged-results.geojson"
+    output:
+        "build/{scenario}/normed-potentials-boxplots.png"
+    shell:
+        PYTHON_SCRIPT
 
 
 rule potentials_sufficiency_map:
