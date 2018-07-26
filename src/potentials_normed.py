@@ -25,7 +25,6 @@ def normed_potential(paths_to_region_attributes, path_to_output):
 def determine_normed_potentials(demand_twh_per_year, potentials):
     max_yield_twh_per_year = potentials.sum(axis=1)
     normed_potential = max_yield_twh_per_year / demand_twh_per_year
-    normed_potential[demand_twh_per_year <= ZERO_DEMAND] = 0.0 # might be nan otherwise if yield is 0
     normed_potential.name = "normed_potential"
     normed_potential.index.name = "id"
     return normed_potential
