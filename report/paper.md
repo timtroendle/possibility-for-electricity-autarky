@@ -131,7 +131,7 @@ Despite the abundant potential on the European level, there are many municipalit
 
 ![Regions where the technical potential is sufficient to supply the electricity demand (green) and where it is insufficient (red), on (a) European, (b) national, (c) regional, and (d) municipal level.](../build/technical-potential/sufficient-potentials-map.png){#fig:sufficient-potentials-map-technical .class}
 
-![Ranges of demand to technical potential ratio for all countries.](../build/technical-potential/normed-potentials-boxplots.png){#fig:normed-potentials-boxplots-technical .class}
+![Distribution of technical potential per country and all Europe as experienced by the population when considering autarky on the municipal level: the boxes show the potential of the municipalities in which half of the population lives; centred around the median. Outliers are not depicted. ](../build/technical-potential/normed-potentials-boxplots.png){#fig:normed-potentials-boxplots-technical .class}
 
 ## Social-ecological potential
 
@@ -150,7 +150,7 @@ Also all countries in Europe reveal sufficient potentials: while the social-ecol
 
 Again we find the lowest relative potentials in those subnational regions which are inside city borders. Oslo reveals the lowest potential, with less than 25% of its demand supplied with local generation. Other urban areas with insufficient generation are: Bruxelles, Vienna, Basel, Prague, Genève, Île-de-France, Dublin, and Berlin. 97% of all 493 first-level administrative units have a social-ecological potential which exceeds their local demand of today and hence could be self-sufficient.
 
-![Ranges of demand to social-ecological potential ratio for all countries.](../build/social-ecological-potential/normed-potentials-boxplots.png){#fig:normed-potentials-boxplots-social-ecological .class}
+![Distribution of social-ecological potential per country and all Europe as experienced by the population when considering autarky on the municipal level: the boxes show the potential of the municipalities in which half of the population lives; centred around the median. Outliers are not depicted.](../build/social-ecological-potential/normed-potentials-boxplots.png){#fig:normed-potentials-boxplots-social-ecological .class}
 
 While the fraction of municipalities unable to supply themselves with the social-ecological potential is only slightly higher, namely 4%, still 18% of Europe's population would be impacted. The majority of those, 91%, lives in municipalities with a population density above 1000 people per squarekilometer. According to DEGURBA, 85% of the affected population lives in cities, 12% in towns and suburbs, and only 2% lives in rural areas. Figure @fig:normed-potentials-boxplots-social-ecological plots the ranges of relative potentials for each country, and while it shows that only a small number of municipalities has insufficient supply, it also reveals that in some countries, many municipalities' potential is only slightly above their demand. This is in particular the case for Belgium, the United Kingdom and Switzerland. Should the actually feasible potential be lower than this social-ecological one, those countries will see many more municipalities with insufficient potentials. The Figure also shows that there are many municipalities with very high potentials, including in but not limited to the United Kingdom. Figure @fig:normed-potentials-map-social-ecological shows a map of Europe with all municipalities in red for which the social-ecological potential is insufficient.
 

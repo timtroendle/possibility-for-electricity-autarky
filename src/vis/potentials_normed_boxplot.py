@@ -1,4 +1,6 @@
 """Visualises the range of potentials relative to demand in each municipality."""
+from itertools import chain, repeat
+
 import click
 import pandas as pd
 import geopandas as gpd
@@ -9,6 +11,8 @@ import seaborn as sns
 
 from src.vis.potentials_normed import RED, GREEN, BLUE
 
+SORT_QUANTILE = 0.5
+
 
 @click.command()
 @click.argument("path_to_results")
@@ -16,18 +20,32 @@ from src.vis.potentials_normed import RED, GREEN, BLUE
 def visualise_normed_potentials(path_to_results, path_to_plot):
     """Visualises the range of potentials relative to demand in each municipality."""
     sns.set_context('paper')
-    data = pd.DataFrame(gpd.read_file(path_to_results))
-    data_eu = data.copy()
-    data_eu["country_code"] = "EUR"
-    data = pd.concat([data, data_eu])
+    regions = pd.DataFrame(gpd.read_file(path_to_results))
+    regions = regions[["country_code", "population_sum", "normed_potential"]]
+    people = pd.DataFrame(
+        data={
+            "country_code": list(chain(*[
+                (repeat(region[1].country_code, round(region[1].population_sum / 100)))
+                for region in regions.iterrows()
+            ])),
+            "normed_potential": list(chain(*[
+                (repeat(region[1].normed_potential, round(region[1].population_sum / 100)))
+                for region in regions.iterrows()
+            ]))
+        }
+    )
+
+    people_eu = people.copy()
+    people_eu["country_code"] = "EUR"
+    people = pd.concat([people, people_eu])
 
     fig = plt.figure(figsize=(8, 10), constrained_layout=True)
     ax = fig.add_subplot(111)
     sns.boxplot(
-        data=data,
+        data=people,
         x="normed_potential",
         y="country_code",
-        order=data.groupby("country_code").normed_potential.quantile(0.5).sort_values().index,
+        order=people.groupby("country_code").normed_potential.quantile(SORT_QUANTILE).sort_values().index,
         ax=ax,
         color=GREEN,
         whis=1.5,
@@ -36,16 +54,19 @@ def visualise_normed_potentials(path_to_results, path_to_plot):
         width=0.7,
         boxprops=dict(linewidth=1.3, edgecolor=GREEN),
         whiskerprops=dict(linewidth=1, color=GREEN),
-        flierprops=dict(markerfacecolor="k", markeredgecolor="k", markersize=2, marker="o"),
+        flierprops=dict(markerfacecolor="k", markeredgecolor="k", markersize=0, marker="o"),
         capprops=dict(color=GREEN)
 
     )
-    ax.set_xlabel("potential relative to demand [-]")
+    ax.axvline(1, color=RED, linewidth=1.5)
+    ax.set_xlabel("potential relative to demand")
     ax.set_ylabel("country code")
     ax.set_xscale('log')
-    ax.set_xlim(0.008, 1000)
-    ax.axvline(1, color=RED, linewidth=1.5)
-    eu_position = list(data.groupby("country_code").normed_potential.quantile(0.5).sort_values().index).index("EUR")
+    ax.set_xlim(0.08, 100)
+    ax.set_xticklabels(["{:.0f}%".format(tick * 100) for tick in ax.get_xticks()])
+    eu_position = list(
+        people.groupby("country_code").normed_potential.quantile(SORT_QUANTILE).sort_values().index
+    ).index("EUR")
     eu_patch = [child for child in ax.get_children() if isinstance(child, matplotlib.patches.PathPatch)][eu_position]
     eu_patch.set_facecolor(BLUE)
     eu_patch.set_edgecolor(BLUE)
