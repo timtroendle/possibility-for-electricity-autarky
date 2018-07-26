@@ -13,8 +13,7 @@ rule all:
     message: "Run entire analysis and compile report."
     input:
         "build/report.pdf",
-        "build/paper.pdf",
-        "build/scenario-overview.csv"
+        "build/paper.pdf"
 
 
 rule eligible_land:
