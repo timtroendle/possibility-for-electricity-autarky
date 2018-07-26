@@ -7,7 +7,7 @@ import seaborn as sns
 from src.vis.necessary_land_all_layers import necessary_land_factor
 from src.vis.potentials_normed import MAP_MIN_X, MAP_MAX_X, MAP_MIN_Y, MAP_MAX_Y, EPSG_3035_PROJ4, GREEN
 
-PV_SHARE = 0.5
+PV_SHARE = 0.6
 
 
 @click.command()

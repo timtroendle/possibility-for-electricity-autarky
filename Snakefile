@@ -530,15 +530,10 @@ rule necessary_land_plot:
 rule necessary_land_plot_all_layers:
     message: "Plot the fraction of land needed to become autarkic."
     input:
-        "build/national/demand.csv",
-        "build/subnational/demand.csv",
-        "build/municipal/demand.csv",
-        "build/national/unconstrained-potentials-prefer-pv.csv",
-        "build/subnational/unconstrained-potentials-prefer-pv.csv",
-        "build/municipal/unconstrained-potentials-prefer-pv.csv",
-        "build/national/regional-eligibility.csv",
-        "build/subnational/regional-eligibility.csv",
-        "build/municipal/regional-eligibility.csv",
+        expand("build/{layer}/demand.csv", layer=config["layers"].keys()),
+        expand("build/{layer}/population.csv", layer=config["layers"].keys()),
+        expand("build/{layer}/unconstrained-potentials-prefer-pv.csv", layer=config["layers"].keys()),
+        expand("build/{layer}/regional-eligibility.csv", layer=config["layers"].keys()),
         src = "src/vis/necessary_land_all_layers.py",
     output:
         "build/necessary-land-all-layers.png"
@@ -549,18 +544,9 @@ rule necessary_land_plot_all_layers:
 rule necessary_land_map:
     message: "Plot maps of land needed to become autarkic."
     input:
-        "build/european/demand.csv",
-        "build/national/demand.csv",
-        "build/subnational/demand.csv",
-        "build/municipal/demand.csv",
-        "build/european/unconstrained-potentials-prefer-pv.csv",
-        "build/national/unconstrained-potentials-prefer-pv.csv",
-        "build/subnational/unconstrained-potentials-prefer-pv.csv",
-        "build/municipal/unconstrained-potentials-prefer-pv.csv",
-        "build/european/regional-eligibility.csv",
-        "build/national/regional-eligibility.csv",
-        "build/subnational/regional-eligibility.csv",
-        "build/municipal/regional-eligibility.csv",
+        expand("build/{layer}/demand.csv", layer=config["layers"].keys()),
+        expand("build/{layer}/unconstrained-potentials-prefer-pv.csv", layer=config["layers"].keys()),
+        expand("build/{layer}/regional-eligibility.csv", layer=config["layers"].keys()),
         src = "src/vis/necessary_land_map.py",
         european_regions = "build/european/regions.geojson",
         national_regions = "build/national/regions.geojson",

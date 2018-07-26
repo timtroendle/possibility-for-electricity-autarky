@@ -8,7 +8,7 @@ dependencies:
   - pandas=0.23.2
   - gdal=2.2
   - matplotlib=2.2
-  - seaborn=0.8.1
+  - seaborn=0.9
   - pandoc=2.1.1
   - pytest=3.2.3
   - click=6.7
