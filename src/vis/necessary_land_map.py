@@ -30,7 +30,7 @@ def _map(region_layers, path_to_plot):
     fig = plt.figure(figsize=(8, 8), constrained_layout=True)
     axes = fig.subplots(2, 2).flatten()
     norm = matplotlib.colors.Normalize(vmin=0, vmax=1)
-    cmap = sns.light_palette(GREEN, reverse=False, as_cmap=True)
+    cmap = sns.light_palette(sns.desaturate(GREEN, 0.85), reverse=False, as_cmap=True)
     _plot_layer(region_layers[0], "(a)", norm, cmap, axes[0])
     _plot_layer(region_layers[1], "(b)", norm, cmap, axes[1])
     _plot_layer(region_layers[2], "(c)", norm, cmap, axes[2])

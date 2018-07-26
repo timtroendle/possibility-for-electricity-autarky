@@ -39,7 +39,7 @@ def _plot_layer(regions, annotation, ax):
 
     ax.set_aspect('equal')
     ax.add_patch(_serbia_montenegro_patch(regions)) # FIXME, see comment in function
-    winners.plot(color=GREEN, linewidth=0.1, ax=ax)
+    winners.plot(color=sns.desaturate(GREEN, 0.85), linewidth=0.1, ax=ax)
     if not loosers.empty:
         loosers.plot(color=RED, linewidth=0.1, ax=ax)
     if not invalids.empty:

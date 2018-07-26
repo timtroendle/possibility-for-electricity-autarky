@@ -35,6 +35,7 @@ def necessary_land(path_to_output):
         y="population_sum",
         hue="layer",
         palette=[GREEN, RED, BLUE],
+        saturation=0.85,
         hue_order=["municipal", "subnational", "national"],
         alpha=0.20,
         ax=ax
@@ -45,8 +46,9 @@ def necessary_land(path_to_output):
         y="population_sum",
         hue="layer",
         palette=[GREEN, RED, BLUE],
+        saturation=0.85,
         hue_order=["municipal", "subnational", "national"],
-        alpha=0.85,
+        alpha=1,
         ax=ax
     )
 
