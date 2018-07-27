@@ -1,28 +1,31 @@
 import click
+import pandas as pd
 import geopandas as gpd
 import matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from src.vis.necessary_land_all_layers import necessary_land_factor
 from src.vis.potentials_normed import MAP_MIN_X, MAP_MAX_X, MAP_MIN_Y, MAP_MAX_Y, EPSG_3035_PROJ4, GREEN
 
 PV_SHARE = 0.6
 
 
 @click.command()
-@click.argument("paths_to_regions", nargs=-1)
+@click.argument("paths_to_regions_and_fraction_land_necessary", nargs=-1)
 @click.argument("path_to_output")
-def necessary_land_map(paths_to_regions, path_to_output):
+def necessary_land_map(paths_to_regions_and_fraction_land_necessary, path_to_output):
     sns.set_context('paper')
-    region_layers = [
-        gpd.read_file(path_to_regions).to_crs(EPSG_3035_PROJ4).merge(
-            necessary_land_factor(PV_SHARE, _layer_name(path_to_regions)),
-            on="id",
-            how="left"
-        )
-        for path_to_regions in paths_to_regions
-    ]
+    assert len(paths_to_regions_and_fraction_land_necessary) % 2 == 0
+    number_regions = int(len(paths_to_regions_and_fraction_land_necessary) / 2)
+    region_layers = [gpd.read_file(path).to_crs(EPSG_3035_PROJ4)
+                     for path in paths_to_regions_and_fraction_land_necessary[0:number_regions]]
+    fractions_necessary_land_layers = [pd.read_csv(path)
+                                       for path in paths_to_regions_and_fraction_land_necessary[number_regions:]]
+    region_layers = [regions.merge(fractions_necessary_land, on="id", how="left")
+                     for regions, fractions_necessary_land in zip(region_layers, fractions_necessary_land_layers)]
+    region_layers = [regions.merge(pd.DataFrame(data={"id": regions.id, "layer": _layer_name(path)}),
+                                   on="id", how="left")
+                     for regions, path in zip(region_layers, paths_to_regions_and_fraction_land_necessary[0::2])]
     _map(region_layers, path_to_output)
 
 
@@ -42,7 +45,14 @@ def _map(region_layers, path_to_plot):
 
 def _plot_layer(regions, annotation, norm, cmap, ax):
     ax.set_aspect('equal')
-    regions.plot(linewidth=0.1, column="fraction land necessary", vmin=norm.vmin, vmax=norm.vmax, cmap=cmap, ax=ax)
+    regions.plot(
+        linewidth=0.1,
+        column="fraction total land necessary",
+        vmin=norm.vmin,
+        vmax=norm.vmax,
+        cmap=cmap,
+        ax=ax
+    )
     ax.set_xlim(MAP_MIN_X, MAP_MAX_X)
     ax.set_ylim(MAP_MIN_Y, MAP_MAX_Y)
     ax.set_xticks([])

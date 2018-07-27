@@ -367,6 +367,20 @@ rule normed_potentials:
         PYTHON_SCRIPT
 
 
+rule necessary_land:
+    message: "Determine the necessary potentials to become autarkic of layer {wildcards.layer} "
+             "given rooftop PV share {wildcards.pvshare}%."
+    input:
+        "src/necessary_land.py",
+        rules.demand.output,
+        rules.regional_eligibility.output,
+        rules.unconstrained_potentials.output
+    output:
+        "build/{layer}/necessary-land-when-pv-{pvshare}%.csv"
+    shell:
+        PYTHON_SCRIPT + " {wildcards.pvshare}"
+
+
 rule technology_potentials:
     message: "Potentials per technology for layer {wildcards.layer} and scenario {wildcards.scenario}."
     input:
@@ -541,21 +555,15 @@ rule necessary_land_plot_all_layers:
 
 
 rule necessary_land_map:
-    message: "Plot maps of land needed to become autarkic."
+    message: "Plot maps of land needed to become autarkic for rooftop PV share {wildcards.pvshare}%."
     input:
-        expand("build/{layer}/demand.csv", layer=config["layers"].keys()),
-        expand("build/{layer}/unconstrained-potentials-prefer-pv.csv", layer=config["layers"].keys()),
-        expand("build/{layer}/regional-eligibility.csv", layer=config["layers"].keys()),
-        src = "src/vis/necessary_land_map.py",
-        european_regions = "build/european/regions.geojson",
-        national_regions = "build/national/regions.geojson",
-        subnational_regions = "build/subnational/regions.geojson",
-        municipal_regions = "build/municipal/regions.geojson"
+        "src/vis/necessary_land_map.py",
+        expand("build/{layer}/regions.geojson", layer=config["layers"].keys()),
+        expand("build/{layer}/necessary-land-when-pv-{{pvshare}}%.csv", layer=config["layers"].keys())
     output:
-        "build/necessary-land-map.png"
+        "build/necessary-land-map-when-pv-{pvshare}%.png"
     shell:
-        PYTHON + " {input.src} {input.european_regions} {input.national_regions}"
-                 " {input.subnational_regions} {input.municipal_regions} {output}"
+        PYTHON_SCRIPT
 
 
 rule solution_matrix_plot:
