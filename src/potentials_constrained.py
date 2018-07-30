@@ -60,7 +60,7 @@ def _scaling_factor(eligibility, scenario_config, prefer_pv=True):
         share_wind_pv_on_farmland = share_farmland_used
     share_offshore_used = scenario_config["share-offshore-used"]
     return {
-        Eligibility.NOT_ELIGIBLE: 1,
+        Eligibility.NOT_ELIGIBLE: 0,
         Eligibility.ROOFTOP_PV: share_rooftops_used,
         Eligibility.ONSHORE_WIND_AND_PV_OTHER: share_other_land_used,
         Eligibility.ONSHORE_WIND_OTHER: share_other_land_used,
