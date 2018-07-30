@@ -4,8 +4,6 @@ import pandas as pd
 
 from src.eligible_land import Eligibility
 
-ZERO_DEMAND = 0.000001
-
 
 @click.command()
 @click.argument("paths_to_region_attributes", nargs=-1)

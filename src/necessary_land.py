@@ -1,11 +1,11 @@
-"""Determine the necessary land of municipalities to become autarkic."""
+"""Determine the fration of non-built-up land area needed to become autarkic."""
 import click
 import pandas as pd
 
 from src.potentials_constrained import _constrain_potential, _scaling_factor
 from src.eligible_land import Eligibility
 
-GENERATION_DENSE = 0.5 # land is generation dense when more than this fraction is used for energy farming
+ZERO_DEMAND = 0.000001
 
 SCENARIO_CONFIG = {
     "share-protected-areas-used": 0.0,
@@ -23,22 +23,26 @@ SCENARIO_CONFIG = {
 @click.argument("path_to_eligibility")
 @click.argument("path_to_unconstrained_potentials_prefer_pv")
 @click.argument("path_to_unconstrained_potentials_prefer_wind")
+@click.argument("path_to_built_up_share")
 @click.argument("path_to_output")
 @click.argument("share_from_pv", type=click.INT)
 def necessary_land(path_to_demand, path_to_eligibility, path_to_unconstrained_potentials_prefer_pv,
-                   path_to_unconstrained_potentials_prefer_wind, path_to_output, share_from_pv):
-    # how much of the total land area do we need, if the demand can only be satisfied by a factor
-    # share_from_pv from the rooftop pv?
-    # ignore offshore as it distorts total area sizes
+                   path_to_unconstrained_potentials_prefer_wind, path_to_built_up_share,
+                   path_to_output, share_from_pv=100):
+    """Determine the fration of non-built-up land area needed to become autarkic.
+
+    Can vary the share of demand satisfied by rooftop PV.
+
+    Ignores offshore as it distorts total area sizes.
+    """
     assert share_from_pv <= 100
     assert share_from_pv >= 0
     share_from_pv = share_from_pv / 100
     demand = pd.read_csv(path_to_demand, index_col=0)["demand_twh_per_year"]
-    unconstrained_potentials_prefer_pv = pd.read_csv(path_to_unconstrained_potentials_prefer_pv,
-                                                     index_col=0).reindex(demand.index)
-    unconstrained_potentials_prefer_wind = pd.read_csv(path_to_unconstrained_potentials_prefer_wind,
-                                                       index_col=0).reindex(demand.index)
-    eligibility = pd.read_csv(path_to_eligibility, index_col=0).reindex(demand.index)
+    unconstrained_potentials_prefer_pv = pd.read_csv(path_to_unconstrained_potentials_prefer_pv, index_col=0)
+    unconstrained_potentials_prefer_wind = pd.read_csv(path_to_unconstrained_potentials_prefer_wind, index_col=0)
+    eligibility = pd.read_csv(path_to_eligibility, index_col=0)
+    built_up_share = pd.read_csv(path_to_built_up_share, index_col=0)["bu_mean"]
 
     constrained_potential = _constrain_potential(unconstrained_potentials_prefer_pv,
                                                  unconstrained_potentials_prefer_wind, SCENARIO_CONFIG)
@@ -53,15 +57,20 @@ def necessary_land(path_to_demand, path_to_eligibility, path_to_unconstrained_po
     del constrained_potential_without_rooftops["eligibility_rooftop_pv_twh_per_year"]
     constrained_potential_without_rooftops = constrained_potential_without_rooftops.sum(axis=1)
     factor_available_land = (demand_after_rooftops / constrained_potential_without_rooftops)
-
+    factor_available_land[demand_after_rooftops < ZERO_DEMAND] = 0 # otherwise will be nan
     del constrained_eligibility["eligibility_offshore_wind_km2"]
-    del eligibility["eligibility_offshore_wind_km2"]
     del constrained_eligibility["eligibility_offshore_wind_protected_km2"]
-    del eligibility["eligibility_offshore_wind_protected_km2"]
     del constrained_eligibility["eligibility_rooftop_pv_km2"]
-    del eligibility["eligibility_rooftop_pv_km2"]
-    fraction_land = constrained_eligibility.sum(axis=1) / eligibility.sum(axis=1) * factor_available_land
-    fraction_land.rename("fraction total land necessary").to_csv(
+    necessary_land = constrained_eligibility.sum(axis=1) * factor_available_land
+    del eligibility["eligibility_offshore_wind_km2"]
+    del eligibility["eligibility_offshore_wind_protected_km2"]
+    assert (built_up_share.max() <= 1).all()
+    assert (built_up_share.min() >= 0).all()
+    non_built_up_land = (1 - built_up_share) * eligibility.sum(axis=1)
+    fraction_non_built_land = necessary_land / non_built_up_land
+
+    fraction_non_built_land[fraction_non_built_land > 1] = 1
+    fraction_non_built_land.rename("fraction non-built-up land necessary").to_csv(
         path_to_output,
         index=True,
         header=True

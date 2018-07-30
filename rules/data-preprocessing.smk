@@ -387,10 +387,13 @@ rule settlements:
         class40 = RAW_SETTLEMENT_DATA.format(esm_class="40"),
         class41 = RAW_SETTLEMENT_DATA.format(esm_class="41"),
         class45 = RAW_SETTLEMENT_DATA.format(esm_class="45"),
+        class30 = RAW_SETTLEMENT_DATA.format(esm_class="30"),
+        class35 = RAW_SETTLEMENT_DATA.format(esm_class="35"),
         reference = rules.land_cover_in_europe.output
     output:
         buildings = "build/esm-class50-buildings.tif",
-        urban_greens = "build/esm-class404145-urban-greens.tif"
+        urban_greens = "build/esm-class404145-urban-greens.tif",
+        built_up = "build/esm-class303550-built-up.tif"
     threads: config["snakemake"]["max-threads"]
     shadow: "full"
     shell:
@@ -403,8 +406,14 @@ rule settlements:
         --like {input.reference} --threads {threads} --resampling bilinear --co compress=LZW
         rio warp {input.class45} -o build/esm-class45.tif \
         --like {input.reference} --threads {threads} --resampling bilinear --co compress=LZW
+        rio warp {input.class30} -o build/esm-class30.tif \
+        --like {input.reference} --threads {threads} --resampling bilinear --co compress=LZW
+        rio warp {input.class35} -o build/esm-class35.tif \
+        --like {input.reference} --threads {threads} --resampling bilinear --co compress=LZW
         rio calc "(+ (+ (read 1) (read 2)) (read 3))" \
         build/esm-class40.tif build/esm-class41.tif build/esm-class45.tif -o {output.urban_greens}
+        rio calc "(+ (+ (read 1) (read 2)) (read 3))" \
+        {output.buildings} build/esm-class30.tif build/esm-class35.tif -o {output.built_up}
         """
 
 

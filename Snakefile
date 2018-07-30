@@ -101,6 +101,24 @@ rule regional_protected_areas:
         """
 
 
+rule regional_built_up_area:
+    message: "Built up area statistics per region of layer {wildcards.layer}."
+    input:
+        regions = rules.regions.output,
+        built_up_areas = rules.settlements.output.built_up,
+        src = "src/geojson_to_csv.py"
+    output:
+        "build/{layer}/built-up-areas.csv"
+    shell:
+        """
+        fio cat {input.regions} | \
+        rio zonalstats -r {input.built_up_areas} --prefix "bu_" --stats "mean" | \
+        {PYTHON} {input.src} -a id -a bu_mean |
+        sed -e 's/None/NaN/g' > \
+        {output}
+        """
+
+
 rule population:
     message: "Allocate population to regions of layer {wildcards.layer}."
     input:
@@ -374,7 +392,8 @@ rule necessary_land:
         "src/necessary_land.py",
         rules.demand.output,
         rules.regional_eligibility.output,
-        rules.unconstrained_potentials.output
+        rules.unconstrained_potentials.output,
+        rules.regional_built_up_area.output
     output:
         "build/{layer}/necessary-land-when-pv-{pvshare}%.csv"
     shell:
