@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 from src.vis.potentials_normed import MAP_MIN_X, MAP_MAX_X, MAP_MIN_Y, MAP_MAX_Y, EPSG_3035_PROJ4, \
-    GREEN, RED, _serbia_montenegro_patch
+    GREEN, RED
 
 
 @click.command()
@@ -38,8 +38,7 @@ def _plot_layer(regions, annotation, ax):
     invalids = regions[~regions.isin(pd.concat([winners, loosers]))].dropna()
 
     ax.set_aspect('equal')
-    ax.add_patch(_serbia_montenegro_patch(regions)) # FIXME, see comment in function
-    winners.plot(color=sns.desaturate(GREEN, 0.85), linewidth=0.1, ax=ax)
+    winners.plot(color=sns.desaturate(GREEN, 0.85), linewidth=0.1, alpha=0.9, ax=ax)
     if not loosers.empty:
         loosers.plot(color=RED, linewidth=0.1, ax=ax)
     if not invalids.empty:
