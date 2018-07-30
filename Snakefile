@@ -562,15 +562,15 @@ rule necessary_land_plot:
 rule necessary_land_plot_all_layers:
     message: "Plot the fraction of land needed to become autarkic."
     input:
-        expand("build/{layer}/demand.csv", layer=config["layers"].keys()),
+        "src/vis/necessary_land_all_layers.py",
+        expand("build/{layer}/necessary-land-when-pv-{pvshare}%.csv",
+               layer=config["layers"].keys(),
+               pvshare=[0, 20, 40, 60, 80, 100]),
         expand("build/{layer}/population.csv", layer=config["layers"].keys()),
-        expand("build/{layer}/unconstrained-potentials-prefer-pv.csv", layer=config["layers"].keys()),
-        expand("build/{layer}/regional-eligibility.csv", layer=config["layers"].keys()),
-        src = "src/vis/necessary_land_all_layers.py",
     output:
         "build/necessary-land-all-layers.png"
     shell:
-        PYTHON + " {input.src} {output}"
+        PYTHON_SCRIPT
 
 
 rule necessary_land_map:
@@ -805,7 +805,7 @@ rule paper:
         "build/technical-potential/normed-potentials-boxplots.png",
         "build/technical-potential/sufficient-potentials-map.png",
         "build/social-ecological-potential/sufficient-potentials-map.png",
-        rules.necessary_land_map.output,
+        "build/necessary-land-map-when-pv-60%.png",
         "build/necessary-land.png",
         "build/necessary-land-all-layers.png",
         rules.sonnendach_statistics.output.publish,

@@ -47,7 +47,7 @@ def _plot_layer(regions, annotation, norm, cmap, ax):
     ax.set_aspect('equal')
     regions.plot(
         linewidth=0.1,
-        column="fraction total land necessary",
+        column="fraction non-built-up land necessary",
         vmin=norm.vmin,
         vmax=norm.vmax,
         cmap=cmap,
