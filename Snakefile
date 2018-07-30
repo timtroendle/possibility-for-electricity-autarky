@@ -473,6 +473,29 @@ rule scenario_results:
         ).to_file(output[0], driver="GeoJSON")
 
 
+rule necessary_land_overview:
+    message: "Create table showing the fraction of land needed to become autarkic for rooftop PV share {wildcards.pvshare}%."
+    input:
+        nec_land = expand("build/{layer}/necessary-land-when-pv-{{pvshare}}%.csv", layer=config["layers"].keys())
+    output:
+        "build/overview-necessary-land-when-pv-{pvshare}%.csv"
+    run:
+        import pandas as pd
+
+        nec_lands = [pd.read_csv(path, index_col=0)["fraction non-built-up land necessary"] for path in input.nec_land]
+        pd.DataFrame(
+            index=config["layers"].keys(),
+            data={
+                "fraction non-built-up land needed [%]": [nec_land.mean() * 100 for nec_land in nec_lands]
+            }
+        ).to_csv(
+            output[0],
+            index=True,
+            header=True,
+            float_format="%.0f"
+        )
+
+
 rule normed_potential_plots:
     message: "Plot fraction of land necessary for scenario {wildcards.scenario}."
     input:
