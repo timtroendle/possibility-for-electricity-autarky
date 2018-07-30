@@ -6,7 +6,7 @@ import seaborn as sns
 
 from src.vis.potentials_normed import RED, GREEN, BLUE
 
-GENERATION_DENSE = 0.5 # land is generation dense when more than this fraction is used for energy farming
+GENERATION_DENSE = 0.33 # land is generation dense when more than this fraction is used for energy farming
 
 
 @click.command()
@@ -37,7 +37,7 @@ def necessary_land(paths_to_input, path_to_output):
         palette=[GREEN, RED, BLUE],
         saturation=0.85,
         hue_order=["municipal", "subnational", "national"],
-        alpha=0.20,
+        alpha=0.10,
         ax=ax
     )
     sns.barplot(

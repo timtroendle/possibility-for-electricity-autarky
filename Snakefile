@@ -481,12 +481,13 @@ rule necessary_land_overview:
         "build/overview-necessary-land-when-pv-{pvshare}%.csv"
     run:
         import pandas as pd
-
         nec_lands = [pd.read_csv(path, index_col=0)["fraction non-built-up land necessary"] for path in input.nec_land]
         pd.DataFrame(
             index=config["layers"].keys(),
             data={
-                "fraction non-built-up land needed [%]": [nec_land.mean() * 100 for nec_land in nec_lands]
+                "minimum [%]": [nec_land.min() * 100 for nec_land in nec_lands],
+                "average [%]": [nec_land.mean() * 100 for nec_land in nec_lands],
+                "maximum [%]": [nec_land.max() * 100 for nec_land in nec_lands]
             }
         ).to_csv(
             output[0],

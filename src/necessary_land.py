@@ -8,7 +8,7 @@ from src.eligible_land import Eligibility
 ZERO_DEMAND = 0.000001
 
 SCENARIO_CONFIG = {
-    "share-protected-areas-used": 0.0,
+    "share-protected-areas-used": 1,
     "pv-on-farmland": False,
     "share-farmland-used": 1,
     "share-forest-used-for-wind": 1,
