@@ -57,7 +57,6 @@ def necessary_land(path_to_demand, path_to_eligibility, path_to_unconstrained_po
     del constrained_potential_without_rooftops["eligibility_rooftop_pv_twh_per_year"]
     constrained_potential_without_rooftops = constrained_potential_without_rooftops.sum(axis=1)
     factor_available_land = (demand_after_rooftops / constrained_potential_without_rooftops)
-    factor_available_land[demand_after_rooftops < ZERO_DEMAND] = 0 # otherwise will be nan
     del constrained_eligibility["eligibility_offshore_wind_km2"]
     del constrained_eligibility["eligibility_offshore_wind_protected_km2"]
     del constrained_eligibility["eligibility_rooftop_pv_km2"]
@@ -68,6 +67,9 @@ def necessary_land(path_to_demand, path_to_eligibility, path_to_unconstrained_po
     assert (built_up_share.min() >= 0).all()
     non_built_up_land = (1 - built_up_share) * eligibility.sum(axis=1)
     fraction_non_built_land = necessary_land / non_built_up_land
+    # corner cases
+    fraction_non_built_land[constrained_potential_without_rooftops == 0] = 1 # otherwise will be nan
+    fraction_non_built_land[demand_after_rooftops < ZERO_DEMAND] = 0 # otherwise will be nan
 
     fraction_non_built_land[fraction_non_built_land > 1] = 1
     fraction_non_built_land.rename("fraction non-built-up land necessary").to_csv(
