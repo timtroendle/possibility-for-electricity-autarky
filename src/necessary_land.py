@@ -3,7 +3,7 @@ import click
 import pandas as pd
 
 from src.potentials_constrained import _constrain_potential, _scaling_factor
-from src.eligible_land import Eligibility
+from src.eligibility import Eligibility
 
 ZERO_DEMAND = 0.000001
 

@@ -11,41 +11,41 @@ PV_SHARE = 0.6
 
 
 @click.command()
-@click.argument("paths_to_regions_and_fraction_land_necessary", nargs=-1)
+@click.argument("paths_to_units_and_fraction_land_necessary", nargs=-1)
 @click.argument("path_to_output")
-def necessary_land_map(paths_to_regions_and_fraction_land_necessary, path_to_output):
+def necessary_land_map(paths_to_units_and_fraction_land_necessary, path_to_output):
     sns.set_context('paper')
-    assert len(paths_to_regions_and_fraction_land_necessary) % 2 == 0
-    number_regions = int(len(paths_to_regions_and_fraction_land_necessary) / 2)
-    region_layers = [gpd.read_file(path).to_crs(EPSG_3035_PROJ4)
-                     for path in paths_to_regions_and_fraction_land_necessary[0:number_regions]]
+    assert len(paths_to_units_and_fraction_land_necessary) % 2 == 0
+    number_units = int(len(paths_to_units_and_fraction_land_necessary) / 2)
+    unit_layers = [gpd.read_file(path).to_crs(EPSG_3035_PROJ4)
+                   for path in paths_to_units_and_fraction_land_necessary[0:number_units]]
     fractions_necessary_land_layers = [pd.read_csv(path)
-                                       for path in paths_to_regions_and_fraction_land_necessary[number_regions:]]
-    region_layers = [regions.merge(fractions_necessary_land, on="id", how="left")
-                     for regions, fractions_necessary_land in zip(region_layers, fractions_necessary_land_layers)]
-    region_layers = [regions.merge(pd.DataFrame(data={"id": regions.id, "layer": _layer_name(path)}),
-                                   on="id", how="left")
-                     for regions, path in zip(region_layers, paths_to_regions_and_fraction_land_necessary[0::2])]
-    _map(region_layers, path_to_output)
+                                       for path in paths_to_units_and_fraction_land_necessary[number_units:]]
+    unit_layers = [units.merge(fractions_necessary_land, on="id", how="left")
+                   for units, fractions_necessary_land in zip(unit_layers, fractions_necessary_land_layers)]
+    unit_layers = [units.merge(pd.DataFrame(data={"id": units.id, "layer": _layer_name(path)}),
+                               on="id", how="left")
+                   for units, path in zip(unit_layers, paths_to_units_and_fraction_land_necessary[0::2])]
+    _map(unit_layers, path_to_output)
 
 
-def _map(region_layers, path_to_plot):
+def _map(unit_layers, path_to_plot):
     fig = plt.figure(figsize=(8, 8), constrained_layout=True)
     axes = fig.subplots(2, 2).flatten()
     norm = matplotlib.colors.Normalize(vmin=0, vmax=1)
     cmap = sns.light_palette(sns.desaturate(GREEN, 0.85), reverse=False, as_cmap=True)
-    _plot_layer(region_layers[0], "(a)", norm, cmap, axes[0])
-    _plot_layer(region_layers[1], "(b)", norm, cmap, axes[1])
-    _plot_layer(region_layers[2], "(c)", norm, cmap, axes[2])
-    _plot_layer(region_layers[3], "(d)", norm, cmap, axes[3])
+    _plot_layer(unit_layers[0], "(a)", norm, cmap, axes[0])
+    _plot_layer(unit_layers[1], "(b)", norm, cmap, axes[1])
+    _plot_layer(unit_layers[2], "(c)", norm, cmap, axes[2])
+    _plot_layer(unit_layers[3], "(d)", norm, cmap, axes[3])
 
     _plot_colorbar(fig, axes, norm, cmap)
     fig.savefig(path_to_plot, dpi=300)
 
 
-def _plot_layer(regions, annotation, norm, cmap, ax):
+def _plot_layer(units, annotation, norm, cmap, ax):
     ax.set_aspect('equal')
-    regions.plot(
+    units.plot(
         linewidth=0.1,
         column="fraction non-built-up land necessary",
         vmin=norm.vmin,
@@ -70,8 +70,8 @@ def _plot_colorbar(fig, axes, norm, cmap):
     cbar.outline.set_linewidth(0)
 
 
-def _layer_name(path_to_regions):
-    return path_to_regions.split("/")[-2]
+def _layer_name(path_to_units):
+    return path_to_units.split("/")[-2]
 
 
 if __name__ == "__main__":

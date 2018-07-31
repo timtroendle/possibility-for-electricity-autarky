@@ -25,7 +25,7 @@ def necessary_land(paths_to_input, path_to_output):
 
     population_sum = all_data.groupby(["rooftop_pv_share", "layer"]).population_sum.sum()
     dense = all_data["fraction non-built-up land necessary"] > GENERATION_DENSE
-    population_sum_in_dense_regions = all_data[dense].groupby(
+    population_sum_in_dense_units = all_data[dense].groupby(
         ["rooftop_pv_share", "layer"]
     ).population_sum.sum()
 
@@ -36,18 +36,18 @@ def necessary_land(paths_to_input, path_to_output):
         hue="layer",
         palette=[GREEN, RED, BLUE],
         saturation=0.85,
-        hue_order=["municipal", "subnational", "national"],
+        hue_order=["municipal", "regional", "national"],
         alpha=0.10,
         ax=ax
     )
     sns.barplot(
-        data=(population_sum_in_dense_regions / population_sum).reset_index(),
+        data=(population_sum_in_dense_units / population_sum).reset_index(),
         x="rooftop_pv_share",
         y="population_sum",
         hue="layer",
         palette=[GREEN, RED, BLUE],
         saturation=0.85,
-        hue_order=["municipal", "subnational", "national"],
+        hue_order=["municipal", "regional", "national"],
         alpha=1,
         ax=ax
     )
@@ -55,7 +55,7 @@ def necessary_land(paths_to_input, path_to_output):
     handles, labels = ax.get_legend_handles_labels()
     ax.legend(handles[3:], labels[3:], loc='upper right')
     ax.set_xlabel("Maximal share of demand supplied by rooftop PV")
-    ax.set_ylabel("Share of population living in generation dense regions")
+    ax.set_ylabel("Share of population living in generation dense units")
     ax.set_xticklabels(["{:.0f}%".format(tick) for tick in all_data.rooftop_pv_share.unique()])
     ax.set_yticklabels(["{:.0f}%".format(tick * 100) for tick in ax.get_yticks()])
     sns.despine(fig=fig)

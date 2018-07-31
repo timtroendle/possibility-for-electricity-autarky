@@ -206,7 +206,7 @@ rule pv_simulation_parameters:
     message: "Create input parameters for simulation of photovoltaics."
     input:
         roof_categories = rules.sonnendach_statistics.output,
-        regions = "build/subnational/regions.geojson"
+        units = "build/regional/units.geojson"
     output:
         "build/swiss/pv-simulation-parameters.csv"
     run:
@@ -234,16 +234,16 @@ rule pv_simulation_parameters:
             return optimal_tilt
 
         roof_categories = pd.read_csv(input.roof_categories[0])
-        regions = gpd.read_file(input.regions).set_index("id")
+        units = gpd.read_file(input.units).set_index("id")
         lat_long = pd.DataFrame(
-            index=regions.index,
+            index=units.index,
             data={
-                "lat": regions.centroid.map(lambda point: point.y),
-                "long": regions.centroid.map(lambda point: point.x)
+                "lat": units.centroid.map(lambda point: point.y),
+                "long": units.centroid.map(lambda point: point.x)
             }
         )
 
-        index = pd.MultiIndex.from_product((regions.index, roof_categories.index), names=["id", "roof_cat_id"])
+        index = pd.MultiIndex.from_product((units.index, roof_categories.index), names=["id", "roof_cat_id"])
         data = pd.DataFrame(index=index).reset_index()
         data = data.merge(roof_categories, left_on="roof_cat_id", right_index=True).drop(columns=["share of roof areas"])
         data = data.merge(lat_long, left_on="id", right_index=True)

@@ -10,7 +10,7 @@ import pycountry
 @click.argument("path_to_roof_classes")
 @click.argument("path_to_output")
 def pv_capacity_factors(path_to_raw_cfs, path_to_regions, path_to_roof_classes, path_to_output):
-    """Derive PV capacity factors from renewable.ninja simulations on subnational level.
+    """Derive PV capacity factors from renewable.ninja simulations on regional level.
 
     Uses the roof classes to derive a single capacity factor for tilted roofs.
     """

@@ -104,9 +104,9 @@ class ProtectedArea(IntEnum):
 @click.argument("path_to_urban_green_share")
 @click.argument("path_to_result")
 @click.argument("config", type=Config())
-def determine_eligible_land(path_to_land_cover, path_to_protected_areas, path_to_slope,
-                            path_to_bathymetry, path_to_building_share, path_to_urban_green_share,
-                            path_to_result, config):
+def determine_eligibility(path_to_land_cover, path_to_protected_areas, path_to_slope,
+                          path_to_bathymetry, path_to_building_share, path_to_urban_green_share,
+                          path_to_result, config):
     """Determines eligibility of land for renewables."""
     with rasterio.open(path_to_land_cover) as src:
         raster_affine = src.affine
@@ -122,7 +122,7 @@ def determine_eligible_land(path_to_land_cover, path_to_protected_areas, path_to
         building_share = src.read(1)
     with rasterio.open(path_to_urban_green_share) as src:
         urban_green_share = src.read(1)
-    eligibility = determine_eligibility(
+    eligibility = _determine_eligibility(
         land_cover=land_cover,
         protected_areas=protected_areas,
         slope=slope,
@@ -137,7 +137,7 @@ def determine_eligible_land(path_to_land_cover, path_to_protected_areas, path_to
         new_geotiff.write(eligibility, 1)
 
 
-def determine_eligibility(land_cover, protected_areas, slope, bathymetry, building_share, urban_green_share, config):
+def _determine_eligibility(land_cover, protected_areas, slope, bathymetry, building_share, urban_green_share, config):
     # parameters
     max_slope_pv = config["parameters"]["max-slope"]["pv"]
     max_slope_wind = config["parameters"]["max-slope"]["wind"]
@@ -177,4 +177,4 @@ def _add_eligibility(land, eligibility, mask):
 
 
 if __name__ == "__main__":
-    determine_eligible_land()
+    determine_eligibility()

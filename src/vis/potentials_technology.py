@@ -41,9 +41,9 @@ def _normed_potentials(technology_potentials, demand):
         ], names=["country_code", "tech"]),
         name="normed yield"
     )
-    for region in demand.index:
+    for unit in demand.index:
         for tech in ["rooftop-pv", "pv-farm", "onshore wind", "offshore wind"]:
-            data.loc[region, tech] = normed_potentials.loc[region, tech]
+            data.loc[unit, tech] = normed_potentials.loc[unit, tech]
     return data
 
 

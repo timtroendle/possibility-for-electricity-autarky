@@ -20,17 +20,17 @@ SORT_QUANTILE = 0.5
 def visualise_normed_potentials(path_to_results, path_to_plot):
     """Visualises the range of potentials relative to demand in each municipality."""
     sns.set_context('paper')
-    regions = pd.DataFrame(gpd.read_file(path_to_results))
-    regions = regions[["country_code", "population_sum", "normed_potential"]]
+    units = pd.DataFrame(gpd.read_file(path_to_results))
+    units = units[["country_code", "population_sum", "normed_potential"]]
     people = pd.DataFrame(
         data={
             "country_code": list(chain(*[
-                (repeat(region[1].country_code, round(region[1].population_sum / 100)))
-                for region in regions.iterrows()
+                (repeat(unit[1].country_code, round(unit[1].population_sum / 100)))
+                for unit in units.iterrows()
             ])),
             "normed_potential": list(chain(*[
-                (repeat(region[1].normed_potential, round(region[1].population_sum / 100)))
-                for region in regions.iterrows()
+                (repeat(unit[1].normed_potential, round(unit[1].population_sum / 100)))
+                for unit in units.iterrows()
             ]))
         }
     )

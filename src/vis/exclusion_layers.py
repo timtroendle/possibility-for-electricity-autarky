@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 import seaborn as sns
 
-from src.eligible_land import FARM, FOREST, VEGETATION, BARE, ProtectedArea
+from src.eligibility import FARM, FOREST, VEGETATION, BARE, ProtectedArea
 from src.vis.potentials_normed import GREEN, BLUE, RED
 
 YELLOW = "#FABC3C"

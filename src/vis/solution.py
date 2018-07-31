@@ -11,17 +11,17 @@ PROTECTION_DROPS = [0.0, 0.1, 0.2, 0.3, 1.0]
 
 
 @click.command()
-@click.argument("paths_to_region_attributes", nargs=-1)
+@click.argument("paths_to_unit_attributes", nargs=-1)
 @click.argument("path_to_potentials_full")
 @click.argument("path_to_potentials_zero")
 @click.argument("path_to_plot")
-def solution_matrix(paths_to_region_attributes, path_to_potentials_full, path_to_potentials_zero,
+def solution_matrix(paths_to_unit_attributes, path_to_potentials_full, path_to_potentials_zero,
                     path_to_plot):
     """Plot the solution matrix showing how sufficient power supply can be reached."""
     sns.set_context('paper')
 
     attributes = pd.concat(
-        [pd.read_csv(path_to_attribute).set_index("id") for path_to_attribute in paths_to_region_attributes],
+        [pd.read_csv(path_to_attribute).set_index("id") for path_to_attribute in paths_to_unit_attributes],
         axis=1
     )
     potentials_full = pd.read_csv(path_to_potentials_full).set_index("id").sum(axis=1)

@@ -1,4 +1,4 @@
-"""This module visualises distribution of NUTS regions."""
+"""This module visualises distribution of NUTS units."""
 import click
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -12,7 +12,7 @@ from src.conversion import area_in_squaremeters
 @click.argument('path_to_nuts')
 @click.argument('path_to_figure')
 def visualise_nuts_distributions(path_to_nuts, path_to_figure):
-    """Visualise distributions of NUTS regions."""
+    """Visualise distributions of NUTS units."""
     sns.set_context('paper')
     sns.set_style("whitegrid")
 

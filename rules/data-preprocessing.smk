@@ -84,10 +84,10 @@ rule administrative_borders_gadm:
         PYTHON + " {input} {params.max_layer_depth} {output} {CONFIG_FILE}"
 
 
-rule raw_nuts_regions_zipped:
-    message: "Download regions as zip."
+rule raw_nuts_units_zipped:
+    message: "Download units as zip."
     output:
-        protected("data/automatic/raw-nuts-regions.zip")
+        protected("data/automatic/raw-nuts-units.zip")
     shell:
         "curl -sLo {output} '{URL_NUTS}'"
 
@@ -96,7 +96,7 @@ rule administrative_borders_nuts:
     message: "Normalise NUTS administrative borders."
     input:
         src = "src/nuts.py",
-        zip = rules.raw_nuts_regions_zipped.output
+        zip = rules.raw_nuts_units_zipped.output
     output:
         "build/administrative-borders-nuts.gpkg"
     shadow: "full"
@@ -109,10 +109,10 @@ rule administrative_borders_nuts:
         """
 
 
-rule raw_lau_regions_zipped:
-    message: "Download LAU regions as zip."
+rule raw_lau_units_zipped:
+    message: "Download LAU units as zip."
     output:
-        protected("data/automatic/raw-lau-regions.zip")
+        protected("data/automatic/raw-lau-units.zip")
     shell:
         "curl -sLo {output} '{URL_LAU}'"
 
@@ -121,7 +121,7 @@ rule administrative_borders_lau:
     message: "Normalise LAU administrative borders."
     input:
         src = "src/lau.py",
-        zip = rules.raw_lau_regions_zipped.output
+        zip = rules.raw_lau_units_zipped.output
     output:
         "build/administrative-borders-lau.gpkg"
     shadow: "full"
@@ -136,9 +136,9 @@ rule administrative_borders_lau:
 
 
 rule raw_urbanisation_zipped:
-    message: "Download DEGURBA regions as zip."
+    message: "Download DEGURBA units as zip."
     output:
-        protected("data/automatic/raw-degurba-regions.zip")
+        protected("data/automatic/raw-degurba-units.zip")
     shell:
         "curl -sLo {output} '{URL_DEGURBA}'"
 
@@ -147,7 +147,7 @@ rule lau2_urbanisation_degree:
     message: "Urbanisation degrees on LAU2 level."
     input:
         src = "src/lau.py",
-        lau2 = rules.raw_lau_regions_zipped.output,
+        lau2 = rules.raw_lau_units_zipped.output,
         degurba = rules.raw_urbanisation_zipped.output
     output:
         "build/administrative-borders-lau-urbanisation.csv"

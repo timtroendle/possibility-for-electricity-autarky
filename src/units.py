@@ -1,4 +1,4 @@
-"""Remixes NUTS, LAU, and GADM data to form the regions of the analysis."""
+"""Remixes NUTS, LAU, and GADM data to form the units of the analysis."""
 import click
 import pandas as pd
 import geopandas as gpd
@@ -17,8 +17,8 @@ DRIVER = "GeoJSON"
 @click.argument("path_to_output")
 @click.argument("layer_name")
 @click.argument("config", type=Config())
-def remix_regions(path_to_nuts, path_to_lau2, path_to_gadm, path_to_output, layer_name, config):
-    """Remixes NUTS, LAU, and GADM data to form the regions of the analysis."""
+def remix_units(path_to_nuts, path_to_lau2, path_to_gadm, path_to_output, layer_name, config):
+    """Remixes NUTS, LAU, and GADM data to form the units of the analysis."""
     source_layers = _read_source_layers(path_to_nuts, path_to_lau2, path_to_gadm)
     _validate_source_layers(source_layers)
     _validate_layer_config(config, layer_name)
@@ -80,7 +80,7 @@ def _european_layer(layer):
     layer.loc[index, "id"] = "EUR"
     layer.loc[index, "country_code"] = "EUR"
     layer.loc[index, "name"] = "Europe"
-    layer.loc[index, "region_type"] = "continent"
+    layer.loc[index, "type"] = "continent"
     layer.loc[index, "proper"] = 1
     return layer
 
@@ -93,4 +93,4 @@ def _write_layer(gpd, path_to_file):
 
 
 if __name__ == "__main__":
-    remix_regions()
+    remix_units()

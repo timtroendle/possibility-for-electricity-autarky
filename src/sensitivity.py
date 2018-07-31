@@ -19,17 +19,17 @@ URBAN_POPULATION_DENSITY_THRESHOLD = 1500 # pop per km2
 @click.argument("path_to_unconstrained_potentials_prefer_wind")
 @click.argument("path_to_demand")
 @click.argument("path_to_population")
-@click.argument("path_to_regions")
+@click.argument("path_to_units")
 @click.argument("path_to_result_urban_population")
 @click.argument("path_to_result_rural_population")
 @click.argument("path_to_result_number")
 @click.argument("threads", type=int)
 def sensititivity_analysis(path_to_unconstrained_potentials_prefer_pv, path_to_unconstrained_potentials_prefer_wind,
-                           path_to_demand, path_to_population, path_to_regions, path_to_result_urban_population,
+                           path_to_demand, path_to_population, path_to_units, path_to_result_urban_population,
                            path_to_result_rural_population, path_to_result_number, threads):
     demand = pd.read_csv(path_to_demand, index_col=0)["demand_twh_per_year"]
     population = pd.read_csv(path_to_population, index_col=0)["population_sum"].reindex(demand.index)
-    area_size_km2 = area_in_squaremeters(gpd.read_file(path_to_regions).set_index("id").reindex(demand.index)) / 1e6
+    area_size_km2 = area_in_squaremeters(gpd.read_file(path_to_units).set_index("id").reindex(demand.index)) / 1e6
     urban = (population / area_size_km2) >= URBAN_POPULATION_DENSITY_THRESHOLD
     unconstrained_prefer_pv = pd.read_csv(
         path_to_unconstrained_potentials_prefer_pv,

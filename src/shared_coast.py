@@ -1,4 +1,4 @@
-"""Module to Determine share of shared coast between eez and administrative regions."""
+"""Module to Determine share of shared coast between eez and administrative units."""
 from textwrap import dedent
 from multiprocessing import Pool
 from itertools import cycle
@@ -13,22 +13,22 @@ DRIVER = "GeoJSON"
 
 
 @click.command()
-@click.argument("path_to_regions")
+@click.argument("path_to_units")
 @click.argument("path_to_eezs")
 @click.argument("path_to_output")
 @click.argument("threads", type=click.INT)
-def allocate_eezs(path_to_regions, path_to_eezs, path_to_output, threads):
-    """Determine share of shared coast between eez and administrative regions."""
-    regions = gpd.read_file(path_to_regions)
-    regions.set_index("id", inplace=True)
+def allocate_eezs(path_to_units, path_to_eezs, path_to_output, threads):
+    """Determine share of shared coast between eez and administrative units."""
+    units = gpd.read_file(path_to_units)
+    units.set_index("id", inplace=True)
     eezs = gpd.read_file(path_to_eezs)
     with Pool(threads) as pool:
         share_of_coast_length = pool.map(
             _share_of_coast_length,
-            zip((eez[1] for eez in eezs.iterrows()), cycle([regions]))
+            zip((eez[1] for eez in eezs.iterrows()), cycle([units]))
         )
     share = pd.DataFrame(
-        index=regions.index,
+        index=units.index,
         data=dict(zip(eezs["id"].values, share_of_coast_length))
     )
     assert (
@@ -40,14 +40,14 @@ def allocate_eezs(path_to_regions, path_to_eezs, path_to_output, threads):
 
 def _share_of_coast_length(args):
     # How to determine the length of the shared coast?
-    # I intersect eez with the region and determine the length of the resulting polygon.
+    # I intersect eez with the unit and determine the length of the resulting polygon.
     # This approach is fairly rough, but accurate enough for this analysis.
     eez = args[0]
-    regions = args[1]
-    length_of_shared_coast = pd.Series(data=0.0, index=regions.index, dtype=np.float32)
+    units = args[1]
+    length_of_shared_coast = pd.Series(data=0.0, index=units.index, dtype=np.float32)
     prep_eez = prep(eez["geometry"]) # increase performance
-    intersection_mask = ((regions["country_code"].isin([eez["ISO_Ter1"], "EUR"])) &
-                         (regions["geometry"].map(lambda region: prep_eez.intersects(region))))
+    intersection_mask = ((units["country_code"].isin([eez["ISO_Ter1"], "EUR"])) &
+                         (units["geometry"].map(lambda unit: prep_eez.intersects(unit))))
     if intersection_mask.sum() == 0:
         msg = dedent("""No shared coast found for {}.
         Ignoring eez with area {} km^2.""".format(
@@ -57,12 +57,12 @@ def _share_of_coast_length(args):
         print(msg)
         share = length_of_shared_coast.copy()
     elif intersection_mask.sum() == 1:
-        # performance improvement in cases where only one region matches
+        # performance improvement in cases where only one unit matches
         share = length_of_shared_coast.copy()
         share[intersection_mask] = 1
     else:
-        length_of_shared_coast[intersection_mask] = regions.loc[intersection_mask, "geometry"].map(
-            lambda region: eez["geometry"].intersection(region).length
+        length_of_shared_coast[intersection_mask] = units.loc[intersection_mask, "geometry"].map(
+            lambda unit: eez["geometry"].intersection(unit).length
         )
         share = length_of_shared_coast / length_of_shared_coast.sum()
     return share

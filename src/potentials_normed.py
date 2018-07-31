@@ -2,16 +2,16 @@
 import click
 import pandas as pd
 
-from src.eligible_land import Eligibility
+from src.eligibility import Eligibility
 
 
 @click.command()
-@click.argument("paths_to_region_attributes", nargs=-1)
+@click.argument("paths_to_unit_attributes", nargs=-1)
 @click.argument("path_to_output")
-def normed_potential(paths_to_region_attributes, path_to_output):
+def normed_potential(paths_to_unit_attributes, path_to_output):
     """Determines the potential relative to demand."""
     attributes = pd.concat(
-        [pd.read_csv(path_to_attribute).set_index("id") for path_to_attribute in paths_to_region_attributes],
+        [pd.read_csv(path_to_attribute).set_index("id") for path_to_attribute in paths_to_unit_attributes],
         axis=1
     )
     determine_normed_potentials(

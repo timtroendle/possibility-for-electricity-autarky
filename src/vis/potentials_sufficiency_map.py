@@ -13,29 +13,29 @@ from src.vis.potentials_normed import MAP_MIN_X, MAP_MAX_X, MAP_MIN_Y, MAP_MAX_Y
 @click.argument("path_to_output")
 def necessary_land_map(paths_to_results, path_to_output):
     sns.set_context('paper')
-    region_layers = [
+    unit_layers = [
         gpd.read_file(path_to_results).to_crs(EPSG_3035_PROJ4)
         for path_to_results in paths_to_results
     ]
-    _map(region_layers, path_to_output)
+    _map(unit_layers, path_to_output)
 
 
-def _map(region_layers, path_to_plot):
+def _map(unit_layers, path_to_plot):
     fig = plt.figure(figsize=(8, 8), constrained_layout=True)
     axes = fig.subplots(2, 2).flatten()
     fig.subplots_adjust(left=0, right=1.0, bottom=0.0, top=1.0, wspace=0.0, hspace=0.0)
-    _plot_layer(region_layers[0], "(a)", axes[0])
-    _plot_layer(region_layers[1], "(b)", axes[1])
-    _plot_layer(region_layers[2], "(c)", axes[2])
-    _plot_layer(region_layers[3], "(d)", axes[3])
+    _plot_layer(unit_layers[0], "(a)", axes[0])
+    _plot_layer(unit_layers[1], "(b)", axes[1])
+    _plot_layer(unit_layers[2], "(c)", axes[2])
+    _plot_layer(unit_layers[3], "(d)", axes[3])
 
     fig.savefig(path_to_plot, dpi=300)
 
 
-def _plot_layer(regions, annotation, ax):
-    winners = regions[regions["normed_potential"] >= 1]
-    loosers = regions[regions["normed_potential"] < 1]
-    invalids = regions[~regions.isin(pd.concat([winners, loosers]))].dropna()
+def _plot_layer(units, annotation, ax):
+    winners = units[units["normed_potential"] >= 1]
+    loosers = units[units["normed_potential"] < 1]
+    invalids = units[~units.isin(pd.concat([winners, loosers]))].dropna()
 
     ax.set_aspect('equal')
     winners.plot(color=sns.desaturate(GREEN, 0.85), linewidth=0.1, alpha=0.9, ax=ax)
@@ -51,8 +51,8 @@ def _plot_layer(regions, annotation, ax):
     ax.annotate(annotation, xy=[0.10, 0.85], xycoords='axes fraction')
 
 
-def _layer_name(path_to_regions):
-    return path_to_regions.split("/")[-2]
+def _layer_name(path_to_units):
+    return path_to_units.split("/")[-2]
 
 
 if __name__ == "__main__":

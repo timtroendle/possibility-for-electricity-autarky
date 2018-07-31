@@ -56,7 +56,7 @@ def identify(path_to_shapes, path_to_output):
 @click.argument("path_to_degurba")
 @click.argument("path_to_output")
 def degurba(path_to_lau, path_to_degurba, path_to_output):
-    """Merge LAU2 regions with DEGURBA data."""
+    """Merge LAU2 units with DEGURBA data."""
     lau2 = gpd.read_file(path_to_lau)
     degurba = gpd.read_file(path_to_degurba)
     degurba_codes = lau2.merge(degurba, how="left", on=["CNTR_CODE", "NSI_CODE"])
@@ -89,7 +89,7 @@ def _layer_features(lau_file, config):
         new_feature["properties"]["country_code"] = eu_country_code_to_iso3(feature["properties"]["COMM_ID"][:2])
         new_feature["properties"]["id"] = feature["properties"]["COMM_ID"]
         new_feature["properties"]["name"] = feature["properties"]["NAME_LATN"]
-        new_feature["properties"]["region_type"] = "commune"
+        new_feature["properties"]["type"] = "commune"
         new_feature["properties"]["proper"] = True if feature["properties"]["TRUE_COMM_"] == "T" else False
         new_feature["geometry"] = _all_parts_in_study_area_and_crs(feature, lau_file.crs, config)
         yield new_feature
@@ -97,13 +97,13 @@ def _layer_features(lau_file, config):
 
 def _all_parts_in_study_area_and_crs(feature, src_crs, config):
     study_area = _study_area(config)
-    region = _to_multi_polygon(feature["geometry"])
-    if not study_area.contains(region):
+    unit = _to_multi_polygon(feature["geometry"])
+    if not study_area.contains(unit):
         print("Removing parts of {} outside of study area.".format(feature["properties"]["COMM_ID"]))
-        new_region = shapely.geometry.MultiPolygon([polygon for polygon in region.geoms
-                                                    if study_area.contains(polygon)])
-        region = new_region
-    geometry = shapely.geometry.mapping(region)
+        new_unit = shapely.geometry.MultiPolygon([polygon for polygon in unit.geoms
+                                                  if study_area.contains(polygon)])
+        unit = new_unit
+    geometry = shapely.geometry.mapping(unit)
     return fiona.transform.transform_geom(
         src_crs=src_crs,
         dst_crs=config["crs"],
@@ -114,9 +114,9 @@ def _all_parts_in_study_area_and_crs(feature, src_crs, config):
 def _in_study_area(config, feature):
     study_area = _study_area(config)
     countries = [pycountry.countries.lookup(country) for country in config["scope"]["countries"]]
-    region = shapely.geometry.shape(feature["geometry"])
+    unit = shapely.geometry.shape(feature["geometry"])
     country = pycountry.countries.lookup(eu_country_code_to_iso3(feature["properties"]["COMM_ID"][:2]))
-    if (country in countries) and (study_area.contains(region) or study_area.intersects(region)):
+    if (country in countries) and (study_area.contains(unit) or study_area.intersects(unit)):
         return True
     else:
         print("Removing {} as it is outside of study area.".format(feature["properties"]["COMM_ID"]))

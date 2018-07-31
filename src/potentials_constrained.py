@@ -1,4 +1,4 @@
-"""Quantify the constrained potentials for renewable power in regions.
+"""Quantify the constrained potentials for renewable power in units.
 
 Based on the unconstrained potentials and rules to constrain it.
 """
@@ -6,7 +6,7 @@ import click
 import pandas as pd
 
 from src.utils import Config
-from src.eligible_land import Eligibility
+from src.eligibility import Eligibility
 
 
 @click.command()

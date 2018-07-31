@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 
-from src.eligible_land import Eligibility, determine_eligibility, GlobCover, ProtectedArea
+from src.eligibility import Eligibility, determine_eligibility, GlobCover, ProtectedArea
 
 
 @pytest.fixture

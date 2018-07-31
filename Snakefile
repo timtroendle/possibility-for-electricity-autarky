@@ -16,47 +16,48 @@ rule all:
         "build/paper.pdf"
 
 
-rule eligible_land:
+rule eligibility:
     message:
         "Determine land eligibility for renewables based on land cover, slope, bathymetry, settlements, "
         "and protected areas."
     input:
-        "src/eligible_land.py",
+        "src/eligibility.py",
         rules.land_cover_in_europe.output,
         rules.protected_areas_in_europe.output,
         rules.slope_in_europe.output,
         rules.bathymetry_in_europe.output,
-        rules.settlements.output
+        rules.settlements.output.buildings,
+        rules.settlements.output.urban_greens
     output:
         "build/eligible-land.tif"
     shell:
         PYTHON_SCRIPT + " {CONFIG_FILE}"
 
 
-rule regions:
-    message: "Form regions of layer {wildcards.layer} by remixing NUTS, LAU, and GADM."
+rule units:
+    message: "Form units of layer {wildcards.layer} by remixing NUTS, LAU, and GADM."
     input:
-        "src/regions.py",
+        "src/units.py",
         rules.administrative_borders_nuts.output,
         rules.administrative_borders_lau.output,
         rules.administrative_borders_gadm.output
     output:
-        "build/{layer}/regions.geojson"
+        "build/{layer}/units.geojson"
     shell:
         PYTHON_SCRIPT + " {wildcards.layer} {CONFIG_FILE}"
 
 
-rule regional_land_cover:
-    message: "Land cover statistics per region of layer {wildcards.layer}."
+rule local_land_cover:
+    message: "Land cover statistics per unit of layer {wildcards.layer}."
     input:
-        regions = rules.regions.output,
+        units = rules.units.output,
         land_cover = rules.land_cover_in_europe.output,
         src = "src/geojson_to_csv.py"
     output:
         "build/{layer}/land-cover.csv"
     shell:
         """
-        fio cat {input.regions} | \
+        fio cat {input.units} | \
         rio zonalstats -r {input.land_cover} --prefix 'lc_' --categorical | \
         {PYTHON} {input.src} -a id -a lc_11 -a lc_14 -a lc_20 -a lc_30 -a lc_40 \
         -a lc_50 -a lc_60 -a lc_70 -a lc_90 -a lc_100 -a lc_110 -a lc_120 -a lc_130 \
@@ -66,17 +67,17 @@ rule regional_land_cover:
         """
 
 
-rule regional_slope:
-    message: "Slope statistics per region of layer {wildcards.layer}."
+rule local_slope:
+    message: "Slope statistics per unit of layer {wildcards.layer}."
     input:
-        regions = rules.regions.output,
+        units = rules.units.output,
         slope = rules.slope_in_europe.output,
         src = "src/geojson_to_csv.py"
     output:
         "build/{layer}/slope.csv"
     shell:
         """
-        fio cat {input.regions} | \
+        fio cat {input.units} | \
         rio zonalstats -r {input.slope} --stats "min max median percentile_25 percentile_75" | \
         {PYTHON} {input.src} -a id -a _min -a _max -a _median -a _percentile_25 -a _percentile_75 |
         sed -e 's/None/NaN/g' > \
@@ -84,34 +85,34 @@ rule regional_slope:
         """
 
 
-rule regional_protected_areas:
-    message: "Protected area statistics per region of layer {wildcards.layer}."
+rule local_protected_areas:
+    message: "Protected area statistics per unit of layer {wildcards.layer}."
     input:
-        regions = rules.regions.output,
+        units = rules.units.output,
         protected_areas = rules.protected_areas_in_europe.output,
         src = "src/geojson_to_csv.py"
     output:
         "build/{layer}/protected-areas.csv"
     shell:
         """
-        fio cat {input.regions} | \
+        fio cat {input.units} | \
         rio zonalstats -r {input.protected_areas} --prefix 'pa_' --categorical --nodata -1 | \
         {PYTHON} {input.src} -a id -a pa_0 -a pa_255 > \
         {output}
         """
 
 
-rule regional_built_up_area:
-    message: "Built up area statistics per region of layer {wildcards.layer}."
+rule local_built_up_area:
+    message: "Built up area statistics per unit of layer {wildcards.layer}."
     input:
-        regions = rules.regions.output,
+        units = rules.units.output,
         built_up_areas = rules.settlements.output.built_up,
         src = "src/geojson_to_csv.py"
     output:
         "build/{layer}/built-up-areas.csv"
     shell:
         """
-        fio cat {input.regions} | \
+        fio cat {input.units} | \
         rio zonalstats -r {input.built_up_areas} --prefix "bu_" --stats "mean" | \
         {PYTHON} {input.src} -a id -a bu_mean |
         sed -e 's/None/NaN/g' > \
@@ -120,22 +121,22 @@ rule regional_built_up_area:
 
 
 rule population:
-    message: "Allocate population to regions of layer {wildcards.layer}."
+    message: "Allocate population to units of layer {wildcards.layer}."
     input:
-        regions = rules.regions.output,
+        units = rules.units.output,
         population = rules.population_in_europe.output,
         src_geojson = "src/geojson_to_csv.py",
         src_population = "src/population.py",
-        land_cover = rules.regional_land_cover.output
+        land_cover = rules.local_land_cover.output
     output:
         "build/{layer}/population.csv"
     shell:
         """
         crs=$(rio info --crs {input.population})
-        fio cat --dst_crs "$crs" {input.regions} | \
+        fio cat --dst_crs "$crs" {input.units} | \
         rio zonalstats -r {input.population} --prefix 'population_' --stats sum | \
         {PYTHON} {input.src_geojson} -a id -a population_sum -a proper | \
-        {PYTHON} {input.src_population} {input.regions} {input.land_cover} > \
+        {PYTHON} {input.src_population} {input.units} {input.land_cover} > \
         {output}
         """
 
@@ -145,7 +146,7 @@ rule population_in_protected_areas:
     input:
         population = rules.population_in_europe.output,
         protected_areas = rules.protected_areas_in_europe.output,
-        regions = "build/national/regions.geojson"
+        units = "build/national/units.geojson"
     output:
         "build/population-in-protected-areas.tif",
     threads: config["snakemake"]["max-threads"]
@@ -155,17 +156,17 @@ rule population_in_protected_areas:
         rio warp {input.population} -o warped_pop_europe.tif \
         --like {input.protected_areas} --threads {threads} --resampling bilinear
         rio calc "(* (== (read 1) 255) (read 2))" {input.protected_areas} warped_pop_europe.tif {output}
-        rio mask {output} {output} --crop --geojson-mask {input.regions} --force-overwrite
+        rio mask {output} {output} --crop --geojson-mask {input.units} --force-overwrite
         """
 
 
 rule demand:
-    message: "Allocate electricity demand to regions of layer {wildcards.layer}."
+    message: "Allocate electricity demand to units of layer {wildcards.layer}."
     input:
         "src/spatial_demand.py",
         rules.electricity_demand_national.output,
         rules.industry.output,
-        rules.regions.output,
+        rules.units.output,
         rules.population.output
     output:
         "build/{layer}/demand.csv"
@@ -177,9 +178,9 @@ rule eez_eligibility:
     message:
         "Allocate eligible land to exclusive economic zones using {threads} threads."
     input:
-        src = "src/regional_eligibility.py",
+        src = "src/eligibility_local.py",
         regions = rules.eez_in_europe.output,
-        eligibility = rules.eligible_land.output
+        eligibility = rules.eligibility.output
     output:
         "build/eez-eligibility.csv"
     threads: config["snakemake"]["max-threads"]
@@ -187,25 +188,25 @@ rule eez_eligibility:
         PYTHON + " {input.src} offshore {input.regions} {input.eligibility} {output} {threads}"
 
 
-rule regional_land_eligibility:
+rule local_land_eligibility:
     message:
-        "Allocate eligible land to regions of layer {wildcards.layer} using {threads} threads."
+        "Allocate eligible land to units of layer {wildcards.layer} using {threads} threads."
     input:
-        src = "src/regional_eligibility.py",
-        regions = rules.regions.output,
-        eligibility = rules.eligible_land.output
+        src = "src/eligibility_local.py",
+        units = rules.units.output,
+        eligibility = rules.eligibility.output
     output:
         "build/{layer}/land-eligibility.csv"
     threads: config["snakemake"]["max-threads"]
     shell:
-        PYTHON + " {input.src} land {input.regions} {input.eligibility} {output} {threads}"
+        PYTHON + " {input.src} land {input.units} {input.eligibility} {output} {threads}"
 
 
 rule shared_coast:
-    message: "Determine share of coast length between eez and regions of layer {wildcards.layer} using {threads} threads."
+    message: "Determine share of coast length between eez and units of layer {wildcards.layer} using {threads} threads."
     input:
         "src/shared_coast.py",
-        rules.regions.output,
+        rules.units.output,
         rules.eez_in_europe.output
     output:
         "build/{layer}/shared-coast.csv"
@@ -214,8 +215,8 @@ rule shared_coast:
         PYTHON_SCRIPT + " {threads}"
 
 
-rule regional_offshore_eligibility:
-    message: "Allocate eez eligibilities to regions of layer {wildcards.layer}."
+rule local_offshore_eligibility:
+    message: "Allocate eez eligibilities to units of layer {wildcards.layer}."
     input:
         "src/allocate_eez.py",
         rules.eez_eligibility.output,
@@ -226,15 +227,15 @@ rule regional_offshore_eligibility:
         PYTHON_SCRIPT
 
 
-rule regional_eligibility_rooftop_pv:
+rule local_eligibility_rooftop_pv:
     message:
-        "Determine rooftop pv potential in each region of layer {wildcards.layer}."
+        "Determine rooftop pv potential in each unit of layer {wildcards.layer}."
     input:
         "src/rooftop.py",
         rules.settlements.output.buildings,
-        rules.eligible_land.output,
-        rules.regions.output,
-        rules.regional_land_eligibility.output,
+        rules.eligibility.output,
+        rules.units.output,
+        rules.local_land_eligibility.output,
         rules.ratio_esm_estimation_available.output
     output:
         "build/{layer}/land-eligibility-with-rooftop-pv.csv"
@@ -242,13 +243,13 @@ rule regional_eligibility_rooftop_pv:
         PYTHON_SCRIPT + " {CONFIG_FILE}"
 
 
-rule regional_eligibility:
+rule local_eligibility:
     message: "Merge land and offshore eligibility for layer {wildcards.layer}."
     input:
-        land = rules.regional_eligibility_rooftop_pv.output,
-        offshore = rules.regional_offshore_eligibility.output
+        land = rules.local_eligibility_rooftop_pv.output,
+        offshore = rules.local_offshore_eligibility.output
     output:
-        "build/{layer}/regional-eligibility.csv"
+        "build/{layer}/local-eligibility.csv"
     run:
         import pandas as pd
 
@@ -295,7 +296,7 @@ rule wind_capacity_factors:
         "src/capacity_factors_wind.py",
         rules.national_capacity_factors.output,
         "data/wind/",
-        "build/national/regions.geojson",
+        "build/national/units.geojson",
         rules.administrative_borders_nuts.output
     output:
         "build/capacity-factors-wind.geojson"
@@ -303,7 +304,7 @@ rule wind_capacity_factors:
         PYTHON_SCRIPT + " {CONFIG_FILE}"
 
 
-rule raw_subnational_pv_capacity_factors:
+rule raw_regional_pv_capacity_factors:
     message: "Process renewables.ninja capacity factors."
     input:
         "data/pv.nc"
@@ -318,11 +319,11 @@ rule raw_subnational_pv_capacity_factors:
 
 
 rule pv_capacity_factors:
-    message: "Derive PV capacity factors on subnational level."
+    message: "Derive PV capacity factors on regional level."
     input:
         "src/capacity_factors_pv.py",
-        rules.raw_subnational_pv_capacity_factors.output,
-        "build/subnational/regions.geojson",
+        rules.raw_regional_pv_capacity_factors.output,
+        "build/regional/units.geojson",
         rules.sonnendach_statistics.output.raw,
     output:
         "build/capacity-factors-pv.geojson"
@@ -330,11 +331,11 @@ rule pv_capacity_factors:
         PYTHON_SCRIPT
 
 
-rule regional_capacity_factors:
-    message: "Determine capacity factors for regions of layer {wildcards.layer} using {threads} threads."
+rule local_capacity_factors:
+    message: "Determine capacity factors for units of layer {wildcards.layer} using {threads} threads."
     input:
-        "src/capacity_factors_regional.py",
-        rules.regions.output,
+        "src/capacity_factors_local.py",
+        rules.units.output,
         rules.wind_capacity_factors.output,
         rules.pv_capacity_factors.output
     output:
@@ -349,8 +350,8 @@ rule unconstrained_potentials:
         "Determine the unconstrained renewable potentials for all eligibility types of layer {wildcards.layer}."
     input:
         "src/potentials_unconstrained.py",
-        rules.regional_eligibility.output,
-        rules.regional_capacity_factors.output,
+        rules.local_eligibility.output,
+        rules.local_capacity_factors.output,
         rules.sonnendach_statistics.output.raw
     output:
         prefer_pv = "build/{layer}/unconstrained-potentials-prefer-pv.csv",
@@ -391,9 +392,9 @@ rule necessary_land:
     input:
         "src/necessary_land.py",
         rules.demand.output,
-        rules.regional_eligibility.output,
+        rules.local_eligibility.output,
         rules.unconstrained_potentials.output,
-        rules.regional_built_up_area.output
+        rules.local_built_up_area.output
     output:
         "build/{layer}/necessary-land-when-pv-{pvshare}%.csv"
     shell:
@@ -452,7 +453,7 @@ rule european_potentials_aggregation:
 rule scenario_results:
     message: "Merge all results of scenario {wildcards.scenario} for layer {wildcards.layer}."
     input:
-        regions = rules.regions.output,
+        units = rules.units.output,
         demand = rules.demand.output,
         population = rules.population.output,
         constrained_potentials = rules.constrained_potentials.output,
@@ -463,7 +464,7 @@ rule scenario_results:
         import pandas as pd
         import geopandas as gpd
 
-        gpd.read_file(input.regions[0]).merge(
+        gpd.read_file(input.units[0]).merge(
             pd.concat(
                 [pd.read_csv(path, index_col="id") for path in input[1:]],
                 axis=1
@@ -501,23 +502,23 @@ rule normed_potential_plots:
     message: "Plot fraction of land necessary for scenario {wildcards.scenario}."
     input:
         src = "src/vis/potentials_normed.py",
-        national_regions = "build/national/regions.geojson",
-        subnational_regions = "build/subnational/regions.geojson",
-        municipal_regions = "build/municipal/regions.geojson",
+        national_units = "build/national/units.geojson",
+        regional_units = "build/regional/units.geojson",
+        municipal_units = "build/municipal/units.geojson",
         national_normed_potential = "build/national/{scenario}/normed-potentials.csv",
-        subnational_normed_potential = "build/subnational/{scenario}/normed-potentials.csv",
+        regional_normed_potential = "build/regional/{scenario}/normed-potentials.csv",
         municipal_normed_potential = "build/municipal/{scenario}/normed-potentials.csv",
         national_land_cover = "build/national/land-cover.csv",
-        subnational_land_cover = "build/subnational/land-cover.csv",
+        regional_land_cover = "build/regional/land-cover.csv",
         municipal_land_cover = "build/municipal/land-cover.csv",
         national_protected_areas = "build/national/protected-areas.csv",
-        subnational_protected_areas = "build/subnational/protected-areas.csv",
+        regional_protected_areas = "build/regional/protected-areas.csv",
         municipal_protected_areas = "build/municipal/protected-areas.csv",
         national_population = "build/national/population.csv",
-        subnational_population = "build/subnational/population.csv",
+        regional_population = "build/regional/population.csv",
         municipal_population = "build/municipal/population.csv",
         national_demand = "build/national/demand.csv",
-        subnational_demand = "build/subnational/demand.csv",
+        regional_demand = "build/regional/demand.csv",
         municipal_demand = "build/municipal/demand.csv",
         worldwide_countries = rules.country_shapes.output
     output:
@@ -525,10 +526,10 @@ rule normed_potential_plots:
         "build/{scenario}/normed-potentials-correlations.png"
     shell:
         PYTHON + " {input.src} "
-                 "{input.national_regions},{input.national_normed_potential},{input.national_population},{input.national_land_cover},{input.national_protected_areas},{input.national_demand} "
-                 "{input.subnational_regions},{input.subnational_normed_potential},{input.subnational_population},{input.subnational_land_cover},{input.subnational_protected_areas},{input.subnational_demand} "
-                 "{input.municipal_regions},{input.municipal_normed_potential},{input.municipal_population},{input.municipal_land_cover},{input.municipal_protected_areas},{input.municipal_demand} "
-                 "{input.national_regions} "
+                 "{input.national_units},{input.national_normed_potential},{input.national_population},{input.national_land_cover},{input.national_protected_areas},{input.national_demand} "
+                 "{input.regional_units},{input.regional_normed_potential},{input.regional_population},{input.regional_land_cover},{input.regional_protected_areas},{input.regional_demand} "
+                 "{input.municipal_units},{input.municipal_normed_potential},{input.municipal_population},{input.municipal_land_cover},{input.municipal_protected_areas},{input.municipal_demand} "
+                 "{input.national_units} "
                  "{input.worldwide_countries} "
                  "{output}"
 
@@ -550,7 +551,7 @@ rule potentials_sufficiency_map:
         "src/vis/potentials_sufficiency_map.py",
         "build/european/{scenario}/merged-results.geojson",
         "build/national/{scenario}/merged-results.geojson",
-        "build/subnational/{scenario}/merged-results.geojson",
+        "build/regional/{scenario}/merged-results.geojson",
         "build/municipal/{scenario}/merged-results.geojson"
     output:
         "build/{scenario}/sufficient-potentials-map.png"
@@ -601,7 +602,7 @@ rule necessary_land_map:
     message: "Plot maps of land needed to become autarkic for rooftop PV share {wildcards.pvshare}%."
     input:
         "src/vis/necessary_land_map.py",
-        expand("build/{layer}/regions.geojson", layer=config["layers"].keys()),
+        expand("build/{layer}/units.geojson", layer=config["layers"].keys()),
         expand("build/{layer}/necessary-land-when-pv-{{pvshare}}%.csv", layer=config["layers"].keys())
     output:
         "build/necessary-land-map-when-pv-{pvshare}%.png"
@@ -627,7 +628,7 @@ rule exclusion_layers_plot:
     message: "Visualise the exclusion layers for {wildcards.country_code}."
     input:
         "src/vis/exclusion_layers.py",
-        "build/national/regions.geojson",
+        "build/national/units.geojson",
         rules.land_cover_in_europe.output,
         rules.slope_in_europe.output,
         rules.protected_areas_in_europe.output,
@@ -641,7 +642,7 @@ rule exclusion_layers_plot:
 rule layer_overview:
     message: "Overview table of administrative layers."
     input:
-        expand("build/{layer}/regions.geojson", layer=config["layers"].keys())
+        expand("build/{layer}/units.geojson", layer=config["layers"].keys())
     output:
         "build/overview-administrative-levels.csv"
     run:
@@ -660,11 +661,11 @@ rule layer_overview:
         sources = [[format_source(source) for source in set(config["layers"][layer_name].values())]
                    for layer_name in layer_names]
         sources = [", ".join(set(sources_per_layer)) for sources_per_layer in sources]
-        number_regions = [len(gpd.read_file(path_to_file).index) for path_to_file in input]
+        number_units = [len(gpd.read_file(path_to_file).index) for path_to_file in input]
 
         pd.DataFrame({
             "level": layer_names,
-            "number regions": number_regions,
+            "number units": number_units,
             "source of shape data": sources
         }).to_csv(output[0], index=False, header=True)
 
@@ -684,7 +685,7 @@ rule scenario_overview:
             df["layer"] = layer_name
             return df
 
-        ALL_LAYERS = ["european", "national", "subnational", "municipal"]
+        ALL_LAYERS = ["european", "national", "regional", "municipal"]
 
         normed_potential = pd.concat([pd.read_csv(path, index_col="id").pipe(lambda df: add_layer(df, path))
                                      for path in input.normed_potentials])
@@ -696,14 +697,14 @@ rule scenario_overview:
         overview = pd.DataFrame(
             index=[path_to_file.split("/")[1] for path_to_file in input.normed_potentials]
         )
-        overview["regions affected [%]"] = (normed_potential.loc[affected].groupby("layer").count() /
-                                            normed_potential.groupby("layer").count() * 100).reindex(ALL_LAYERS).iloc[:, 0]
-        overview["of which dense regions [%]"] = (normed_potential.loc[affected & high_density].groupby("layer").count() /
-                                                  normed_potential.loc[affected].groupby("layer").count() * 100).reindex(ALL_LAYERS).iloc[:, 0]
+        overview["units affected [%]"] = (normed_potential.loc[affected].groupby("layer").count() /
+                                          normed_potential.groupby("layer").count() * 100).reindex(ALL_LAYERS).iloc[:, 0]
+        overview["of which dense units [%]"] = (normed_potential.loc[affected & high_density].groupby("layer").count() /
+                                                normed_potential.loc[affected].groupby("layer").count() * 100).reindex(ALL_LAYERS).iloc[:, 0]
         overview["people affected [%]"] = (population.loc[affected].groupby("layer").population_sum.sum() /
                                            population.groupby("layer").population_sum.sum() * 100).reindex(ALL_LAYERS)
-        overview["of which from dense regions [%]"] = (population.loc[affected & high_density].groupby("layer").population_sum.sum() /
-                                                       population.loc[affected].groupby("layer").population_sum.sum() * 100).reindex(ALL_LAYERS)
+        overview["of which from dense units [%]"] = (population.loc[affected & high_density].groupby("layer").population_sum.sum() /
+                                                     population.loc[affected].groupby("layer").population_sum.sum() * 100).reindex(ALL_LAYERS)
 
         overview.fillna(0).transpose().to_csv(output[0], index=True, header=True, float_format="%.1f")
 
@@ -789,7 +790,7 @@ rule sensitivities:
         "build/{layer}/unconstrained-potentials-prefer-wind.csv",
         "build/{layer}/demand.csv",
         "build/{layer}/population.csv",
-        "build/{layer}/regions.geojson"
+        "build/{layer}/units.geojson"
     output:
         "build/{layer}/sensitivities-urban-population.txt",
         "build/{layer}/sensitivities-rural-population.txt",

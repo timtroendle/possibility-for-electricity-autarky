@@ -13,10 +13,10 @@ from src.utils import Config
 LAYER_NAME = "gadm{layer_id}"
 SCHEMA = {
     "properties": {
-        "country_code": "str", # id of the country to which the region belongs
-        "id": "str", # a unique id of this region
-        "name": "str", # the name of the region, not necessarily unqique
-        "region_type": "str", # the type of the region
+        "country_code": "str", # id of the country to which the unit belongs
+        "id": "str", # a unique id of this unit
+        "name": "str", # the name of the unit, not necessarily unqique
+        "type": "str", # the type of the unit
         "proper": "int" # flag indicating proper administrative unit (not the case for water bodies e.g.)
         # FIXME should be bool, fixed in fiona 1.8: https://github.com/Toblerity/Fiona/issues/524
     },
@@ -68,7 +68,7 @@ def _country_features(path_to_file, layer_id, study_area):
             new_feature["properties"]["country_code"] = feature["properties"]["GID_0"]
             new_feature["properties"]["id"] = feature["properties"][f"GID_{layer_id}"]
             new_feature["properties"]["name"] = feature["properties"][f"NAME_{layer_id}"]
-            new_feature["properties"]["region_type"] = (
+            new_feature["properties"]["type"] = (
                 feature["properties"][f"ENGTYPE_{layer_id}"] if layer_id > 0
                 else "country"
             )
@@ -79,8 +79,8 @@ def _country_features(path_to_file, layer_id, study_area):
 
 def _in_study_area(study_area):
     def _in_study_area(feature):
-        region = shapely.geometry.shape(feature["geometry"])
-        if study_area.contains(region) or study_area.intersects(region):
+        unit = shapely.geometry.shape(feature["geometry"])
+        if study_area.contains(unit) or study_area.intersects(unit):
             return True
         else:
             print("Removing {} as it is outside of study area.".format(_feature_name(feature)))
@@ -89,13 +89,13 @@ def _in_study_area(study_area):
 
 
 def _all_parts_in_study_area(feature, study_area):
-    region = _to_multi_polygon(feature["geometry"])
-    if not study_area.contains(region):
+    unit = _to_multi_polygon(feature["geometry"])
+    if not study_area.contains(unit):
         print("Removing parts of {} outside of study area.".format(_feature_name(feature)))
-        new_region = shapely.geometry.MultiPolygon([polygon for polygon in region.geoms
-                                                    if study_area.contains(polygon)])
-        region = new_region
-    return shapely.geometry.mapping(region)
+        new_unit = shapely.geometry.MultiPolygon([polygon for polygon in unit.geoms
+                                                  if study_area.contains(polygon)])
+        unit = new_unit
+    return shapely.geometry.mapping(unit)
 
 
 def _feature_name(feature):

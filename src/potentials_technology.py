@@ -3,7 +3,7 @@ import click
 import pandas as pd
 
 from src.utils import Config
-from src.eligible_land import Eligibility
+from src.eligibility import Eligibility
 from src.potentials_constrained import _constrain_potential
 
 PV_FARM = [

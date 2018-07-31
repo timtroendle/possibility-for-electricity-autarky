@@ -11,18 +11,18 @@ from src.utils import Config
 @click.command()
 @click.argument("path_to_national_capacity_factors")
 @click.argument("path_to_nuts2_capacity_factors")
-@click.argument("path_to_national_regions")
-@click.argument("path_to_nuts_regions")
+@click.argument("path_to_national_units")
+@click.argument("path_to_nuts_units")
 @click.argument("path_to_output")
 @click.argument("config", type=Config())
 def wind_capacity_factors(path_to_national_capacity_factors, path_to_nuts2_capacity_factors,
-                          path_to_national_regions, path_to_nuts_regions, path_to_output, config):
+                          path_to_national_units, path_to_nuts_units, path_to_output, config):
     """Create wind capacity factors with highest spatial resolution.
 
     Uses capacity factors on NUTS2 level where available, and otherwise national level.
     """
-    nations = gpd.read_file(path_to_national_regions)
-    nuts2 = gpd.read_file(path_to_nuts_regions, layer="nuts2")
+    nations = gpd.read_file(path_to_national_units)
+    nuts2 = gpd.read_file(path_to_nuts_units, layer="nuts2")
     national_capacity_factors = pd.read_csv(path_to_national_capacity_factors, index_col=0)
     capacity_factors = pd.concat(
         (capacity_factors_for_country(country, national_capacity_factors, path_to_nuts2_capacity_factors,

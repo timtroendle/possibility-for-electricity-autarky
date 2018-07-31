@@ -1,10 +1,10 @@
-"""Allocate eez eligibilities to administrative regions."""
+"""Allocate eez eligibilities to administrative units."""
 from textwrap import dedent
 
 import click
 import pandas as pd
 
-from eligible_land import Eligibility
+from eligibility import Eligibility
 
 OFFSHORE_ELIGIBILITIES = [Eligibility.OFFSHORE_WIND.area_column_name,
                           Eligibility.OFFSHORE_WIND_PROTECTED.area_column_name]
@@ -17,10 +17,10 @@ ABS_TOLERANCE = 5 # km^2
 @click.argument("path_to_shared_coasts")
 @click.argument("path_to_output")
 def allocate_eezs(path_to_eez_eligibility, path_to_shared_coasts, path_to_output):
-    """Allocate eez eligibilities to administrative regions.
+    """Allocate eez eligibilities to administrative units.
 
-    How much offshore eligibility of a certain eez goes to which region?
-    I simply allocate offshore eligibility to all regions that share a coast with
+    How much offshore eligibility of a certain eez goes to which unit?
+    I simply allocate offshore eligibility to all units that share a coast with
     the eez. The allocation is proportional to the lenght of the shared coastself.
     """
     eez_eligibilities = pd.read_csv(path_to_eez_eligibility, index_col=0)[OFFSHORE_ELIGIBILITIES]

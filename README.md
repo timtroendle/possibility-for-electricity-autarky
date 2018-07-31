@@ -1,6 +1,6 @@
 # Renewable Resource Potentials
 
-Evaluation of resource potential sufficiency for energy autarkic regions.
+Evaluation of resource potential sufficiency for energy autarkic administrative units.
 
 This repository contains the entire scientific project, including code and report. The philosophy behind this repository is that no intermediary results are included, but all results are computed from raw data and code.
 
