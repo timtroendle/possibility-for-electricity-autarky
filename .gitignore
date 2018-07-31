@@ -49,3 +49,6 @@ __pycache__
 .snakemake/
 dag.pdf
 dag-sonnendach.pdf
+
+# Marked2
+report/marked2_custom_processor.sh
