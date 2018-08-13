@@ -603,7 +603,8 @@ rule necessary_land_map:
     input:
         "src/vis/necessary_land_map.py",
         expand("build/{layer}/units.geojson", layer=config["layers"].keys()),
-        expand("build/{layer}/necessary-land-when-pv-{{pvshare}}%.csv", layer=config["layers"].keys())
+        expand("build/{layer}/necessary-land-when-pv-{{pvshare}}%.csv", layer=config["layers"].keys()),
+        expand("build/{layer}/population.csv", layer=config["layers"].keys())
     output:
         "build/necessary-land-map-when-pv-{pvshare}%.png"
     shell:

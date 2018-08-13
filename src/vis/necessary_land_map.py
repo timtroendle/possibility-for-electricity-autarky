@@ -1,3 +1,6 @@
+from pathlib import Path
+from itertools import chain, repeat
+
 import click
 import pandas as pd
 import geopandas as gpd
@@ -8,42 +11,58 @@ import seaborn as sns
 from src.vis.potentials_normed import MAP_MIN_X, MAP_MAX_X, MAP_MIN_Y, MAP_MAX_Y, EPSG_3035_PROJ4, RED
 
 PV_SHARE = 0.6
+PATH_TO_FONT_AWESOME = Path(__file__).parent / 'fonts' / 'fa-solid-900.ttf'
+LAYER_UNICODE = "\uf5fd"
+AREA_UNICODE = "\uf0ac"
 
 
 @click.command()
-@click.argument("paths_to_units_and_fraction_land_necessary", nargs=-1)
+@click.argument("paths_to_units_and_fraction_land_necessary_and_population", nargs=-1)
 @click.argument("path_to_output")
-def necessary_land_map(paths_to_units_and_fraction_land_necessary, path_to_output):
+def necessary_land_map(paths_to_units_and_fraction_land_necessary_and_population, path_to_output):
     sns.set_context('paper')
-    assert len(paths_to_units_and_fraction_land_necessary) % 2 == 0
-    number_units = int(len(paths_to_units_and_fraction_land_necessary) / 2)
-    unit_layers = [gpd.read_file(path).to_crs(EPSG_3035_PROJ4)
-                   for path in paths_to_units_and_fraction_land_necessary[0:number_units]]
-    fractions_necessary_land_layers = [pd.read_csv(path)
-                                       for path in paths_to_units_and_fraction_land_necessary[number_units:]]
-    unit_layers = [units.merge(fractions_necessary_land, on="id", how="left")
-                   for units, fractions_necessary_land in zip(unit_layers, fractions_necessary_land_layers)]
-    unit_layers = [units.merge(pd.DataFrame(data={"id": units.id, "layer": _layer_name(path)}),
-                               on="id", how="left")
-                   for units, path in zip(unit_layers, paths_to_units_and_fraction_land_necessary[0::2])]
-    _map(unit_layers, path_to_output)
+    assert len(paths_to_units_and_fraction_land_necessary_and_population) % 3 == 0
+    number_units = int(len(paths_to_units_and_fraction_land_necessary_and_population) / 3)
+    unit_layers = [
+        gpd.read_file(path).to_crs(EPSG_3035_PROJ4)
+        for path in paths_to_units_and_fraction_land_necessary_and_population[0:number_units]
+    ]
+    fractions_necessary_land_layers = [
+        pd.read_csv(path)
+        for path in paths_to_units_and_fraction_land_necessary_and_population[number_units:2 * number_units]
+    ]
+    pops = [
+        pd.read_csv(path)
+        for path in paths_to_units_and_fraction_land_necessary_and_population[2 * number_units:]
+    ]
+    unit_layers = [units.merge(fractions_necessary_land, on="id", how="left").merge(pop, on="id", how="left")
+                   for units, fractions_necessary_land, pop in zip(unit_layers, fractions_necessary_land_layers, pops)]
+    layer_names = [
+        _layer_name(path_to_results)
+        for path_to_results in paths_to_units_and_fraction_land_necessary_and_population[0:number_units]
+    ]
+    layer_names = [
+        name if name != "european" else name.capitalize()
+        for name in layer_names
+    ]
+    _map(unit_layers, layer_names, path_to_output)
 
 
-def _map(unit_layers, path_to_plot):
+def _map(unit_layers, layer_names, path_to_plot):
     fig = plt.figure(figsize=(8, 8), constrained_layout=True)
     axes = fig.subplots(2, 2).flatten()
     norm = matplotlib.colors.Normalize(vmin=0, vmax=1)
     cmap = sns.light_palette(sns.desaturate(RED, 0.85), reverse=False, as_cmap=True)
-    _plot_layer(unit_layers[0], "(a)", norm, cmap, axes[0])
-    _plot_layer(unit_layers[1], "(b)", norm, cmap, axes[1])
-    _plot_layer(unit_layers[2], "(c)", norm, cmap, axes[2])
-    _plot_layer(unit_layers[3], "(d)", norm, cmap, axes[3])
+    _plot_layer(unit_layers[0], layer_names[0], norm, cmap, axes[0])
+    _plot_layer(unit_layers[1], layer_names[1], norm, cmap, axes[1])
+    _plot_layer(unit_layers[2], layer_names[2], norm, cmap, axes[2])
+    _plot_layer(unit_layers[3], layer_names[3], norm, cmap, axes[3])
 
     _plot_colorbar(fig, axes, norm, cmap)
     fig.savefig(path_to_plot, dpi=300)
 
 
-def _plot_layer(units, annotation, norm, cmap, ax):
+def _plot_layer(units, layer_name, norm, cmap, ax):
     ax.set_aspect('equal')
     units.plot(
         linewidth=0.1,
@@ -58,7 +77,24 @@ def _plot_layer(units, annotation, norm, cmap, ax):
     ax.set_xticks([])
     ax.set_yticks([])
     sns.despine(ax=ax, top=True, bottom=True, left=True, right=True)
-    ax.annotate(annotation, xy=[0.10, 0.85], xycoords='axes fraction')
+
+    ax.annotate(
+        f"{LAYER_UNICODE} ",
+        xy=[0.10, 0.90],
+        xycoords='axes fraction',
+        fontproperties=matplotlib.font_manager.FontProperties(fname=PATH_TO_FONT_AWESOME.as_posix()),
+        color="black"
+    )
+    ax.annotate(
+        f"{AREA_UNICODE} ",
+        xy=[0.10, 0.85],
+        xycoords='axes fraction',
+        fontproperties=matplotlib.font_manager.FontProperties(fname=PATH_TO_FONT_AWESOME.as_posix()),
+        color=sns.desaturate(RED, 0.85)
+    )
+    ax.annotate(layer_name, xy=[0.17, 0.90], xycoords='axes fraction')
+    median_land_demand_population_centered = _calculate_population_centered_median_land_demand(units)
+    ax.annotate(f"{median_land_demand_population_centered:.0f}%", xy=[0.17, 0.85], xycoords='axes fraction')
 
 
 def _plot_colorbar(fig, axes, norm, cmap):
@@ -68,6 +104,15 @@ def _plot_colorbar(fig, axes, norm, cmap):
     cbar.set_ticks(cbar.get_ticks())
     cbar.set_ticklabels(["{:.0f}%".format(tick * 100) for tick in cbar.get_ticks()])
     cbar.outline.set_linewidth(0)
+
+
+def _calculate_population_centered_median_land_demand(units):
+    return pd.Series(
+        data=list(chain(*[
+            (repeat(unit[1]["fraction non-built-up land necessary"], round(unit[1].population_sum / 100)))
+            for unit in units.iterrows()
+        ]))
+    ).median() * 100
 
 
 def _layer_name(path_to_units):
