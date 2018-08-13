@@ -5,7 +5,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from src.vis.potentials_normed import MAP_MIN_X, MAP_MAX_X, MAP_MIN_Y, MAP_MAX_Y, EPSG_3035_PROJ4, GREEN
+from src.vis.potentials_normed import MAP_MIN_X, MAP_MAX_X, MAP_MIN_Y, MAP_MAX_Y, EPSG_3035_PROJ4, RED
 
 PV_SHARE = 0.6
 
@@ -33,7 +33,7 @@ def _map(unit_layers, path_to_plot):
     fig = plt.figure(figsize=(8, 8), constrained_layout=True)
     axes = fig.subplots(2, 2).flatten()
     norm = matplotlib.colors.Normalize(vmin=0, vmax=1)
-    cmap = sns.light_palette(sns.desaturate(GREEN, 0.85), reverse=False, as_cmap=True)
+    cmap = sns.light_palette(sns.desaturate(RED, 0.85), reverse=False, as_cmap=True)
     _plot_layer(unit_layers[0], "(a)", norm, cmap, axes[0])
     _plot_layer(unit_layers[1], "(b)", norm, cmap, axes[1])
     _plot_layer(unit_layers[2], "(c)", norm, cmap, axes[2])
