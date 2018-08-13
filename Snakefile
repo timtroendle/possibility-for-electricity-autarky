@@ -616,7 +616,7 @@ rule solution_matrix_plot:
         "src/vis/solution.py",
         "build/municipal/demand.csv",
         "build/municipal/population.csv",
-        "build/municipal/social-ecological-potential/constrained-potentials.csv",
+        "build/municipal/technical-social-potential/constrained-potentials.csv",
         "build/municipal/zero-protection/constrained-potentials.csv",
     output:
         "build/solution-matrix.png"
@@ -806,8 +806,8 @@ rule report:
         "report/literature.bib",
         "report/main.md",
         "report/pandoc-metadata.yml",
-        "build/social-ecological-potential/normed-potentials-map.png",
-        "build/social-ecological-potential/potentials.png",
+        "build/technical-social-potential/normed-potentials-map.png",
+        "build/technical-social-potential/potentials.png",
         rules.solution_matrix_plot.output
     output:
         "build/report.pdf"
@@ -826,11 +826,11 @@ rule paper:
         "report/paper.md",
         "report/pandoc-metadata.yml",
         "build/technical-potential/overview.csv",
-        "build/social-ecological-potential/overview.csv",
+        "build/technical-social-potential/overview.csv",
         "build/technical-potential/normed-potentials-boxplots.png",
         "build/technical-potential/sufficient-potentials-map.png",
-        "build/social-ecological-potential/sufficient-potentials-map.png",
-        "build/social-ecological-potential/normed-potentials-boxplots.png",
+        "build/technical-social-potential/sufficient-potentials-map.png",
+        "build/technical-social-potential/normed-potentials-boxplots.png",
         "build/overview-necessary-land-when-pv-100%.csv",
         "build/overview-necessary-land-when-pv-40%.csv",
         "build/necessary-land-map-when-pv-40%.png",

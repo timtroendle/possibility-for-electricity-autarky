@@ -103,7 +103,7 @@ We first assess the technical potential which is only restricted by technologica
 
 ![Exclusion layers for determining the potential of wind power in Romania.](../build/exclusion-layers-ROU.png){#fig:exclusion-layers .class}
 
-### Social-ecological potential
+### Technical-social potential
 
 The technical potential defines an upper bound to the electricity that can be generated in each administrative unit and its definition is relatively straight forward and less controversial. It is hence instructive to study. However, it is a strong overestimation of any feasible potential: in our case, it allows onshore wind and open field PV to be built on all environmentally protected areas, which not only might have severe consequences for the local flora and fauna, but also might breach the directives on habitats [@EuropeanUnion:1992] and birds [@EuropeanUnion:2010] of the European Union, and of several national and regional laws. The technical potential also allows open field PV to be build on farmland causing land use conflicts with food and feed production, and furthermore it allows to use all of the available land, potentially leading to very high densities of electricity generation. In some parts of Europe this leads to all available land being covered with PV modules or wind turbines. Such a scenario is not realistic.
 
@@ -156,30 +156,30 @@ Figure @fig:normed-potentials-boxplots-technical shows the ranges of relative te
 
 ![Distribution of technical potential per country and all Europe as experienced by the population when considering autarky on the municipal level: the boxes show the potential of the municipalities in which half of the population lives; centred around the median. Outliers are not depicted. ](../build/technical-potential/normed-potentials-boxplots.png){#fig:normed-potentials-boxplots-technical .class}
 
-## Social-ecological potential
+## Technical-social potential
 
-When applying the constraints of the social-ecological potential, the total potential on the European level is 14000 TWh/a and hence exceeds today's electricity demand more than 4 times. Because the constraints do not limit roof mounted PV, it contributes the most to this potential, followed by open field PV and on- and offshore wind. Considering these social and environmental constraints, Europe's potential of renewable electricity is by far high enough for Europe to become electricity autarkic.
+When applying the constraints of the technical-social potential, the total potential on the European level is 14000 TWh/a and hence exceeds today's electricity demand more than 4 times. Because the constraints do not limit roof mounted PV, it contributes the most to this potential, followed by open field PV and on- and offshore wind. Considering these social and environmental constraints, Europe's potential of renewable electricity is by far high enough for Europe to become electricity autarkic.
 
-Also all countries in Europe reveal sufficient potentials: while the social-ecological potential, similar to the technical potential, is not equally distributed over Europe, even the lowest relative potential of Switzerland is 50% higher than the national demand. Again we find the highest relative potential in Latvia; a potential that exceeds the national demand 18 times.
+Also all countries in Europe reveal sufficient potentials: while the technical-social potential, similar to the technical potential, is not equally distributed over Europe, even the lowest relative potential of Switzerland is 50% higher than the national demand. Again we find the highest relative potential in Latvia; a potential that exceeds the national demand 18 times.
 
-We find the lowest relative potentials in those subnational regions which are inside city borders. Oslo reveals the lowest potential, with less than a quarter of its demand supplied with local generation. Other urban areas with insufficient generation are: Bruxelles, Vienna, Basel, Prague, Genève, Île-de-France, Dublin, and Berlin, see Figure @fig:sufficient-potentials-map-social-ecological. 97% of all 493 first-level administrative units holding 95% of Europe's population have a social-ecological potential which exceeds their local demand of today and hence could be self-sufficient, see Table @tbl:impacts-overview-social-ecological.
+We find the lowest relative potentials in those subnational regions which are inside city borders. Oslo reveals the lowest potential, with less than a quarter of its demand supplied with local generation. Other urban areas with insufficient generation are: Bruxelles, Vienna, Basel, Prague, Genève, Île-de-France, Dublin, and Berlin, see Figure @fig:sufficient-potentials-map-technical-social. 97% of all 493 first-level administrative units holding 95% of Europe's population have a technical-social potential which exceeds their local demand of today and hence could be self-sufficient, see Table @tbl:impacts-overview-technical-social.
 
-![Administrative units where the social-ecological potential is sufficient to supply the electricity demand (green) and where it is insufficient (red), on (a) European, (b) national, (c) regional, and (d) municipal level.](../build/social-ecological-potential/sufficient-potentials-map.png){#fig:sufficient-potentials-map-social-ecological .class}
+![Administrative units where the technical-social potential is sufficient to supply the electricity demand (green) and where it is insufficient (red), on (a) European, (b) national, (c) regional, and (d) municipal level.](../build/technical-social-potential/sufficient-potentials-map.png){#fig:sufficient-potentials-map-technical-social .class}
 
 ```table
 ---
-caption: 'Share of administrative units with insufficient supply and share of population living in units with insufficient supply when assuming electricity autarky and given the social-ecological potential. Dense units have a population density of 1000 people per km^2^ or more. {#tbl:impacts-overview-social-ecological}'
+caption: 'Share of administrative units with insufficient supply and share of population living in units with insufficient supply when assuming electricity autarky and given the technical-social potential. Dense units have a population density of 1000 people per km^2^ or more. {#tbl:impacts-overview-technical-social}'
 alignment: LRRRR
-include: ../build/social-ecological-potential/overview.csv
+include: ../build/technical-social-potential/overview.csv
 markdown: True
 ---
 ```
 
-While the fraction of municipalities unable to supply themselves with the social-ecological potential is only slightly higher, 16% of Europe's population are impacted. The majority of those, 90%, lives in municipalities with a population density above 1000 people per km^2^. According to DEGURBA, 85% of the affected population lives in cities, 12% in towns and suburbs, and only 2% lives in rural areas. Insufficient potential remains an issue of municipalities with high population density.
+While the fraction of municipalities unable to supply themselves with the technical-social potential is only slightly higher, 16% of Europe's population are impacted. The majority of those, 90%, lives in municipalities with a population density above 1000 people per km^2^. According to DEGURBA, 85% of the affected population lives in cities, 12% in towns and suburbs, and only 2% lives in rural areas. Insufficient potential remains an issue of municipalities with high population density.
 
-Figure @fig:normed-potentials-boxplots-social-ecological shows the ranges of social-ecological potential for all countries when assuming autarky on the municipal. It shows that for some countries, more than a quarter of the population lives in municipalities with insufficient potential. Should the actually feasible potential be lower than this social-ecological one, many countries will see many more municipalities with insufficient potentials. The Figure also shows that there are very high relative potentials in Europe, with the median person living in a municipality with a potential more than twice as high as their current electricity demand.
+Figure @fig:normed-potentials-boxplots-technical-social shows the ranges of technical-social potential for all countries when assuming autarky on the municipal. It shows that for some countries, more than a quarter of the population lives in municipalities with insufficient potential. Should the actually feasible potential be lower than this technical-social one, many countries will see many more municipalities with insufficient potentials. The Figure also shows that there are very high relative potentials in Europe, with the median person living in a municipality with a potential more than twice as high as their current electricity demand.
 
-![Distribution of social-ecological potential per country and all Europe as experienced by the population when considering autarky on the municipal level: the boxes show the potential of the municipalities in which half of the population lives; centred around the median. Outliers are not depicted.](../build/social-ecological-potential/normed-potentials-boxplots.png){#fig:normed-potentials-boxplots-social-ecological .class}
+![Distribution of technical-social potential per country and all Europe as experienced by the population when considering autarky on the municipal level: the boxes show the potential of the municipalities in which half of the population lives; centred around the median. Outliers are not depicted.](../build/technical-social-potential/normed-potentials-boxplots.png){#fig:normed-potentials-boxplots-technical-social .class}
 
 ## Necessary potential and land demand
 

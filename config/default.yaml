@@ -213,7 +213,7 @@ scenarios:
         share-other-land-used: 1.0
         share-offshore-used: 1.0
         share-rooftops-used: 1.0
-    social-ecological-potential:
+    technical-social-potential:
         share-protected-areas-used: 0.0
         pv-on-farmland: False
         share-farmland-used: 0.1
@@ -256,4 +256,4 @@ scenarios:
 paper:
     europe-level-results:
         - technical-potential
-        - social-ecological-potential
+        - technical-social-potential
