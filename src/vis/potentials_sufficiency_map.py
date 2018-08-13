@@ -24,21 +24,21 @@ def _map(unit_layers, path_to_plot):
     fig = plt.figure(figsize=(8, 8), constrained_layout=True)
     axes = fig.subplots(2, 2).flatten()
     fig.subplots_adjust(left=0, right=1.0, bottom=0.0, top=1.0, wspace=0.0, hspace=0.0)
-    _plot_layer(unit_layers[0], "(a)", axes[0])
-    _plot_layer(unit_layers[1], "(b)", axes[1])
-    _plot_layer(unit_layers[2], "(c)", axes[2])
-    _plot_layer(unit_layers[3], "(d)", axes[3])
+    _plot_layer(unit_layers[0], "(a)", axes[0], linewidth=0.0)
+    _plot_layer(unit_layers[1], "(b)", axes[1], linewidth=0.2)
+    _plot_layer(unit_layers[2], "(c)", axes[2], linewidth=0.12)
+    _plot_layer(unit_layers[3], "(d)", axes[3], linewidth=0.025)
 
     fig.savefig(path_to_plot, dpi=300)
 
 
-def _plot_layer(units, annotation, ax):
+def _plot_layer(units, annotation, ax, linewidth=0.1):
     winners = units[units["normed_potential"] >= 1]
     loosers = units[units["normed_potential"] < 1]
     invalids = units[~units.isin(pd.concat([winners, loosers]))].dropna()
 
     ax.set_aspect('equal')
-    winners.plot(color=sns.desaturate(GREEN, 0.85), linewidth=0.1, alpha=0.9, ax=ax)
+    winners.plot(color=sns.desaturate(GREEN, 0.85), linewidth=linewidth, edgecolor="white", alpha=0.5, ax=ax)
     if not loosers.empty:
         loosers.plot(color=RED, linewidth=0.1, ax=ax)
     if not invalids.empty:
