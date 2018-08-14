@@ -193,12 +193,13 @@ rule sonnendach_statistics:
         roof_categories.to_csv(output.raw, header=True, index=False)
         roof_categories.rename(
             columns={
-                "share of roof areas": "share of roof areas [%]",
-                "tilt": "average tilt [%]"
+                "orientation": "Orientation",
+                "share of roof areas": "Share of roof areas [%]",
+                "tilt": "Average tilt [%]"
             },
             inplace=True
         )
-        roof_categories["share of roof areas [%]"] = roof_categories["share of roof areas [%]"] * 100
+        roof_categories["Share of roof areas [%]"] = roof_categories["Share of roof areas [%]"] * 100
         roof_categories.to_csv(output.publish, header=True, index=False, float_format="%.1f")
 
 

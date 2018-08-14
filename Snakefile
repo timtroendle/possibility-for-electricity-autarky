@@ -665,9 +665,9 @@ rule layer_overview:
         number_units = [len(gpd.read_file(path_to_file).index) for path_to_file in input]
 
         pd.DataFrame({
-            "level": layer_names,
-            "number units": number_units,
-            "source of shape data": sources
+            "Level": [name if name != "european" else name.capitalize() for name in layer_names],
+            "Number units": number_units,
+            "Source of shape data": sources
         }).to_csv(output[0], index=False, header=True)
 
 
