@@ -7,6 +7,7 @@ import geopandas as gpd
 import matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
+import pycountry
 
 
 from src.vis.potentials_normed import RED, GREEN, BLUE
@@ -22,10 +23,13 @@ def visualise_normed_potentials(path_to_results, path_to_plot):
     sns.set_context('paper')
     units = pd.DataFrame(gpd.read_file(path_to_results))
     units = units[["country_code", "population_sum", "normed_potential"]]
+    units["country"] = units["country_code"].map(lambda country_code: pycountry.countries.lookup(country_code).name)
+    units["country"].replace("Macedonia, Republic of", value="Macedonia", inplace=True) # too long
+    units["country"].replace("Bosnia and Herzegovina", value="Bosnia", inplace=True) # too long
     people = pd.DataFrame(
         data={
-            "country_code": list(chain(*[
-                (repeat(unit[1].country_code, round(unit[1].population_sum / 100)))
+            "country": list(chain(*[
+                (repeat(unit[1].country, round(unit[1].population_sum / 100)))
                 for unit in units.iterrows()
             ])),
             "normed_potential": list(chain(*[
@@ -36,7 +40,7 @@ def visualise_normed_potentials(path_to_results, path_to_plot):
     )
 
     people_eu = people.copy()
-    people_eu["country_code"] = "EUR"
+    people_eu["country"] = "Europe"
     people = pd.concat([people, people_eu])
 
     fig = plt.figure(figsize=(8, 10), constrained_layout=True)
@@ -44,8 +48,8 @@ def visualise_normed_potentials(path_to_results, path_to_plot):
     sns.boxplot(
         data=people,
         x="normed_potential",
-        y="country_code",
-        order=people.groupby("country_code").normed_potential.quantile(SORT_QUANTILE).sort_values().index,
+        y="country",
+        order=people.groupby("country").normed_potential.quantile(SORT_QUANTILE).sort_values().index,
         ax=ax,
         color=GREEN,
         whis=1.5,
@@ -60,13 +64,13 @@ def visualise_normed_potentials(path_to_results, path_to_plot):
     )
     ax.axvline(1, color=RED, linewidth=1.5)
     ax.set_xlabel("potential relative to demand")
-    ax.set_ylabel("country code")
+    ax.set_ylabel("country")
     ax.set_xscale('log')
     ax.set_xlim(0.08, 100)
     ax.set_xticklabels(["{:.0f}%".format(tick * 100) for tick in ax.get_xticks()])
     eu_position = list(
-        people.groupby("country_code").normed_potential.quantile(SORT_QUANTILE).sort_values().index
-    ).index("EUR")
+        people.groupby("country").normed_potential.quantile(SORT_QUANTILE).sort_values().index
+    ).index("Europe")
     eu_patch = [child for child in ax.get_children() if isinstance(child, matplotlib.patches.PathPatch)][eu_position]
     eu_patch.set_facecolor(BLUE)
     eu_patch.set_edgecolor(BLUE)
