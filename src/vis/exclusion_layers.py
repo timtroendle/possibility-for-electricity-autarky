@@ -39,19 +39,23 @@ def exclusion_layers(path_to_shapes, path_to_land_cover, path_to_slope, path_to_
         path_to_settlements
 
     )
-    fig = plt.figure(figsize=(18, 10), frameon=False)
+    fig = plt.figure(figsize=(10, 5.5), frameon=False, constrained_layout=True)
     ax1 = fig.add_subplot(221)
-    show(land_cover, extent=(x_min, x_max, y_min, y_max), ax=ax1, title="Exclusion from land cover",
+    show(land_cover, extent=(x_min, x_max, y_min, y_max), ax=ax1,
          cmap=ListedColormap(sns.light_palette(sns.desaturate(BLUE, 0.85)).as_hex()))
+    ax1.set_title("Exclusion from land cover")
     ax2 = fig.add_subplot(222)
-    show(slope, extent=(x_min, x_max, y_min, y_max), ax=ax2, title="Exclusion from slope",
+    show(slope, extent=(x_min, x_max, y_min, y_max), ax=ax2,
          cmap=ListedColormap(sns.light_palette(sns.desaturate(YELLOW, 0.85)).as_hex()))
+    ax2.set_title("Exclusion from slope")
     ax3 = fig.add_subplot(223)
-    show(protected_areas, extent=(x_min, x_max, y_min, y_max), ax=ax3, title="Exclusion from protected areas",
+    show(protected_areas, extent=(x_min, x_max, y_min, y_max), ax=ax3,
          cmap=ListedColormap(sns.light_palette(sns.desaturate(GREEN, 0.85)).as_hex()))
+    ax3.set_title("Exclusion from protected areas")
     ax4 = fig.add_subplot(224)
-    show(esm, extent=(x_min, x_max, y_min, y_max), ax=ax4, title="Exclusion from urban settlements",
+    show(esm, extent=(x_min, x_max, y_min, y_max), ax=ax4,
          cmap=ListedColormap(sns.light_palette(sns.desaturate(RED, 0.85)).as_hex()))
+    ax4.set_title("Exclusion from urban settlements")
     for ax in [ax1, ax2, ax3, ax4]:
         ax.add_patch(_inverted_shape(shape))
         ax.set_xticks([])
@@ -60,6 +64,7 @@ def exclusion_layers(path_to_shapes, path_to_land_cover, path_to_slope, path_to_
         ax.spines["right"].set_visible(False)
         ax.spines["bottom"].set_visible(False)
         ax.spines["left"].set_visible(False)
+    fig.set_constrained_layout_pads(hspace=0.1, wspace=0.1)
     fig.savefig(path_to_output, dpi=300)
 
 

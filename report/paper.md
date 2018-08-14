@@ -101,7 +101,7 @@ For open field PV and flat roof-mounted PV, we assume a capacity density of 80 M
 
 We first assess the technical potential which is only restricted by technological constraints. To quantify it, we use the following rules: We allow wind farms to be built on farmland, forests, open vegetation and bare land with slope below 20°. An example of exclusion layers for Romania is shown in Figure @fig:exclusion-layers. We furthermore allow open field PV to be built on farmland, vegetation and bare land with slope below 3°. Lastly, we allow offshore wind farms to be built in water depths of less than 50m. Grid cells identified as built-up area can never be used for open field PV or wind farms, only for roof-mounted PV.
 
-![Exclusion layers for determining the potential of wind power in Romania.](../build/exclusion-layers-ROU.png){#fig:exclusion-layers .class}
+![Exclusion layers for determining the potential of wind power in Romania: shaded areas are not available for electricity generation (for technical potential we ignore environmental protection).](../build/exclusion-layers-ROU.png){#fig:exclusion-layers .class}
 
 ### Technical-social potential
 
