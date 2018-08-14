@@ -135,7 +135,7 @@ layers:
         Italy: gadm1 # match 20
         Latvia: gadm1 # gadm1 5 regions; wiki 119 regions
         Lithuania: gadm1 # match 10
-        Luxembourg: gadm1 # gadm1: 3 regions; wiki 12 regions
+        Luxembourg: gadm2 # match 12
         Netherlands: gadm1 # gadm1 14 regions; wiki 12 regions
         Poland: gadm1 # match 16
         Portugal: gadm1 # match 18
@@ -170,7 +170,7 @@ layers:
         Italy: lau2
         Latvia: lau2
         Lithuania: lau2
-        Luxembourg: lau2
+        Luxembourg: lau2 # lau2 106, https://en.wikipedia.org/wiki/Communes_of_Luxembourg 102
         Netherlands: lau2
         Poland: lau2
         Portugal: lau2
@@ -182,7 +182,7 @@ layers:
         United Kingdom: lau2
         Albania: gadm3
         Bosnia and Herzegovina: gadm3
-        Macedonia, Republic of: gadm1 # 85, instead of 1817 in LAU2
+        Macedonia, Republic of: gadm1 # 85, instead of 1817 in LAU2; https://en.wikipedia.org/wiki/Municipalities_of_the_Republic_of_Macedonia
         Montenegro: gadm1 # same as regional
         Norway: lau2
         Serbia: lau2
