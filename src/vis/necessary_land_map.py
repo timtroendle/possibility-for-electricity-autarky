@@ -102,7 +102,8 @@ def _plot_colorbar(fig, axes, norm, cmap):
     s_m.set_array([])
     cbar = fig.colorbar(s_m, ax=axes, fraction=1, aspect=35, shrink=0.65)
     cbar.set_ticks(cbar.get_ticks())
-    cbar.set_ticklabels(["{:.0f}%".format(tick * 100) for tick in cbar.get_ticks()])
+    cbar.set_ticklabels(["{:.0f}%".format(tick * 100) if tick < 1 else "≥ 100%"
+                         for tick in cbar.get_ticks()])
     cbar.outline.set_linewidth(0)
 
 

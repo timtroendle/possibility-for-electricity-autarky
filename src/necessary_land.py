@@ -70,9 +70,16 @@ def necessary_land(path_to_demand, path_to_eligibility, path_to_unconstrained_po
     # corner cases
     fraction_non_built_land[constrained_potential_without_rooftops == 0] = 1 # otherwise will be nan
     fraction_non_built_land[demand_after_rooftops < ZERO_DEMAND] = 0 # otherwise will be nan
-
     fraction_non_built_land[fraction_non_built_land > 1] = 1
-    fraction_non_built_land.rename("fraction non-built-up land necessary").to_csv(
+
+    pd.DataFrame(
+        index=fraction_non_built_land.index,
+        data={
+            "fraction non-built-up land necessary": fraction_non_built_land,
+            "fraction roofs necessary": pv / constrained_potential.eligibility_rooftop_pv_twh_per_year,
+            "rooftop pv generation": pv
+        }
+    ).to_csv(
         path_to_output,
         index=True,
         header=True

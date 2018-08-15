@@ -477,20 +477,27 @@ rule scenario_results:
 rule necessary_land_overview:
     message: "Create table showing the fraction of land needed to become autarkic for rooftop PV share {wildcards.pvshare}%."
     input:
-        nec_land = expand("build/{layer}/necessary-land-when-pv-{{pvshare}}%.csv", layer=config["layers"].keys())
+        nec_land = expand("build/{layer}/necessary-land-when-pv-{{pvshare}}%.csv", layer=config["layers"].keys()),
+        demand = expand("build/{layer}/demand.csv", layer=config["layers"].keys())
     output:
         "build/overview-necessary-land-when-pv-{pvshare}%.csv"
     run:
         import pandas as pd
         nec_lands = [pd.read_csv(path, index_col=0)["fraction non-built-up land necessary"] for path in input.nec_land]
-        pd.DataFrame(
-            index=config["layers"].keys(),
+        nec_roofs = [pd.read_csv(path, index_col=0)["fraction roofs necessary"] for path in input.nec_land]
+        roof_pv_gens = [pd.read_csv(path, index_col=0)["rooftop pv generation"] for path in input.nec_land]
+        demands = [pd.read_csv(path, index_col=0)["demand_twh_per_year"] for path in input.demand]
+        roof_pv_shares = [roof_pv_gen / demand for roof_pv_gen, demand in zip(roof_pv_gens, demands)]
+        data = pd.DataFrame(
+            index=[name if name != "european" else name.capitalize() for name in config["layers"].keys()],
             data={
-                "minimum [%]": [nec_land.min() * 100 for nec_land in nec_lands],
-                "average [%]": [nec_land.mean() * 100 for nec_land in nec_lands],
-                "maximum [%]": [nec_land.max() * 100 for nec_land in nec_lands]
+                "Avg land use [%]": [nec_land.mean() * 100 for nec_land in nec_lands],
+                "Avg roof space use [%]": [nec_roof.mean() * 100 for nec_roof in nec_roofs],
+                "Avg roof-mounted PV share [%]:": [roof_pv_share.mean() * 100 for roof_pv_share in roof_pv_shares]
             }
-        ).to_csv(
+        )
+        data.index.name = "Level"
+        data.to_csv(
             output[0],
             index=True,
             header=True,
@@ -826,8 +833,6 @@ rule paper:
         "report/literature.bib",
         "report/paper.md",
         "report/pandoc-metadata.yml",
-        "build/technical-potential/overview.csv",
-        "build/technical-social-potential/overview.csv",
         "build/technical-potential/normed-potentials-boxplots.png",
         "build/technical-potential/sufficient-potentials-map.png",
         "build/technical-social-potential/sufficient-potentials-map.png",

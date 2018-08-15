@@ -52,7 +52,7 @@ def visualise_normed_potentials(path_to_results, path_to_plot):
         order=people.groupby("country").normed_potential.quantile(SORT_QUANTILE).sort_values().index,
         ax=ax,
         color=GREEN,
-        whis=1.5,
+        whis=[2.5, 97.5],
         saturation=0.85,
         linewidth=1.3,
         width=0.7,
