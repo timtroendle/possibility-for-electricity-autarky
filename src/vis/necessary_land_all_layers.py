@@ -59,7 +59,7 @@ def necessary_land(paths_to_input, path_to_output):
     ax.set_xticklabels(["{:.0f}%".format(tick) for tick in all_data.rooftop_pv_share.unique()])
     ax.set_yticklabels(["{:.0f}%".format(tick * 100) for tick in ax.get_yticks()])
     sns.despine(fig=fig)
-    fig.savefig(path_to_output, dpi=300)
+    fig.savefig(path_to_output, dpi=300, transparent=True)
 
 
 def _read_all_data(paths_to_population, paths_to_necessary_land):

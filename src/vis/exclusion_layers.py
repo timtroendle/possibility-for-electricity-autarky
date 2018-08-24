@@ -6,6 +6,7 @@ import rasterio
 from rasterio.plot import show
 from descartes import PolygonPatch
 import shapely.geometry
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 import seaborn as sns
@@ -65,7 +66,8 @@ def exclusion_layers(path_to_shapes, path_to_land_cover, path_to_slope, path_to_
         ax.spines["bottom"].set_visible(False)
         ax.spines["left"].set_visible(False)
     fig.set_constrained_layout_pads(hspace=0.1, wspace=0.1)
-    fig.savefig(path_to_output, dpi=300)
+    fig.savefig(path_to_output, dpi=300, transparent=True)
+    _add_alpha_mask(path_to_output)
 
 
 def _read_raster(x_min, y_min, x_max, y_max, path_to_land_cover, path_to_slope,
@@ -108,6 +110,14 @@ def _inverted_shape(shape):
     patch = shapely.geometry.Polygon(coords)
     patch = patch - shape
     return PolygonPatch(patch, edgecolor="k", facecolor="w")
+
+
+def _add_alpha_mask(path_to_output):
+    # removing the white areas from the inverted shape
+    img = mpl.image.imread(path_to_output)
+    white_parts = (img[:, :, 0] == 1) & (img[:, :, 1] == 1) & (img[:, :, 2] == 1)
+    img[white_parts] = [1, 1, 1, 0]
+    mpl.image.imsave(path_to_output, img, dpi=300)
 
 
 if __name__ == "__main__":

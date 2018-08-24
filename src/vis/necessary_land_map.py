@@ -59,7 +59,7 @@ def _map(unit_layers, layer_names, path_to_plot):
     _plot_layer(unit_layers[3], layer_names[3], norm, cmap, axes[3])
 
     _plot_colorbar(fig, axes, norm, cmap)
-    fig.savefig(path_to_plot, dpi=300)
+    fig.savefig(path_to_plot, dpi=300, transparent=True)
 
 
 def _plot_layer(units, layer_name, norm, cmap, ax):

@@ -46,7 +46,7 @@ def _map(unit_layers, layer_names, path_to_plot):
     _plot_layer(unit_layers[2], layer_names[2], axes[2], linewidth=0.12)
     _plot_layer(unit_layers[3], layer_names[3], axes[3], linewidth=0.025)
 
-    fig.savefig(path_to_plot, dpi=300)
+    fig.savefig(path_to_plot, dpi=300, transparent=True)
 
 
 def _plot_layer(units, layer_name, ax, linewidth=0.1):

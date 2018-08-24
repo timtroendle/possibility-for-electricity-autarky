@@ -76,7 +76,7 @@ def visualise_normed_potentials(path_to_results, path_to_plot):
     eu_patch.set_edgecolor(BLUE)
     eu_patch.set_alpha(0.8)
     eu_patch.set_zorder(100000)
-    fig.savefig(path_to_plot, dpi=300)
+    fig.savefig(path_to_plot, dpi=300, transparent=True)
 
 
 if __name__ == "__main__":
