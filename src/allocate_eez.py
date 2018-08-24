@@ -31,7 +31,6 @@ def allocate_eezs(path_to_eez_eligibility, path_to_shared_coasts, path_to_output
         columns=OFFSHORE_ELIGIBILITIES
     )
 
-    _test_allocation(eez_eligibilities, result)
     result.to_csv(path_to_output, header=True)
 
 

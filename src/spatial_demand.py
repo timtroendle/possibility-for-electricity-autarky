@@ -33,11 +33,9 @@ def spatial_distribution(path_to_national_demand, path_to_industry_load, path_to
     units = units.merge(pd.read_csv(path_to_population), on='id')
 
     local_industry_demand = _allocate_industry_demand_to_units(industries, units)
-    assert math.isclose(local_industry_demand.sum(), industries.demand_twh_per_year.sum())
     local_non_industry_demand = _determine_non_industry_demand(total_demand, local_industry_demand, units)
     units["demand_twh_per_year"] = local_industry_demand + local_non_industry_demand
     units["industrial_demand_fraction"] = local_industry_demand / units["demand_twh_per_year"]
-    assert math.isclose(units["demand_twh_per_year"].sum(), total_demand["twh_per_year"].sum())
     pd.DataFrame(units).set_index("id")[["demand_twh_per_year", "industrial_demand_fraction"]].to_csv(
         path_to_results,
         header=True
