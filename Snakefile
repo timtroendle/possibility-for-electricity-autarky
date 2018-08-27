@@ -489,11 +489,11 @@ rule necessary_land_overview:
         demands = [pd.read_csv(path, index_col=0)["demand_twh_per_year"] for path in input.demand]
         roof_pv_shares = [roof_pv_gen / demand for roof_pv_gen, demand in zip(roof_pv_gens, demands)]
         data = pd.DataFrame(
-            index=[name if name != "european" else name.capitalize() for name in config["layers"].keys()],
+            index=[name.capitalize() for name in config["layers"].keys()],
             data={
-                "Avg land use [%]": [nec_land.mean() * 100 for nec_land in nec_lands],
-                "Avg roof space use [%]": [nec_roof.mean() * 100 for nec_roof in nec_roofs],
-                "Avg roof-mounted PV share [%]:": [roof_pv_share.mean() * 100 for roof_pv_share in roof_pv_shares]
+                "Average land use [%]": [nec_land.mean() * 100 for nec_land in nec_lands],
+                "Average roof space use [%]": [nec_roof.mean() * 100 for nec_roof in nec_roofs],
+                "Average roof-mounted PV share [%]:": [roof_pv_share.mean() * 100 for roof_pv_share in roof_pv_shares]
             }
         )
         data.index.name = "Level"
@@ -672,7 +672,7 @@ rule layer_overview:
         number_units = [len(gpd.read_file(path_to_file).index) for path_to_file in input]
 
         pd.DataFrame({
-            "Level": [name if name != "european" else name.capitalize() for name in layer_names],
+            "Level": [name.capitalize() for name in layer_names],
             "Number units": number_units,
             "Source of shape data": sources
         }).to_csv(output[0], index=False, header=True)

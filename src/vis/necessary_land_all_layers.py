@@ -54,7 +54,7 @@ def necessary_land(paths_to_input, path_to_output):
 
     handles, labels = ax.get_legend_handles_labels()
     ax.legend(handles[3:], labels[3:], loc='upper right')
-    ax.set_xlabel("Maximal share of demand supplied by rooftop PV")
+    ax.set_xlabel("Maximum share of demand supplied by rooftop PV")
     ax.set_ylabel("Share of population living in generation dense units")
     ax.set_xticklabels(["{:.0f}%".format(tick) for tick in all_data.rooftop_pv_share.unique()])
     ax.set_yticklabels(["{:.0f}%".format(tick * 100) for tick in ax.get_yticks()])

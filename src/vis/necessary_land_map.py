@@ -42,7 +42,7 @@ def necessary_land_map(paths_to_units_and_fraction_land_necessary_and_population
         for path_to_results in paths_to_units_and_fraction_land_necessary_and_population[0:number_units]
     ]
     layer_names = [
-        name if name != "european" else name.capitalize()
+        name.capitalize()
         for name in layer_names
     ]
     _map(unit_layers, layer_names, path_to_output)

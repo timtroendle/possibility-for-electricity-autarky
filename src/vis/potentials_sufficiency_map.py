@@ -31,7 +31,7 @@ def necessary_land_map(paths_to_results, path_to_output):
         for path_to_results in paths_to_results
     ]
     layer_names = [
-        name if name != "european" else name.capitalize()
+        name.capitalize()
         for name in layer_names
     ]
     _map(unit_layers, layer_names, path_to_output)
