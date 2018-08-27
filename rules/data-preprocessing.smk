@@ -51,7 +51,7 @@ rule electricity_demand_national:
         "src/process_load.py",
         rules.raw_load.output
     output:
-        temp("build/electricity-demand-national.csv")
+        "build/electricity-demand-national.csv"
     shell:
         PYTHON_SCRIPT_WITH_CONFIG
 
