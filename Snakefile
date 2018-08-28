@@ -13,7 +13,9 @@ rule all:
     message: "Run entire analysis and compile report."
     input:
         "build/report.pdf",
-        "build/paper.pdf"
+        "build/paper.pdf",
+        "build/paper.docx",
+        "build/supplementary-material.docx"
 
 
 rule eligibility:
@@ -841,7 +843,6 @@ rule paper:
         "build/overview-necessary-land-when-pv-40%.csv",
         "build/necessary-land-map-when-pv-40%.png",
         "build/necessary-land-all-layers.png",
-        rules.sonnendach_statistics.output.publish,
         "build/exclusion-layers-ROU.png",
         rules.layer_overview.output
     output:
@@ -870,17 +871,18 @@ rule supplementary_material:
     message: "Compile the supplementary material."
     input:
         "report/supplementary.md",
+        rules.sonnendach_statistics.output.publish,
         expand(
             "build/exclusion-layers-{country_code}.png",
             country_code=[pycountry.countries.lookup(country).alpha_3
                           for country in config["scope"]["countries"]]
         )
     output:
-        "build/supplementary-material.pdf"
+        "build/supplementary-material.docx"
     shell:
         """
         cd ./report
-        {PANDOC} supplementary.md -t latex -o ../build/supplementary-material.pdf
+        {PANDOC} supplementary.md -t docx -o ../build/supplementary-material.docx --table-of-contents
         """
 
 

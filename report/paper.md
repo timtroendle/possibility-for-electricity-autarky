@@ -67,17 +67,7 @@ We use the European Settlement Map [@Ferri:2017] to identify the amount of rooft
 
 We then amend this first estimation with data from sonnendach.ch for Switzerland [@SwissFederalOfficeofEnergy:2018]. We use this dataset in two ways. First, we improve the area estimation taken from the European Settlement Map. Sonnendach.ch data is based on high-resolution 3D models of all buildings in Switzerland and thus allow for estimations of roof areas with high accuracy. For the roofs included in the sonnendach.ch dataset, the European Settlement Map identifies 768 km^2^ building footprints, where sonnendach.ch finds 630 km^2^ roof area. Sonnendach.ch also apply expert estimation of unavailable parts of the roof, e.g. those covered with windows or chimneys [@SwissFederalOfficeofEnergy:2016], which reduces the theoretically available rooftop areas from 630 km^2^ to 432 km^2^. Thus, for Switzerland, the realistic potential may be only 56% of the building footprints from ESM. We assume this factor is representative for all Europe and apply the factor of 0.56 to all areas identified by the European Settlement Map.
 
-The second use we make of the Swiss data is to identify the tilt and orientation of the roof areas. For that, we cluster all roofs in 17 categories: flat roofs, and roofs with south-, west-, north-, and east-wards orientation, each with four groups of tilt. We then quantify the relative area share of each category (see Table @tbl:roof-statistics). Again, we assume the distribution of these attributes of the Swiss housing stock is representative for Europe and apply it to all administrative units.
-
-<!--- TODO consider move to supplementary material --->
-```table
----
-caption: 'Area share of roof categories used Europe-wide, based on data from Switzerland in the sonnendach.ch dataset [@SwissFederalOfficeofEnergy:2018]. {#tbl:roof-statistics}'
-alignment: CCC
-include: ../build/swiss/roof-statistics-publish.csv
-markdown: True
----
-```
+The second use we make of the Swiss data is to identify the tilt and orientation of the roof areas. For that, we cluster all roofs in 17 categories: flat roofs, and roofs with south-, west-, north-, and east-wards orientation, each with four groups of tilt. We then quantify the relative area share of each category (see Table S1 in the supplementary material). Again, we assume the distribution of these attributes of the Swiss housing stock is representative for Europe and apply it to all administrative units.
 
 ### Renewable electricity yield
 
@@ -87,7 +77,7 @@ For open field PV and flat roof-mounted PV, we assume a capacity density of 80 M
 
 ### Technical potential
 
-We first assess the technical potential which is only restricted by technological constraints. To quantify it, we use the following rules: We allow wind farms to be built on farmland, forests, open vegetation and bare land with slope below 20°. An example of exclusion layers for Romania is shown in Figure @fig:exclusion-layers. We furthermore allow open field PV to be built on farmland, vegetation and bare land with slope below 3°.  In grid cells where both onshore wind farms and open field PV can be built, we choose the option with the higher electricity yield. Lastly, we allow offshore wind farms to be built in water depths of less than 50m. Grid cells identified as built-up area cannot be used for open field PV or wind farms, only for roof-mounted PV.
+We first assess the technical potential which is only restricted by technological constraints. To quantify it, we use the following rules: We allow wind farms to be built on farmland, forests, open vegetation and bare land with slope below 20°. An example of exclusion layers for Romania is shown in Figure @fig:exclusion-layers (see Supplementary Material for exclusion layers of all 34 countries in this study). We furthermore allow open field PV to be built on farmland, vegetation and bare land with slope below 3°.  In grid cells where both onshore wind farms and open field PV can be built, we choose the option with the higher electricity yield. Lastly, we allow offshore wind farms to be built in water depths of less than 50m. Grid cells identified as built-up area cannot be used for open field PV or wind farms, only for roof-mounted PV.
 
 ![Exclusion layers for determining the potential of wind power in Romania: shaded areas are not available for electricity generation (technical potential ignores protected areas).](../build/exclusion-layers-ROU.png){#fig:exclusion-layers .class}
 
