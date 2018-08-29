@@ -1,3 +1,5 @@
+**Keywords**: localism; cooperation; land use; potential; administrative division; eligibility
+
 # Introduction
 
 Renewable electricity, nuclear power, and carbon capture and storage are the main supply-side options to decarbonise the electricity system in Europe. Among these three, renewable electricity is the only option to not deplete the energy resource it depends on, but its resource has another unique characteristic: it is available everywhere, in different intensities. This makes it possible to generate electricity from local resources and decrease imports --- and it could allow regions to become electricity autarkic, i.e. eliminating imports altogether. This would be in stark contrast to today's situation, in which the European Union relies on primary energy imports for more than a third of its electricity [@PublicationsOfficeoftheEuropeanUnion:2017], and in which Member States trade significant amounts of primary energy and electricity within the European Union. A transition to renewable electricity might hence not only allow the European Union, its Member States, or regions in Europe to decarbonise their electricity systems but also to become autarkic.
