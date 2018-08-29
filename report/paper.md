@@ -199,4 +199,8 @@ Instead, our results show that large shares of demand can be covered by locally 
 
 The work of Tim Tröndle and Johan Lilliestam was supported by a European Research Council grant (contract number 715132).
 
+# Declarations of interest
+
+None.
+
 # Bibliography
