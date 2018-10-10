@@ -32,7 +32,7 @@ def process_data(path_to_raw_load, path_to_output_data, config):
 
 def read_load_profiles(path_to_raw_load, start, end, country_codes_iso2):
     """Reads national load data and handles outliers."""
-    data = pd.read_csv(path_to_raw_load, nrows=11357638, parse_dates=[3])
+    data = pd.read_csv(path_to_raw_load, nrows=10654293, parse_dates=[3])
     data = data[(data["variable"] == "load")]
     data = data[(data.utc_timestamp >= start) &
                 (data.utc_timestamp < end)]
