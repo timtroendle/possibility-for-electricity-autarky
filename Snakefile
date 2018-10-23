@@ -238,7 +238,8 @@ rule local_eligibility_rooftop_pv:
         rules.eligibility.output,
         rules.units.output,
         rules.local_land_eligibility.output,
-        rules.correction_factor_building_footprint_to_available_rooftop.output
+        rules.correction_factor_building_footprint_to_available_rooftop.output,
+        rules.total_size_swiss_rooftops_according_to_sonnendach_data.output
     output:
         "build/{layer}/land-eligibility-with-rooftop-pv.csv"
     shell:

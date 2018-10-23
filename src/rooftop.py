@@ -1,4 +1,6 @@
-"""Module to determine the potential of roof mounted pv."""
+"""Module to correct the eligibility of roof mounted pv."""
+import math
+
 import click
 import fiona
 import pandas as pd
@@ -16,10 +18,12 @@ from src.utils import Config
 @click.argument("path_to_units")
 @click.argument("path_to_local_eligibility")
 @click.argument("path_to_correction_factor")
+@click.argument("path_to_sonnendach_estimate")
 @click.argument("path_to_output")
 @click.argument("config", type=Config())
 def rooftop_correction(path_to_rooftop_area_share, path_to_eligibility, path_to_units,
-                       path_to_local_eligibility, path_to_correction_factor, path_to_output, config):
+                       path_to_local_eligibility, path_to_correction_factor,
+                       path_to_sonnendach_estimate, path_to_output, config):
     """Calculate the rooftop area that is available in each unit.
 
     This is based on using only those areas that have been identified as buildings in the
@@ -45,10 +49,15 @@ def rooftop_correction(path_to_rooftop_area_share, path_to_eligibility, path_to_
             index=[feat["properties"]["id"] for feat in src],
             data=[stat["mean"] for stat in zs]
         ).fillna(0.0) # happens if there is no building in the unit
+        swiss_mask = pd.Series( # needed for validation below
+            index=[feat["properties"]["id"] for feat in src],
+            data=[feat["properties"]["country_code"] == "CHE" for feat in src]
+        )
     available_rooftop_share = _apply_scaling_factor(building_share, path_to_correction_factor)
     corrected_eligibilites = _correct_eligibilities(path_to_local_eligibility, available_rooftop_share)
     corrected_eligibilites.to_csv(path_to_output, header=True)
     _test_land_allocation(path_to_units, path_to_output)
+    _test_sonnendach_comparison(corrected_eligibilites, path_to_sonnendach_estimate, swiss_mask)
 
 
 def _apply_scaling_factor(building_share, path_to_correction_factor):
@@ -68,6 +77,15 @@ def _correct_eligibilities(path_to_local_eligibility, available_rooftop_share):
     local_eligibility[Eligibility.ROOFTOP_PV.area_column_name] = corrected_rooftop_area
     local_eligibility[Eligibility.NOT_ELIGIBLE.area_column_name] = total_unusable_area + rooftop_area_div
     return local_eligibility
+
+
+def _test_sonnendach_comparison(corrected_eligibilites, path_to_sonnendach_estimate, swiss_mask):
+    if len(corrected_eligibilites) == 1:
+        return # the spatial resolution of this layer is too low to test
+    our_estimate = corrected_eligibilites.loc[swiss_mask, Eligibility.ROOFTOP_PV.area_column_name].sum()
+    with open(path_to_sonnendach_estimate, "r") as f_sonnendach_estimate:
+        sonnendach_estimate = float(f_sonnendach_estimate.readline())
+    assert math.isclose(our_estimate, sonnendach_estimate, rel_tol=0.02), our_estimate # 2%
 
 
 if __name__ == "__main__":
