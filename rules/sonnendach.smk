@@ -1,7 +1,15 @@
-"""These rules analyse statistics of the Swiss Sonnendach dataset."""
+"""These rules analyse the Swiss Sonnendach dataset.
+
+There are two types of information extracted from this dataset:
+
+(1) Statistics on the types of roofs: flat / tilted, orientation, and tilt. This is used to simulate
+    the yield of roof-mounted PV.
+(2) A correction (multiplication) factor that relates area of building foot prints as identified
+    from ESM to area of rooftops usable for PV.
+"""
 
 import sys; sys.path.append(os.getcwd()) # this is necessary to be able to import "src", not sure why
-RAW_SONNENDACH_DATA = "data/sonnendach/SOLKAT_R1-R9_20180418.gdb/"
+RAW_SONNENDACH_DATA = "data/sonnendach/SOLKAT_20180827.gdb/"
 RAW_BUILDING_CATEGORIES = "data/gwr/Table_GEB-01.txt"
 LAYER_NAME = "SOLKAT_CH_DACH"
 DATA_AVAILABLE = 255

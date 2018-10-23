@@ -31,8 +31,14 @@ def pv_capacity_factors(path_to_raw_cfs, path_to_regions, path_to_roof_classes, 
     assert roof_stats_without_flat["share of roof areas"].sum() == 1.0
     roof_stats_without_flat.loc[:, "tilt"] = roof_stats_without_flat["tilt"].map(round)
 
+    _manipulate_roof_stats(roof_stats_without_flat, "E", 26, 25) # FIXME see below
+    _manipulate_roof_stats(roof_stats_without_flat, "E", 33, 32) # FIXME see below
+    _manipulate_roof_stats(roof_stats_without_flat, "E", 44, 43) # FIXME see below
+    _manipulate_roof_stats(roof_stats_without_flat, "S", 18, 17) # FIXME see below
+    _manipulate_roof_stats(roof_stats_without_flat, "W", 44, 43) # FIXME see below
+
     raw_cfs = pd.merge(raw_cfs, roof_stats_without_flat, on=["orientation", "tilt"], how="left")
-    assert (raw_cfs.groupby("id")["share of roof areas"].sum() == 1.0).all()
+    assert pd.np.allclose(raw_cfs.groupby("id")["share of roof areas"].sum(), 1)
 
     raw_cfs["tilted_pv_capacity_factor"] = raw_cfs["share of roof areas"] * raw_cfs["pv"]
     tilted_pv_cfs = raw_cfs.groupby("id")["tilted_pv_capacity_factor"].sum()
@@ -66,6 +72,16 @@ def pv_capacity_factors(path_to_raw_cfs, path_to_regions, path_to_roof_classes, 
         path_to_output,
         driver="GeoJSON"
     )
+
+
+def _manipulate_roof_stats(roof_stats, orientation, original_tilt, manipulated_tilt):
+    # FIXME this should not be necessary
+    # Currently it is necessary because the capacity factors are outdated.
+    # As soon as the capacity factors are up to date, this should be removed.
+    # However, it only has a minor impact due to the assert.
+    assert abs(original_tilt - manipulated_tilt) <= 1
+    idx = roof_stats.index[(roof_stats["orientation"] == orientation) & (roof_stats["tilt"] == original_tilt)]
+    roof_stats.loc[idx, "tilt"] = manipulated_tilt
 
 
 if __name__ == "__main__":
