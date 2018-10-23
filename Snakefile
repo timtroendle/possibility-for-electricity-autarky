@@ -355,7 +355,9 @@ rule unconstrained_potentials:
         "src/potentials_unconstrained.py",
         rules.local_eligibility.output,
         rules.local_capacity_factors.output,
-        rules.sonnendach_statistics.output.raw
+        rules.sonnendach_statistics.output.raw,
+        rules.units.output,
+        rules.total_swiss_yield_according_to_sonnendach_data.output
     output:
         prefer_pv = "build/{layer}/unconstrained-potentials-prefer-pv.csv",
         prefer_wind = "build/{layer}/unconstrained-potentials-prefer-wind.csv"

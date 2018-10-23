@@ -19,6 +19,8 @@ MAX_FLAT_TILT = 10 # @BFE:2016 "Berechnung Potential in Gemeinden"
 SINGLE_FAMILY_BUILDING = 1021 # GKAT @BFE:2016 "Berechnung Potential in Gemeinden"
 MULTI_FAMILY_BUILDING = 1025 # GKAT @BFE:2016 "Berechnung Potential in Gemeinden"
 FALLBACK_BUILDING_TYPE = 1010 # GKAT @BFE:2016 "Berechnung Potential in Gemeinden"
+THEIR_PERFORMANCE_RATIO = 0.8 # @Klauser:2016 "Solarpotentialanalyse für Sonnendach.ch"
+THEIR_EFFICIENCY = 0.17 # @Klauser:2016 "Solarpotentialanalyse für Sonnendach.ch"
 CONFIG_FILE = "config/default.yaml"
 
 configfile: CONFIG_FILE
@@ -146,6 +148,54 @@ rule total_size_swiss_rooftops_according_to_sonnendach_data:
         total_size_km2 = sonnendach.apply(theoretic_to_actual_area, axis=1).sum() / 1e6
         with open(output[0], "w") as f_out:
             f_out.write(f"{total_size_km2}")
+
+
+rule total_swiss_yield_according_to_sonnendach_data:
+    message: "Sum the yield of all available rooftops from Sonnendach data."
+    input:
+        sonnendach = rules.sonnendach_rooftop_data.output,
+        categories = rules.building_categories.output
+    output: "build/swiss/total-yield-according-to-sonnendach-data-twh.txt"
+    run:
+        import pandas as pd
+
+
+        def theoretic_to_actual_radiation(row):
+            # method and values from @BFE:2016 "Berechnung Potential in Gemeinden"
+            if row.NEIGUNG <= 10:
+                return row.GSTRAHLUNG * _theoretic_to_actual_area_flat_roofs_factor(row)
+            else:
+                return row.GSTRAHLUNG * 0.7
+
+
+        def _theoretic_to_actual_area_flat_roofs_factor(row):
+            if row.GKAT == SINGLE_FAMILY_BUILDING:
+                return 0.7
+            elif row.GKAT == MULTI_FAMILY_BUILDING:
+                if row.FLAECHE < 1000:
+                    return 0.6 * 0.7
+                else:
+                    return 0.6 * 0.8
+            else:
+                if row.FLAECHE < 1000:
+                    return 0.7
+                else:
+                    return 0.8
+
+        sonnendach = pd.read_csv(input.sonnendach[0])
+        sonnendach = sonnendach.merge(
+            pd.read_csv(input.categories[0], index_col=0),
+            left_on="GWR_EGID",
+            right_index=True,
+            how="left"
+        )
+        sonnendach["GKAT"].fillna(value=FALLBACK_BUILDING_TYPE, inplace=True)
+        sonnendach["GKAT"] = sonnendach["GKAT"].astype(pd.np.int16)
+        sonnendach.loc[sonnendach.FLAECHE < MIN_ROOF_SIZE, "GSTRAHLUNG"] = 0
+        total_radiation_kwh = sonnendach.apply(theoretic_to_actual_radiation, axis=1).sum()
+        total_yield_twh = total_radiation_kwh * THEIR_EFFICIENCY * THEIR_PERFORMANCE_RATIO / 1e9
+        with open(output[0], "w") as f_out:
+            f_out.write(f"{total_yield_twh}")
 
 
 rule correction_factor_building_footprint_to_available_rooftop:

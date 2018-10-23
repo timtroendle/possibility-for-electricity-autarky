@@ -4,6 +4,7 @@ import math
 
 import click
 import pandas as pd
+import geopandas as gpd
 
 from src.utils import Config
 from src.eligibility import Eligibility
@@ -14,13 +15,17 @@ from src.conversion import watt_to_watthours
 @click.argument("path_to_eligibilities")
 @click.argument("path_to_capacity_factors")
 @click.argument("path_to_statistical_roof_model")
+@click.argument("path_to_units")
+@click.argument("path_to_sonnendach_estimate")
 @click.argument("path_to_result_prefer_pv")
 @click.argument("path_to_result_prefer_wind")
 @click.argument("config", type=Config())
 def potentials(path_to_eligibilities, path_to_capacity_factors, path_to_statistical_roof_model,
-               path_to_result_prefer_pv, path_to_result_prefer_wind, config):
+               path_to_units, path_to_sonnendach_estimate, path_to_result_prefer_pv,
+               path_to_result_prefer_wind, config):
     eligibilities = pd.read_csv(path_to_eligibilities, index_col=0)
     capacity_factors = pd.read_csv(path_to_capacity_factors, index_col=0)
+    swiss_mask = gpd.read_file(path_to_units).set_index("id")["country_code"] == "CHE"
     roof_statistics = pd.read_csv(path_to_statistical_roof_model)
     flat_roof_share = roof_statistics.set_index("orientation").loc[
         "flat", "share of roof areas"
@@ -31,6 +36,7 @@ def potentials(path_to_eligibilities, path_to_capacity_factors, path_to_statisti
         max_capacities_tw = _max_capacity_tw(eligibilities, config, prefer_pv, flat_roof_share)
         max_generation_twh_per_year = _generation_per_year(max_capacities_tw, capacity_factors,
                                                            share_of_flat_installed_power, prefer_pv)
+        _test_sonnendach_comparison(max_generation_twh_per_year, path_to_sonnendach_estimate, swiss_mask)
         max_generation_twh_per_year.to_csv(path_to_result, header=True)
 
 
@@ -127,6 +133,17 @@ def _share_of_flat_installed_power(roof_statistics, config):
     assert math.isclose(power_shares.sum(), 1)
     assert power_shares["flat"] < shares["flat"]
     return power_shares["flat"]
+
+
+def _test_sonnendach_comparison(unconstrained_potentials, path_to_sonnendach_estimate, swiss_mask):
+    # test the rooftop pv estimation for Switzerland against the sonnendach.ch estimate
+    if len(unconstrained_potentials) == 1:
+        return # the spatial resolution of this layer is too low to test
+    our_estimate = unconstrained_potentials.loc[swiss_mask, Eligibility.ROOFTOP_PV.energy_column_name].sum()
+    with open(path_to_sonnendach_estimate, "r") as f_sonnendach_estimate:
+        sonnendach_estimate = float(f_sonnendach_estimate.readline())
+    assert sonnendach_estimate > our_estimate
+    assert math.isclose(our_estimate, sonnendach_estimate, rel_tol=0.1), our_estimate # 10%
 
 
 if __name__ == "__main__":
