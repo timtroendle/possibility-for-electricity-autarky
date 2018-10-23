@@ -148,7 +148,7 @@ def _determine_eligibility(land_cover, protected_areas, slope, bathymetry, build
     settlements = (building_share > max_building_share) | (urban_green_share > max_urban_green_share)
     pv = (slope <= max_slope_pv) & ~settlements
     wind = (slope <= max_slope_wind) & ~settlements
-    offshore = np.isin(land_cover, WATER) & (bathymetry > config["parameters"]["max-depth-offshore"])
+    offshore = np.isin(land_cover, WATER) & (bathymetry > config["parameters"]["max-depth-offshore"]) & ~settlements
     protected = protected_areas == ProtectedArea.PROTECTED
     farm = np.isin(land_cover, FARM)
     forest = np.isin(land_cover, FOREST)
@@ -156,6 +156,7 @@ def _determine_eligibility(land_cover, protected_areas, slope, bathymetry, build
 
     # allocate eligibility
     land = np.ones_like(land_cover, dtype=DATATYPE) * Eligibility.NOT_ELIGIBLE
+    _add_eligibility(land, Eligibility.ROOFTOP_PV, settlements)
     _add_eligibility(land, Eligibility.ONSHORE_WIND_AND_PV_OTHER, wind & pv & other & ~protected)
     _add_eligibility(land, Eligibility.ONSHORE_WIND_AND_PV_OTHER_PROTECTED, wind & pv & other & protected)
     _add_eligibility(land, Eligibility.ONSHORE_WIND_OTHER, wind & ~pv & other & ~protected)

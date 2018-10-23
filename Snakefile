@@ -238,7 +238,7 @@ rule local_eligibility_rooftop_pv:
         rules.eligibility.output,
         rules.units.output,
         rules.local_land_eligibility.output,
-        rules.ratio_esm_estimation_available.output
+        rules.correction_factor_building_footprint_to_available_rooftop.output
     output:
         "build/{layer}/land-eligibility-with-rooftop-pv.csv"
     shell:

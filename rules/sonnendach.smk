@@ -58,49 +58,47 @@ rule sonnendach_rooftop_data:
         {output} {input}"
 
 
-rule rasterise_sonnendach:
-    message: "Rasterise the sonnendach data to quantify its spatial extend."
+rule total_size_swiss_building_footprints_according_to_settlement_data:
+    message: "Sum the size of building footprints from settlement data."
     input:
-        RAW_SONNENDACH_DATA
+        building_footprints = rules.settlements.output.buildings,
+        eligibility = "build/eligible-land.tif",
+        countries = rules.administrative_borders_nuts.output[0]
     output:
-        "build/swiss/sonnendach-availability.tif"
-    shell:
-        """
-        gdal_rasterize -at -burn {DATA_AVAILABLE} -of GTiff -init 0 -tr {RASTER_RESOLUTION_IN_M} {RASTER_RESOLUTION_IN_M} \
-        -ot Int16 -l {LAYER_NAME} {input} {output}
-        """
-
-
-rule swiss_rooftops_from_settlement_data:
-    message: "Warp and reproject settlement data to sonnendach extend and coordinates."
-    input:
-        rooftops = rules.settlements.output.buildings,
-        sonnendach = rules.rasterise_sonnendach.output
-    output:
-        "build/swiss/swiss-rooftops.tif"
-    shell:
-        "rio warp {input.rooftops} -o {output} --like {input.sonnendach} --resampling average"
-
-
-rule total_size_swiss_rooftop_area_according_to_settlement_data:
-    message: "Sum the size of roofs from the settlement data on the spatial extend of the sonnendach data."
-    input:
-        rooftops = rules.swiss_rooftops_from_settlement_data.output,
-        sonnendach = rules.rasterise_sonnendach.output
-    output:
-        "build/swiss/swiss-rooftop-area-according-to-settlement-data-km2.txt"
+        "build/swiss/building-footprints-according-to-settlement-data-km2.txt"
     run:
         import rasterio
+        import fiona
+        from rasterstats import zonal_stats
+        import pandas as pd
+        import geopandas as gpd
 
-        with rasterio.open(input.rooftops[0], "r") as src:
-            rooftops = src.read(1)
-        with rasterio.open(input.sonnendach[0], "r") as src:
-            sonnendach = src.read(1)
-        rooftops[sonnendach != DATA_AVAILABLE] = 0
-        rooftops[rooftops <= 0.01] = 0 # we ignore those in the analysis
-        rooftop_area_km2 = (rooftops * RASTER_RESOLUTION_IN_M**2 / 1e6).sum()
+        from src.eligibility import Eligibility
+        from src.conversion import area_in_squaremeters
+
+        with rasterio.open(input.eligibility, "r") as f_eligibility:
+            eligibility = f_eligibility.read(1)
+        with rasterio.open(input.building_footprints, "r") as f_building_share:
+            building_share = f_building_share.read(1)
+            affine = f_building_share.affine
+        building_share[eligibility != Eligibility.ROOFTOP_PV] = 0
+
+        with fiona.open(input.countries, "r", layer="nuts0") as src:
+            zs = zonal_stats(
+                vectors=src,
+                raster=building_share,
+                affine=affine,
+                stats="mean",
+                nodata=-999
+            )
+            building_share = pd.Series(
+                index=[feat["properties"]["id"] for feat in src],
+                data=[stat["mean"] for stat in zs]
+            )
+        building_footprint_km2 = area_in_squaremeters(gpd.read_file(input.countries).set_index("id")).div(1e6) * building_share
+        swiss_building_footprint = building_footprint_km2.loc["CH"]
         with open(output[0], "w") as f_out:
-            f_out.write(f"{rooftop_area_km2}")
+            f_out.write(f"{swiss_building_footprint}")
 
 
 rule total_size_swiss_rooftops_according_to_sonnendach_data:
@@ -150,19 +148,19 @@ rule total_size_swiss_rooftops_according_to_sonnendach_data:
             f_out.write(f"{total_size_km2}")
 
 
-rule ratio_esm_estimation_available:
-    message: "Determine the share of roof areas from settlement data actually available."
+rule correction_factor_building_footprint_to_available_rooftop:
+    message: "Determine the factor that maps from building footprints to available rooftop area for CH."
     input:
-        sonnendach = rules.total_size_swiss_rooftops_according_to_sonnendach_data.output,
-        settlement = rules.total_size_swiss_rooftop_area_according_to_settlement_data.output
+        rooftops = rules.total_size_swiss_rooftops_according_to_sonnendach_data.output[0],
+        building_footprints = rules.total_size_swiss_building_footprints_according_to_settlement_data.output[0]
     output:
         "build/swiss/ratio-esm-available.txt"
     run:
-        with open(input.sonnendach[0], "r") as f_in:
-            sonnendach = float(f_in.read())
-        with open(input.settlement[0], "r") as f_in:
-            settlement = float(f_in.read())
-        ratio = sonnendach / settlement
+        with open(input.rooftops, "r") as f_in:
+            rooftops = float(f_in.read())
+        with open(input.building_footprints, "r") as f_in:
+            building_footprints = float(f_in.read())
+        ratio = rooftops / building_footprints
         with open(output[0], "w") as f_out:
             f_out.write(f"{ratio:.3f}")
 
