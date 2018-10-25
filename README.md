@@ -1,8 +1,8 @@
-# Renewable Resource Potentials
+# Possibility for renewable electricity autarky in Europe
 
-Evaluation of resource potential sufficiency for energy autarkic administrative units.
+Is your European region able to provide itself with 100% renewable electricity?
 
-This repository contains the entire scientific project, including code and report. The philosophy behind this repository is that no intermediary results are included, but all results are computed from raw data and code.
+This repository contains the entire research project, including code and report. The philosophy behind this repository is that no intermediary results are included, but all results are computed from raw data and code.
 
 ## Getting ready
 

@@ -1,4 +1,4 @@
-name: resource-potentials
+name: possibility-for-electricity-autarky
 channels:
   - conda-forge
   - bioconda
