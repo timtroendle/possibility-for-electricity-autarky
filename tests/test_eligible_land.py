@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 
-from src.eligibility import Eligibility, determine_eligibility, GlobCover, ProtectedArea
+from src.eligibility import Eligibility, _determine_eligibility, GlobCover, ProtectedArea
 
 
 @pytest.fixture
@@ -25,14 +25,14 @@ def config():
          Eligibility.ONSHORE_WIND_AND_PV_FARMLAND),
         (GlobCover.RAINFED_CROPLANDS, ProtectedArea.NOT_PROTECTED, 4, 0, 0, 0, Eligibility.ONSHORE_WIND_FARMLAND),
         (GlobCover.RAINFED_CROPLANDS, ProtectedArea.NOT_PROTECTED, 21, 0, 0, 0, Eligibility.NOT_ELIGIBLE),
-        (GlobCover.RAINFED_CROPLANDS, ProtectedArea.NOT_PROTECTED, 0, 0, 0.11, 0, Eligibility.NOT_ELIGIBLE),
-        (GlobCover.RAINFED_CROPLANDS, ProtectedArea.NOT_PROTECTED, 0, 0, 0, 0.11, Eligibility.NOT_ELIGIBLE),
+        (GlobCover.RAINFED_CROPLANDS, ProtectedArea.NOT_PROTECTED, 0, 0, 0.11, 0, Eligibility.ROOFTOP_PV),
+        (GlobCover.RAINFED_CROPLANDS, ProtectedArea.NOT_PROTECTED, 0, 0, 0, 0.11, Eligibility.ROOFTOP_PV),
         (GlobCover.RAINFED_CROPLANDS, ProtectedArea.PROTECTED, 0, 0, 0, 0,
          Eligibility.ONSHORE_WIND_AND_PV_FARMLAND_PROTECTED),
         (GlobCover.MOSAIC_FOREST, ProtectedArea.NOT_PROTECTED, 0, 0, 0, 0, Eligibility.ONSHORE_WIND_FOREST),
         (GlobCover.MOSAIC_FOREST, ProtectedArea.NOT_PROTECTED, 21, 0, 0, 0, Eligibility.NOT_ELIGIBLE),
-        (GlobCover.MOSAIC_FOREST, ProtectedArea.NOT_PROTECTED, 0, 0, 0.11, 0, Eligibility.NOT_ELIGIBLE),
-        (GlobCover.MOSAIC_FOREST, ProtectedArea.NOT_PROTECTED, 0, 0, 0, 0.11, Eligibility.NOT_ELIGIBLE),
+        (GlobCover.MOSAIC_FOREST, ProtectedArea.NOT_PROTECTED, 0, 0, 0.11, 0, Eligibility.ROOFTOP_PV),
+        (GlobCover.MOSAIC_FOREST, ProtectedArea.NOT_PROTECTED, 0, 0, 0, 0.11, Eligibility.ROOFTOP_PV),
         (GlobCover.MOSAIC_FOREST, ProtectedArea.PROTECTED, 0, 0, 0, 0,
          Eligibility.ONSHORE_WIND_FOREST_PROTECTED),
         (GlobCover.MOSAIC_GRASSLAND, ProtectedArea.PROTECTED, 0, 0, 0, 0,
@@ -48,7 +48,7 @@ def config():
 )
 def test_eligibility(land_cover, protected_areas, slope, bathymetry, building_share, urban_green_share,
                      expected, config):
-    result = determine_eligibility(
+    result = _determine_eligibility(
         land_cover=np.array([land_cover]),
         protected_areas=np.array([protected_areas]),
         slope=np.array([slope]),
