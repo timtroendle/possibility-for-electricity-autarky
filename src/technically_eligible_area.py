@@ -26,11 +26,11 @@ def determine_area(path_to_eligibility_categories, path_to_result):
     with rasterio.open(path_to_result, 'w', driver='GTiff', height=eligibility_categories.shape[0],
                        width=eligibility_categories.shape[1], count=len(Eligibility), dtype=DATATYPE,
                        crs=crs, transform=raster_affine) as new_geotiff:
-        for id, eligibility in enumerate(Eligibility):
+        for id, eligibility in enumerate(Eligibility, start=1):
             mask = eligibility_categories == eligibility
             areas_of_eligibility = np.zeros_like(pixel_area, dtype=DATATYPE)
             areas_of_eligibility[mask] = pixel_area[mask]
-            new_geotiff.write(areas_of_eligibility, id + 1)
+            new_geotiff.write(areas_of_eligibility, id)
 
 
 def _determine_pixel_areas(meta, bounds, resolution):

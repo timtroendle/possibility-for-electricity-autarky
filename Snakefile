@@ -48,6 +48,18 @@ rule area_of_technical_eligibility:
         PYTHON_SCRIPT
 
 
+rule capacity_of_technical_eligibility:
+    message:
+        "Quantify the capacity that is technically eligible for renewables."
+    input:
+        "src/technically_eligible_capacity.py",
+        rules.area_of_technical_eligibility.output
+    output:
+        "build/technically-eligible-capacity.tif"
+    shell:
+        PYTHON_SCRIPT + " {CONFIG_FILE}"
+
+
 rule units:
     message: "Form units of layer {wildcards.layer} by remixing NUTS, LAU, and GADM."
     input:
