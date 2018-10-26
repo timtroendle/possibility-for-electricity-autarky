@@ -8,6 +8,8 @@ configfile: CONFIG_FILE
 include: "rules/data-preprocessing.smk"
 include: "rules/sonnendach.smk"
 
+RAW_PV_CAPACITY_FACTORS = "data/pv.nc"
+
 
 rule all:
     message: "Run entire analysis and compile report."
@@ -18,20 +20,18 @@ rule all:
         "build/supplementary-material.docx"
 
 
-rule eligibility:
+rule technical_eligibility_category:
     message:
-        "Determine land eligibility for renewables based on land cover, slope, bathymetry, settlements, "
-        "and protected areas."
+        "Determine upper bound surface eligibility for renewables based on land cover, slope, bathymetry, and settlements."
     input:
-        "src/eligibility.py",
+        "src/technical_eligibility.py",
         rules.land_cover_in_europe.output,
-        rules.protected_areas_in_europe.output,
         rules.slope_in_europe.output,
         rules.bathymetry_in_europe.output,
         rules.settlements.output.buildings,
         rules.settlements.output.urban_greens
     output:
-        "build/eligible-land.tif"
+        "build/technically-eligible-land.tif"
     shell:
         PYTHON_SCRIPT + " {CONFIG_FILE}"
 
@@ -182,7 +182,7 @@ rule eez_eligibility:
     input:
         src = "src/eligibility_local.py",
         regions = rules.eez_in_europe.output,
-        eligibility = rules.eligibility.output
+        eligibility = rules.technical_eligibility_category.output
     output:
         "build/eez-eligibility.csv"
     threads: config["snakemake"]["max-threads"]
@@ -196,7 +196,7 @@ rule local_land_eligibility:
     input:
         src = "src/eligibility_local.py",
         units = rules.units.output,
-        eligibility = rules.eligibility.output
+        eligibility = rules.technical_eligibility_category.output
     output:
         "build/{layer}/land-eligibility.csv"
     threads: config["snakemake"]["max-threads"]
@@ -235,7 +235,7 @@ rule local_eligibility_rooftop_pv:
     input:
         "src/rooftop.py",
         rules.settlements.output.buildings,
-        rules.eligibility.output,
+        rules.technical_eligibility_category.output,
         rules.units.output,
         rules.local_land_eligibility.output,
         rules.correction_factor_building_footprint_to_available_rooftop.output,
@@ -310,7 +310,7 @@ rule wind_capacity_factors:
 rule raw_regional_pv_capacity_factors:
     message: "Process renewables.ninja capacity factors."
     input:
-        "data/pv.nc"
+        RAW_PV_CAPACITY_FACTORS
     output:
         "build/capacity-factors-pv-raw.csv"
     run:

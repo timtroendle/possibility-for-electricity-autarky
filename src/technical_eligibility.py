@@ -1,4 +1,7 @@
-"""This module determines land eligibility for renewable generation based on geospatial data."""
+"""This module determines an upper bound of land eligibility for renewable generation based on geospatial data.
+
+In here, we only exclude areas based on technical restrictions.
+"""
 from enum import IntEnum
 
 import click
@@ -14,18 +17,9 @@ class Eligibility(IntEnum):
     """Categories defining land eligibility for renewable power."""
     NOT_ELIGIBLE = 0
     ROOFTOP_PV = 250
-    ONSHORE_WIND_AND_PV_OTHER = 200
-    ONSHORE_WIND_OTHER = 180
-    ONSHORE_WIND_FARMLAND = 160
-    ONSHORE_WIND_FOREST = 140
-    ONSHORE_WIND_AND_PV_FARMLAND = 120
-    OFFSHORE_WIND = 110
-    ONSHORE_WIND_AND_PV_OTHER_PROTECTED = 100
-    ONSHORE_WIND_OTHER_PROTECTED = 80
-    ONSHORE_WIND_FARMLAND_PROTECTED = 60
-    ONSHORE_WIND_FOREST_PROTECTED = 40
-    ONSHORE_WIND_AND_PV_FARMLAND_PROTECTED = 20
-    OFFSHORE_WIND_PROTECTED = 10
+    ONSHORE_WIND_AND_PV = 180
+    ONSHORE_WIND = 110
+    OFFSHORE_WIND = 40
 
     @property
     def area_column_name(self):
@@ -34,17 +28,6 @@ class Eligibility(IntEnum):
     @property
     def energy_column_name(self):
         return "eligibility_{}_twh_per_year".format(self.name.lower())
-
-    @staticmethod
-    def protected():
-        return [
-            Eligibility.ONSHORE_WIND_AND_PV_OTHER_PROTECTED,
-            Eligibility.ONSHORE_WIND_OTHER_PROTECTED,
-            Eligibility.ONSHORE_WIND_FARMLAND_PROTECTED,
-            Eligibility.ONSHORE_WIND_FOREST_PROTECTED,
-            Eligibility.ONSHORE_WIND_AND_PV_FARMLAND_PROTECTED,
-            Eligibility.OFFSHORE_WIND_PROTECTED
-        ]
 
 
 class GlobCover(IntEnum):
@@ -97,14 +80,13 @@ class ProtectedArea(IntEnum):
 
 @click.command()
 @click.argument("path_to_land_cover")
-@click.argument("path_to_protected_areas")
 @click.argument("path_to_slope")
 @click.argument("path_to_bathymetry")
 @click.argument("path_to_building_share")
 @click.argument("path_to_urban_green_share")
 @click.argument("path_to_result")
 @click.argument("config", type=Config())
-def determine_eligibility(path_to_land_cover, path_to_protected_areas, path_to_slope,
+def determine_eligibility(path_to_land_cover, path_to_slope,
                           path_to_bathymetry, path_to_building_share, path_to_urban_green_share,
                           path_to_result, config):
     """Determines eligibility of land for renewables."""
@@ -114,8 +96,6 @@ def determine_eligibility(path_to_land_cover, path_to_protected_areas, path_to_s
         crs = src.crs
     with rasterio.open(path_to_slope) as src:
         slope = src.read(1)
-    with rasterio.open(path_to_protected_areas) as src:
-        protected_areas = src.read(1)
     with rasterio.open(path_to_bathymetry) as src:
         bathymetry = src.read(1)
     with rasterio.open(path_to_building_share) as src:
@@ -124,7 +104,6 @@ def determine_eligibility(path_to_land_cover, path_to_protected_areas, path_to_s
         urban_green_share = src.read(1)
     eligibility = _determine_eligibility(
         land_cover=land_cover,
-        protected_areas=protected_areas,
         slope=slope,
         bathymetry=bathymetry,
         building_share=building_share,
@@ -137,38 +116,30 @@ def determine_eligibility(path_to_land_cover, path_to_protected_areas, path_to_s
         new_geotiff.write(eligibility, 1)
 
 
-def _determine_eligibility(land_cover, protected_areas, slope, bathymetry, building_share, urban_green_share, config):
+def _determine_eligibility(land_cover, slope, bathymetry, building_share, urban_green_share, config):
     # parameters
     max_slope_pv = config["parameters"]["max-slope"]["pv"]
     max_slope_wind = config["parameters"]["max-slope"]["wind"]
     max_building_share = config["parameters"]["max-building-share"]
     max_urban_green_share = config["parameters"]["max-urban-green-share"]
+    assert max_slope_pv <= max_slope_wind # wind can be built whereever pv can be built
 
     # prepare masks
     settlements = (building_share > max_building_share) | (urban_green_share > max_urban_green_share)
-    pv = (slope <= max_slope_pv) & ~settlements
-    wind = (slope <= max_slope_wind) & ~settlements
-    offshore = np.isin(land_cover, WATER) & (bathymetry > config["parameters"]["max-depth-offshore"]) & ~settlements
-    protected = protected_areas == ProtectedArea.PROTECTED
     farm = np.isin(land_cover, FARM)
     forest = np.isin(land_cover, FOREST)
     other = np.isin(land_cover, VEGETATION + BARE)
+    water = np.isin(land_cover, WATER)
+    pv = (slope <= max_slope_pv) & ~settlements & (farm | other)
+    wind = (slope <= max_slope_wind) & ~settlements & (farm | forest | other)
+    offshore = (bathymetry > config["parameters"]["max-depth-offshore"]) & ~settlements & water
 
     # allocate eligibility
     land = np.ones_like(land_cover, dtype=DATATYPE) * Eligibility.NOT_ELIGIBLE
     _add_eligibility(land, Eligibility.ROOFTOP_PV, settlements)
-    _add_eligibility(land, Eligibility.ONSHORE_WIND_AND_PV_OTHER, wind & pv & other & ~protected)
-    _add_eligibility(land, Eligibility.ONSHORE_WIND_AND_PV_OTHER_PROTECTED, wind & pv & other & protected)
-    _add_eligibility(land, Eligibility.ONSHORE_WIND_OTHER, wind & ~pv & other & ~protected)
-    _add_eligibility(land, Eligibility.ONSHORE_WIND_OTHER_PROTECTED, wind & ~pv & other & protected)
-    _add_eligibility(land, Eligibility.ONSHORE_WIND_FARMLAND, wind & ~pv & farm & ~protected)
-    _add_eligibility(land, Eligibility.ONSHORE_WIND_FARMLAND_PROTECTED, wind & ~pv & farm & protected)
-    _add_eligibility(land, Eligibility.ONSHORE_WIND_FOREST, wind & forest & ~protected)
-    _add_eligibility(land, Eligibility.ONSHORE_WIND_FOREST_PROTECTED, wind & forest & protected)
-    _add_eligibility(land, Eligibility.ONSHORE_WIND_AND_PV_FARMLAND, wind & pv & farm & ~protected)
-    _add_eligibility(land, Eligibility.ONSHORE_WIND_AND_PV_FARMLAND_PROTECTED, wind & pv & farm & protected)
-    _add_eligibility(land, Eligibility.OFFSHORE_WIND, offshore & ~protected)
-    _add_eligibility(land, Eligibility.OFFSHORE_WIND_PROTECTED, offshore & protected)
+    _add_eligibility(land, Eligibility.ONSHORE_WIND_AND_PV, wind & pv)
+    _add_eligibility(land, Eligibility.ONSHORE_WIND, wind & ~pv)
+    _add_eligibility(land, Eligibility.OFFSHORE_WIND, offshore)
     return land
 
 
