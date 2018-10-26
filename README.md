@@ -59,3 +59,9 @@ To generate a PDF of the dependency graph of all steps, run:
 * `rules`: additional Snakemake rules and workflows
 * `data`: place for raw data, whether retrieved manually and automatically
 * `build`: will contain all results (does not exist initially)
+
+## Citation
+
+If you make use of this in academic work, please cite:
+
+Tim Tröndle, Stefan Pfenninger and Johan Lilliestam (in review). Home-made or made in Europe: on the possibility for renewable electricity autarky on all scales in Europe. Energy Strategy Reviews
