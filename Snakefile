@@ -55,9 +55,12 @@ rule capacity_of_technical_eligibility:
         "Quantify the capacity that is technically eligible for renewables."
     input:
         "src/technically_eligible_capacity.py",
-        rules.area_of_technical_eligibility.output
+        rules.technical_eligibility_category.output,
+        rules.area_of_technical_eligibility.output,
+        rules.sonnendach_statistics.output.raw
     output:
-        "build/technically-eligible-capacity.tif"
+        "build/technically-eligible-capacity-pv-prio.tif",
+        "build/technically-eligible-capacity-wind-prio.tif",
     shell:
         PYTHON_SCRIPT + " {CONFIG_FILE}"
 
