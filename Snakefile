@@ -441,7 +441,7 @@ rule normed_potentials:
     input:
         "src/potentials_normed.py",
         rules.demand.output,
-        rules.constrained_potentials.output
+        rules.potentials.output
     output:
         "build/{layer}/{scenario}/normed-potentials.csv"
     shell:
