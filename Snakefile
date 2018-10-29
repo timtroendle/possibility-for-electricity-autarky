@@ -65,6 +65,20 @@ rule capacity_of_technical_eligibility:
         PYTHON_SCRIPT + " {CONFIG_FILE}"
 
 
+rule energy_yield_of_technical_eligibility:
+    message:
+        "Quantify the max annual energy yield that is technically eligible for renewables."
+    input:
+        "src/technically_eligible_energy_yield.py",
+        rules.technical_eligibility_category.output,
+        rules.capacity_of_technical_eligibility.output,
+    output:
+        "build/technically-eligible-energy-yield-pv-prio.tif",
+        "build/technically-eligible-energy-yield-wind-prio.tif",
+    shell:
+        PYTHON_SCRIPT
+
+
 rule units:
     message: "Form units of layer {wildcards.layer} by remixing NUTS, LAU, and GADM."
     input:
