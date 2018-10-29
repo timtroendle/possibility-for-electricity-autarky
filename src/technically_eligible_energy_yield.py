@@ -20,16 +20,16 @@ def determine_energy_yield(path_to_eligibility_categories, path_to_capacities_pv
     """Determines maximal energy yield for renewables."""
     with rasterio.open(path_to_capacities_pv_prio) as src:
         meta = src.meta
-        capacity_pv_prio = src.read(1)
+        capacity_pv_prio_mw = src.read(1)
     with rasterio.open(path_to_capacities_wind_prio) as src:
-        capacity_wind_prio = src.read(1)
+        capacity_wind_prio_mw = src.read(1)
     with rasterio.open(path_to_eligibility_categories) as src:
         eligibility_categories = src.read(1)
     rooftop_cf = watt_to_watthours(0.15, duration=timedelta(days=365)) # FIXME should be a map
     open_field_pv_cf = watt_to_watthours(0.2, duration=timedelta(days=365)) # FIXME should be a map
     wind_cf = watt_to_watthours(0.25, duration=timedelta(days=365)) # FIXME should be a map
     energy_yield_pv_prio = _determine_energy_yield(
-        capacity=capacity_pv_prio,
+        capacity_mw=capacity_pv_prio_mw,
         eligibility_category=eligibility_categories,
         rooftop_cf=rooftop_cf,
         open_field_pv_cf=open_field_pv_cf,
@@ -37,7 +37,7 @@ def determine_energy_yield(path_to_eligibility_categories, path_to_capacities_pv
         pv_prio=True
     )
     energy_yield_wind_prio = _determine_energy_yield(
-        capacity=capacity_wind_prio,
+        capacity_mw=capacity_wind_prio_mw,
         eligibility_category=eligibility_categories,
         rooftop_cf=rooftop_cf,
         open_field_pv_cf=open_field_pv_cf,
@@ -48,13 +48,13 @@ def determine_energy_yield(path_to_eligibility_categories, path_to_capacities_pv
     _write_to_file(path_to_wind_prio_result, energy_yield_wind_prio, meta)
 
 
-def _determine_energy_yield(capacity, eligibility_category, rooftop_cf, open_field_pv_cf, wind_cf, pv_prio):
-    energy_yield = np.zeros_like(capacity)
+def _determine_energy_yield(capacity_mw, eligibility_category, rooftop_cf, open_field_pv_cf, wind_cf, pv_prio):
+    energy_yield_twh = np.zeros_like(capacity_mw)
     for eligibility in Eligibility:
         cf = _capacity_factor(eligibility, pv_prio, rooftop_cf, open_field_pv_cf, wind_cf)
         mask = eligibility_category == eligibility
-        energy_yield[mask] = (capacity * cf)[mask]
-    return energy_yield
+        energy_yield_twh[mask] = (capacity_mw * cf)[mask] / 1e6
+    return energy_yield_twh
 
 
 def _capacity_factor(eligibility, pv_prio, rooftop_cf, open_field_pv_cf, wind_cf):

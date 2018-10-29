@@ -14,7 +14,6 @@ RAW_PV_CAPACITY_FACTORS = "data/pv.nc"
 rule all:
     message: "Run entire analysis and compile report."
     input:
-        "build/report.pdf",
         "build/paper.pdf",
         "build/paper.docx",
         "build/supplementary-material.docx"
@@ -45,7 +44,7 @@ rule area_of_technical_eligibility:
         rules.settlements.output.buildings,
         rules.correction_factor_building_footprint_to_available_rooftop.output
     output:
-        "build/technically-eligible-area.tif"
+        "build/technically-eligible-area-km2.tif"
     shell:
         PYTHON_SCRIPT
 
@@ -59,8 +58,8 @@ rule capacity_of_technical_eligibility:
         rules.area_of_technical_eligibility.output,
         rules.sonnendach_statistics.output.raw
     output:
-        "build/technically-eligible-capacity-pv-prio.tif",
-        "build/technically-eligible-capacity-wind-prio.tif",
+        "build/technically-eligible-capacity-pv-prio-mw.tif",
+        "build/technically-eligible-capacity-wind-prio-mw.tif",
     shell:
         PYTHON_SCRIPT + " {CONFIG_FILE}"
 
@@ -73,8 +72,8 @@ rule energy_yield_of_technical_eligibility:
         rules.technical_eligibility_category.output,
         rules.capacity_of_technical_eligibility.output,
     output:
-        "build/technically-eligible-energy-yield-pv-prio.tif",
-        "build/technically-eligible-energy-yield-wind-prio.tif",
+        "build/technically-eligible-energy-yield-pv-prio-twh.tif",
+        "build/technically-eligible-energy-yield-wind-prio-twh.tif",
     shell:
         PYTHON_SCRIPT
 
@@ -941,5 +940,7 @@ rule clean: # removes all generated results
 
 
 rule test:
+    input:
+        "build/paper.pdf" # proxy for: all has to exist before running the tests
     shell:
         "py.test"
