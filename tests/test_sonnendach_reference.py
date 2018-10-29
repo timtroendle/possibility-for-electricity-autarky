@@ -13,7 +13,7 @@ from src.technical_eligibility import Eligibility
 ROOT_DIR = Path(os.path.abspath(__file__)).parent.parent
 PATH_TO_CATEGORIES = ROOT_DIR / "build" / "technically-eligible-land.tif"
 PATH_TO_AREAS = ROOT_DIR / "build" / "technically-eligible-area-km2.tif"
-PATH_TO_ENERGY_YIELD = ROOT_DIR / "build" / "technically-eligible-energy-yield-pv-prio-twh.tif"
+PATH_TO_ENERGY_YIELD = ROOT_DIR / "build" / "technically-eligible-electricity-yield-pv-prio-twh.tif"
 PATH_TO_NUTS = ROOT_DIR / "build" / "administrative-borders-nuts.gpkg"
 PATH_TO_SONNENDACH_AREA_ESTIMATE = ROOT_DIR / "build" / "swiss" /\
     "total-rooftop-area-according-to-sonnendach-data-km2.txt"

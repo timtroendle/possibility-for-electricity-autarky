@@ -68,14 +68,9 @@ VEGETATION = [GlobCover.MOSAIC_GRASSLAND, GlobCover.CLOSED_TO_OPEN_SHRUBLAND,
               GlobCover.CLOSED_TO_OPEN_HERBS, GlobCover.SPARSE_VEGETATION,
               GlobCover.CLOSED_TO_OPEN_REGULARLY_FLOODED_GRASSLAND]
 BARE = [GlobCover.BARE_AREAS]
+OTHER = VEGETATION + BARE
 URBAN = [GlobCover.ARTIFICAL_SURFACES_AND_URBAN_AREAS]
 WATER = [GlobCover.WATER_BODIES]
-
-
-class ProtectedArea(IntEnum):
-    """Derived from UNEP-WCMC data set."""
-    PROTECTED = 255
-    NOT_PROTECTED = 0
 
 
 @click.command()
@@ -128,7 +123,7 @@ def _determine_eligibility(land_cover, slope, bathymetry, building_share, urban_
     settlements = (building_share > max_building_share) | (urban_green_share > max_urban_green_share)
     farm = np.isin(land_cover, FARM)
     forest = np.isin(land_cover, FOREST)
-    other = np.isin(land_cover, VEGETATION + BARE)
+    other = np.isin(land_cover, OTHER)
     water = np.isin(land_cover, WATER)
     pv = (slope <= max_slope_pv) & ~settlements & (farm | other)
     wind = (slope <= max_slope_wind) & ~settlements & (farm | forest | other)

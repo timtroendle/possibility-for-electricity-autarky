@@ -64,16 +64,16 @@ rule capacity_of_technical_eligibility:
         PYTHON_SCRIPT + " {CONFIG_FILE}"
 
 
-rule energy_yield_of_technical_eligibility:
+rule electricity_yield_of_technical_eligibility:
     message:
-        "Quantify the max annual energy yield that is technically eligible for renewables."
+        "Quantify the max annual electricity yield that is technically eligible for renewables."
     input:
-        "src/technically_eligible_energy_yield.py",
+        "src/technically_eligible_electricity_yield.py",
         rules.technical_eligibility_category.output,
         rules.capacity_of_technical_eligibility.output,
     output:
-        "build/technically-eligible-energy-yield-pv-prio-twh.tif",
-        "build/technically-eligible-energy-yield-wind-prio-twh.tif",
+        "build/technically-eligible-electricity-yield-pv-prio-twh.tif",
+        "build/technically-eligible-electricity-yield-wind-prio-twh.tif",
     shell:
         PYTHON_SCRIPT
 
@@ -406,6 +406,21 @@ rule unconstrained_potentials:
     shell:
         PYTHON_SCRIPT + " {CONFIG_FILE}"
 
+
+rule potentials:
+    message:
+        "Determine the constrained potentials for layer {wildcards.layer} in scenario {wildcards.scenario}."
+    input:
+        "src/potentials.py",
+        rules.units.output,
+        rules.electricity_yield_of_technical_eligibility.output,
+        rules.technical_eligibility_category.output,
+        rules.land_cover_in_europe.output,
+        rules.protected_areas_in_europe.output
+    output:
+        "build/{layer}/{scenario}/potentials.csv"
+    shell:
+        PYTHON_SCRIPT + " {wildcards.scenario} {CONFIG_FILE}"
 
 rule constrained_potentials:
     message:
