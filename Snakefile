@@ -41,7 +41,9 @@ rule area_of_technical_eligibility:
         "Quantify the area that is technically eligible for renewables."
     input:
         "src/technically_eligible_area.py",
-        rules.technical_eligibility_category.output
+        rules.technical_eligibility_category.output,
+        rules.settlements.output.buildings,
+        rules.correction_factor_building_footprint_to_available_rooftop.output
     output:
         "build/technically-eligible-area.tif"
     shell:
