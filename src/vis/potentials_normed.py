@@ -8,7 +8,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 from src.conversion import area_in_squaremeters
-from src.eligibility import FARM, FOREST, GlobCover, ProtectedArea
+from src.technical_eligibility import FARM, FOREST, GlobCover
+from src.potentials import ProtectedArea
 
 GREEN = "#679436"
 RED = "#A01914"
