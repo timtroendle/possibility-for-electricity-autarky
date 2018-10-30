@@ -27,7 +27,7 @@ def determine_area(path_to_eligibility_categories, path_to_building_share,
         meta = src.meta
         bounds = src.bounds
         resolution = src.res[0]
-    pixel_area = determine_pixel_areas(meta["crs"], bounds, resolution)
+    pixel_area = determine_pixel_areas(meta["crs"], bounds, resolution).astype(DATATYPE)
     areas_of_eligibility = pixel_area.copy()
     rooftop_area = determine_rooftop_areas(pixel_area, path_to_building_share, path_to_rooftop_correction_factor)
     pv_rooftop_mask = eligibility_categories == Eligibility.ROOFTOP_PV

@@ -66,7 +66,7 @@ def _plot_layer(units, layer_name, norm, cmap, ax):
     ax.set_aspect('equal')
     units.plot(
         linewidth=0.1,
-        column="fraction non-built-up land necessary",
+        column="fraction_non_built_up_land_necessary",
         vmin=norm.vmin,
         vmax=norm.vmax,
         cmap=cmap,
@@ -110,7 +110,7 @@ def _plot_colorbar(fig, axes, norm, cmap):
 def _calculate_population_centered_median_land_demand(units):
     return pd.Series(
         data=list(chain(*[
-            (repeat(unit[1]["fraction non-built-up land necessary"], round(unit[1].population_sum / 100)))
+            (repeat(unit[1]["fraction_non_built_up_land_necessary"], round(unit[1].population_sum / 100)))
             for unit in units.iterrows()
         ]))
     ).median() * 100

@@ -24,7 +24,7 @@ def necessary_land(paths_to_input, path_to_output):
     ax = fig.add_subplot(111)
 
     population_sum = all_data.groupby(["rooftop_pv_share", "layer"]).population_sum.sum()
-    dense = all_data["fraction non-built-up land necessary"] > GENERATION_DENSE
+    dense = all_data["fraction_non_built_up_land_necessary"] > GENERATION_DENSE
     population_sum_in_dense_units = all_data[dense].groupby(
         ["rooftop_pv_share", "layer"]
     ).population_sum.sum()

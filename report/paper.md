@@ -145,7 +145,7 @@ Results of assessing the land area necessary for electricity autarky are shown i
 ---
 caption: 'Fractions of non-built-up land and roof surfaces used for electricity generation and share of demand supplied by roof-mounted PV when considering autarky. Values are given as average of all administrative units per level. Roof-mounted PV is prioritised. {#tbl:necessary-land-100}'
 alignment: LRRR
-include: ../build/overview-necessary-land-when-pv-100%.csv
+include: ../build/necessary-land/overview-necessary-land-when-pv-100%.csv
 markdown: True
 ---
 ```
@@ -156,16 +156,16 @@ Many electricity scenarios for Europe foresee much lower shares of PV and roof-m
 ---
 caption: 'Fractions of non-built-up land and roof surfaces used for electricity generation and share of demand supplied by roof-mounted PV when considering autarky. Values are given as average of all administrative units per level. Roof-mounted PV is prioritised, but prohibited to contribute more than 40% to the electricity demand in each administrative unit. {#tbl:necessary-land-40}'
 alignment: LRRR
-include: ../build/overview-necessary-land-when-pv-40%.csv
+include: ../build/necessary-land/overview-necessary-land-when-pv-40%.csv
 markdown: True
 ---
 ```
 
-![Fraction of non-built-up area needed for renewable power installations when demanding electricity autarky, for all administrative units on all four levels. The text labels on each level show the level's name and the median value based on population. For example, at the national level, 50% of Europe's population lives in a country that requires less than 3% of its non-built-up area for renewable electricity autarky. Here, we assume farmland is not available for open field PV, we ignore offshore wind generation, and limit roof-mounted PV to 40% of demand. ](../build/necessary-land-map-when-pv-40%.png){#fig:necessary-land-map-40 .class}
+![Fraction of non-built-up area needed for renewable power installations when demanding electricity autarky, for all administrative units on all four levels. The text labels on each level show the level's name and the median value based on population. For example, at the national level, 50% of Europe's population lives in a country that requires less than 3% of its non-built-up area for renewable electricity autarky. Here, we assume farmland is not available for open field PV, we ignore offshore wind generation, and limit roof-mounted PV to 40% of demand. ](../build/necessary-land/necessary-land-map-when-pv-40%.png){#fig:necessary-land-map-40 .class}
 
 The availability of roof-mounted PV clearly has a major impact on the share of land used. In Figure @fig:necessary-land-all-layers we show results for other diffusion levels of roof-mounted PV from a population-centred perspective. The figure shows the fraction of the European population that lives in administrative units with high *electricity generation density* which we define as units where a third or more of the non-built-up area is used for electricity generation through wind turbines or open field PV. Restricting roof-mounted PV exposes larger parts of the population to generation density: the share of population living in generation dense municipalities more than doubles when roof-mounted PV is restricted to 40% compared to the unrestricted case. Furthermore, autarky on lower levels also exposes larger parts of the population to generation density: for the same 40% restriction case, the population living in generation dense municipalities is 7 times larger than the population living in generation dense regions; while on the national and European levels no one is exposed to generation density.
 
-![Share of the European population living in administrative units with high electricity generation density, i.e. units in which a third or more of the non-built-up land is used for wind turbines or open field PV, as a function of the maximum share of roof-mounted PV. Total land excludes maritime regions and hence offshore wind is not considered. Roof-mounted PV is preferred over onshore wind farms and open field PV.](../build/necessary-land-all-layers.png){#fig:necessary-land-all-layers .class}
+![Share of the European population living in administrative units with high electricity generation density, i.e. units in which a third or more of the non-built-up land is used for wind turbines or open field PV, as a function of the maximum share of roof-mounted PV. Total land excludes maritime regions and hence offshore wind is not considered. Roof-mounted PV is preferred over onshore wind farms and open field PV.](../build/necessary-land/necessary-land-all-layers.png){#fig:necessary-land-all-layers .class}
 
 # Discussion and Conclusion
 

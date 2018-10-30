@@ -19,7 +19,7 @@ rule all:
         "build/supplementary-material.docx"
 
 
-rule technical_eligibility_category:
+rule category_of_technical_eligibility:
     message:
         "Determine upper bound surface eligibility for renewables based on land cover, slope, bathymetry, and settlements."
     input:
@@ -40,7 +40,7 @@ rule area_of_technical_eligibility:
         "Quantify the area that is technically eligible for renewables."
     input:
         "src/technically_eligible_area.py",
-        rules.technical_eligibility_category.output,
+        rules.category_of_technical_eligibility.output,
         rules.settlements.output.buildings,
         rules.correction_factor_building_footprint_to_available_rooftop.output
     output:
@@ -54,7 +54,7 @@ rule capacity_of_technical_eligibility:
         "Quantify the capacity that is technically eligible for renewables."
     input:
         "src/technically_eligible_capacity.py",
-        rules.technical_eligibility_category.output,
+        rules.category_of_technical_eligibility.output,
         rules.area_of_technical_eligibility.output,
         rules.sonnendach_statistics.output.raw
     output:
@@ -69,7 +69,7 @@ rule electricity_yield_of_technical_eligibility:
         "Quantify the max annual electricity yield that is technically eligible for renewables."
     input:
         "src/technically_eligible_electricity_yield.py",
-        rules.technical_eligibility_category.output,
+        rules.category_of_technical_eligibility.output,
         rules.capacity_of_technical_eligibility.output,
     output:
         "build/technically-eligible-electricity-yield-pv-prio-twh.tif",
@@ -218,7 +218,7 @@ rule eez_eligibility:
     input:
         src = "src/eligibility_local.py",
         regions = rules.eez_in_europe.output,
-        eligibility = rules.technical_eligibility_category.output
+        eligibility = rules.category_of_technical_eligibility.output
     output:
         "build/eez-eligibility.csv"
     threads: config["snakemake"]["max-threads"]
@@ -232,7 +232,7 @@ rule local_land_eligibility:
     input:
         src = "src/eligibility_local.py",
         units = rules.units.output,
-        eligibility = rules.technical_eligibility_category.output
+        eligibility = rules.category_of_technical_eligibility.output
     output:
         "build/{layer}/land-eligibility.csv"
     threads: config["snakemake"]["max-threads"]
@@ -271,7 +271,7 @@ rule local_eligibility_rooftop_pv:
     input:
         "src/rooftop.py",
         rules.settlements.output.buildings,
-        rules.technical_eligibility_category.output,
+        rules.category_of_technical_eligibility.output,
         rules.units.output,
         rules.local_land_eligibility.output,
         rules.correction_factor_building_footprint_to_available_rooftop.output,
@@ -408,7 +408,7 @@ rule potentials:
         "src/potentials.py",
         rules.units.output,
         rules.electricity_yield_of_technical_eligibility.output,
-        rules.technical_eligibility_category.output,
+        rules.category_of_technical_eligibility.output,
         rules.land_cover_in_europe.output,
         rules.protected_areas_in_europe.output
     output:
@@ -443,17 +443,34 @@ rule normed_potentials:
         PYTHON_SCRIPT
 
 
+rule footprint:
+    message: "Determine the land footprint of the renewable potential for layer {wildcards.layer} "
+             "in scenario {wildcards.scenario}."
+    input:
+        "src/footprint.py",
+        rules.category_of_technical_eligibility.output,
+        rules.area_of_technical_eligibility.output,
+        rules.electricity_yield_of_technical_eligibility.output,
+        rules.land_cover_in_europe.output,
+        rules.protected_areas_in_europe.output,
+        rules.units.output
+    output:
+        "build/{layer}/{scenario}/footprint.csv"
+    shell:
+        PYTHON_SCRIPT + " {wildcards.scenario} {CONFIG_FILE}"
+
+
 rule necessary_land:
     message: "Determine the necessary potentials to become autarkic of layer {wildcards.layer} "
-             "given rooftop PV share {wildcards.pvshare}%."
+             "in scenario {wildcards.scenario} given rooftop PV share {wildcards.pvshare}%."
     input:
         "src/necessary_land.py",
         rules.demand.output,
-        rules.local_eligibility.output,
-        rules.unconstrained_potentials.output,
+        rules.potentials.output,
+        rules.footprint.output,
         rules.local_built_up_area.output
     output:
-        "build/{layer}/necessary-land-when-pv-{pvshare}%.csv"
+        "build/{layer}/{scenario}/necessary-land-when-pv-{pvshare}%.csv"
     shell:
         PYTHON_SCRIPT + " {wildcards.pvshare}"
 
@@ -513,7 +530,7 @@ rule scenario_results:
         units = rules.units.output,
         demand = rules.demand.output,
         population = rules.population.output,
-        constrained_potentials = rules.constrained_potentials.output,
+        constrained_potentials = rules.potentials.output,
         normed_potentials = rules.normed_potentials.output
     output:
         "build/{layer}/{scenario}/merged-results.geojson"
@@ -532,17 +549,18 @@ rule scenario_results:
 
 
 rule necessary_land_overview:
-    message: "Create table showing the fraction of land needed to become autarkic for rooftop PV share {wildcards.pvshare}%."
+    message: "Create table showing the fraction of land needed to become autarkic in scenario {wildcards.scenario} "
+             "for rooftop PV share {wildcards.pvshare}%."
     input:
-        nec_land = expand("build/{layer}/necessary-land-when-pv-{{pvshare}}%.csv", layer=config["layers"].keys()),
+        nec_land = expand("build/{layer}/{{scenario}}/necessary-land-when-pv-{{pvshare}}%.csv", layer=config["layers"].keys()),
         demand = expand("build/{layer}/demand.csv", layer=config["layers"].keys())
     output:
-        "build/overview-necessary-land-when-pv-{pvshare}%.csv"
+        "build/{scenario}/overview-necessary-land-when-pv-{pvshare}%.csv"
     run:
         import pandas as pd
-        nec_lands = [pd.read_csv(path, index_col=0)["fraction non-built-up land necessary"] for path in input.nec_land]
-        nec_roofs = [pd.read_csv(path, index_col=0)["fraction roofs necessary"] for path in input.nec_land]
-        roof_pv_gens = [pd.read_csv(path, index_col=0)["rooftop pv generation"] for path in input.nec_land]
+        nec_lands = [pd.read_csv(path, index_col=0)["fraction_non_built_up_land_necessary"] for path in input.nec_land]
+        nec_roofs = [pd.read_csv(path, index_col=0)["fraction_roofs_necessary"] for path in input.nec_land]
+        roof_pv_gens = [pd.read_csv(path, index_col=0)["rooftop_pv_generation_twh_per_year"] for path in input.nec_land]
         demands = [pd.read_csv(path, index_col=0)["demand_twh_per_year"] for path in input.demand]
         roof_pv_shares = [roof_pv_gen / demand for roof_pv_gen, demand in zip(roof_pv_gens, demands)]
         data = pd.DataFrame(
@@ -635,42 +653,30 @@ rule technology_potentials_plot:
         PYTHON_SCRIPT
 
 
-rule necessary_land_plot:
-    message: "Plot the fraction of land needed to become autarkic."
-    input:
-        "src/vis/necessary_land.py",
-        "build/municipal/unconstrained-potentials-prefer-pv.csv",
-        "build/municipal/unconstrained-potentials-prefer-wind.csv",
-        "build/municipal/demand.csv"
-    output:
-        "build/necessary-land.png"
-    shell:
-        PYTHON_SCRIPT
-
-
 rule necessary_land_plot_all_layers:
-    message: "Plot the fraction of land needed to become autarkic."
+    message: "Plot the fraction of land needed to become autarkic in scenario {wildcards.scenario}."
     input:
         "src/vis/necessary_land_all_layers.py",
-        expand("build/{layer}/necessary-land-when-pv-{pvshare}%.csv",
+        expand("build/{layer}/{{scenario}}/necessary-land-when-pv-{pvshare}%.csv",
                layer=config["layers"].keys(),
                pvshare=[0, 20, 40, 60, 80, 100]),
         expand("build/{layer}/population.csv", layer=config["layers"].keys()),
     output:
-        "build/necessary-land-all-layers.png"
+        "build/{scenario}/necessary-land-all-layers.png"
     shell:
         PYTHON_SCRIPT
 
 
 rule necessary_land_map:
-    message: "Plot maps of land needed to become autarkic for rooftop PV share {wildcards.pvshare}%."
+    message: "Plot maps of land needed to become autarkic in scenario {wildcards.scenario} "
+             "for rooftop PV share {wildcards.pvshare}%."
     input:
         "src/vis/necessary_land_map.py",
         expand("build/{layer}/units.geojson", layer=config["layers"].keys()),
-        expand("build/{layer}/necessary-land-when-pv-{{pvshare}}%.csv", layer=config["layers"].keys()),
+        expand("build/{layer}/{{scenario}}/necessary-land-when-pv-{{pvshare}}%.csv", layer=config["layers"].keys()),
         expand("build/{layer}/population.csv", layer=config["layers"].keys())
     output:
-        "build/necessary-land-map-when-pv-{pvshare}%.png"
+        "build/{scenario}/necessary-land-map-when-pv-{pvshare}%.png"
     shell:
         PYTHON_SCRIPT
 
@@ -894,10 +900,10 @@ rule paper:
         "build/technical-potential/sufficient-potentials-map.png",
         "build/technical-social-potential/sufficient-potentials-map.png",
         "build/technical-social-potential/normed-potentials-boxplots.png",
-        "build/overview-necessary-land-when-pv-100%.csv",
-        "build/overview-necessary-land-when-pv-40%.csv",
-        "build/necessary-land-map-when-pv-40%.png",
-        "build/necessary-land-all-layers.png",
+        "build/necessary-land/overview-necessary-land-when-pv-100%.csv",
+        "build/necessary-land/overview-necessary-land-when-pv-40%.csv",
+        "build/necessary-land/necessary-land-map-when-pv-40%.png",
+        "build/necessary-land/necessary-land-all-layers.png",
         "build/exclusion-layers-ROU.png",
         rules.layer_overview.output
     output:
