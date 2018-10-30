@@ -105,17 +105,17 @@ def _apply_scenario_config_to_area(eligible_areas, categories, land_cover, prote
 
     # share-forest-used-for-wind
     share_forest_used_for_wind = scenario_config["share-forest-used-for-wind"]
-    mask = np.isin(land_cover, FOREST)
+    mask = np.isin(land_cover, FOREST) & (categories != Eligibility.ROOFTOP_PV)
     eligible_areas[mask] = eligible_areas[mask] * share_forest_used_for_wind
 
     # share-other-land-used
     share_other_land_used = scenario_config["share-other-land-used"]
-    mask = np.isin(land_cover, OTHER)
+    mask = np.isin(land_cover, OTHER) & (categories != Eligibility.ROOFTOP_PV)
     eligible_areas[mask] = eligible_areas[mask] * share_other_land_used
 
     # share-farmland-used
     share_farmland_used = scenario_config["share-farmland-used"]
-    mask = np.isin(land_cover, FARM)
+    mask = np.isin(land_cover, FARM) & (categories != Eligibility.ROOFTOP_PV)
     eligible_areas[mask] = eligible_areas[mask] * share_farmland_used
 
     # share-offshore-used
@@ -124,7 +124,7 @@ def _apply_scenario_config_to_area(eligible_areas, categories, land_cover, prote
     # share-protected-areas-used
     use_protected_areas = scenario_config["use-protected-areas"]
     if not use_protected_areas:
-        mask = protected_areas == ProtectedArea.PROTECTED
+        mask = (protected_areas == ProtectedArea.PROTECTED) & (categories != Eligibility.ROOFTOP_PV)
         eligible_areas[mask] = 0
 
     return eligible_areas

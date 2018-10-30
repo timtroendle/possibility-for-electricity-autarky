@@ -131,19 +131,19 @@ def apply_scenario_config(electricity_yield_pv_prio, electricity_yield_wind_prio
 
     # share-forest-used-for-wind
     share_forest_used_for_wind = scenario_config["share-forest-used-for-wind"]
-    mask = np.isin(land_cover, FOREST)
+    mask = np.isin(land_cover, FOREST) & (categories != Eligibility.ROOFTOP_PV)
     electricity_yield_pv_prio[mask] = electricity_yield_pv_prio[mask] * share_forest_used_for_wind
     electricity_yield_wind_prio[mask] = electricity_yield_wind_prio[mask] * share_forest_used_for_wind
 
     # share-other-land-used
     share_other_land_used = scenario_config["share-other-land-used"]
-    mask = np.isin(land_cover, OTHER)
+    mask = np.isin(land_cover, OTHER) & (categories != Eligibility.ROOFTOP_PV)
     electricity_yield_pv_prio[mask] = electricity_yield_pv_prio[mask] * share_other_land_used
     electricity_yield_wind_prio[mask] = electricity_yield_wind_prio[mask] * share_other_land_used
 
     # share-farmland-used
     share_farmland_used = scenario_config["share-farmland-used"]
-    mask = np.isin(land_cover, FARM)
+    mask = np.isin(land_cover, FARM) & (categories != Eligibility.ROOFTOP_PV)
     electricity_yield_pv_prio[mask] = electricity_yield_pv_prio[mask] * share_farmland_used
     electricity_yield_wind_prio[mask] = electricity_yield_wind_prio[mask] * share_farmland_used
 
@@ -153,13 +153,13 @@ def apply_scenario_config(electricity_yield_pv_prio, electricity_yield_wind_prio
     # pv-on-farmland
     pv_on_farmland = scenario_config["pv-on-farmland"]
     if not pv_on_farmland:
-        mask = np.isin(land_cover, FARM) & categories == Eligibility.ONSHORE_WIND_AND_PV
+        mask = np.isin(land_cover, FARM) & (categories == Eligibility.ONSHORE_WIND_AND_PV)
         electricity_yield_pv_prio[mask] = 0
 
     # share-protected-areas-used
     use_protected_areas = scenario_config["use-protected-areas"]
     if not use_protected_areas:
-        mask = protected_areas == ProtectedArea.PROTECTED
+        mask = (protected_areas == ProtectedArea.PROTECTED) & (categories != Eligibility.ROOFTOP_PV)
         electricity_yield_pv_prio[mask] = 0
         electricity_yield_wind_prio[mask] = 0
 
