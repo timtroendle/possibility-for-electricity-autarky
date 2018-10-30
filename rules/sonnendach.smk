@@ -75,7 +75,7 @@ rule total_size_swiss_building_footprints_according_to_settlement_data:
         import pandas as pd
         import geopandas as gpd
 
-        from src.eligibility import Eligibility
+        from src.technical_eligibility import Eligibility
         from src.conversion import area_in_squaremeters
 
         with rasterio.open(input.eligibility, "r") as f_eligibility:

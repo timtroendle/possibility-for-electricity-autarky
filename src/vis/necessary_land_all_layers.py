@@ -4,7 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from src.vis.potentials_normed import RED, GREEN, BLUE
+from src.vis import RED, GREEN, BLUE
 
 GENERATION_DENSE = 0.33 # land is generation dense when more than this fraction is used for energy farming
 

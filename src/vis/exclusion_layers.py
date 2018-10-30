@@ -11,8 +11,9 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 import seaborn as sns
 
-from src.eligibility import FARM, FOREST, VEGETATION, BARE, ProtectedArea
-from src.vis.potentials_normed import GREEN, BLUE, RED
+from src.technical_eligibility import FARM, FOREST, VEGETATION, BARE
+from src.potentials import ProtectedArea
+from src.vis import GREEN, BLUE, RED
 
 YELLOW = "#FABC3C"
 

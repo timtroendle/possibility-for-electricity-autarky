@@ -10,7 +10,7 @@ import seaborn as sns
 import pycountry
 
 
-from src.vis.potentials_normed import RED, GREEN, BLUE
+from src.vis import RED, GREEN, BLUE
 
 SORT_QUANTILE = 0.5
 

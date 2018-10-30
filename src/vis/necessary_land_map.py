@@ -8,7 +8,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from src.vis.potentials_normed import MAP_MIN_X, MAP_MAX_X, MAP_MIN_Y, MAP_MAX_Y, EPSG_3035_PROJ4, RED
+from src.vis import RED, MAP_MIN_X, MAP_MAX_X, MAP_MIN_Y, MAP_MAX_Y, EPSG_3035_PROJ4
 
 PV_SHARE = 0.6
 PATH_TO_FONT_AWESOME = Path(__file__).parent / 'fonts' / 'fa-solid-900.ttf'
