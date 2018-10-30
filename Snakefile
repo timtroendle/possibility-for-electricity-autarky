@@ -147,21 +147,15 @@ rule local_protected_areas:
 
 
 rule local_built_up_area:
-    message: "Built up area statistics per unit of layer {wildcards.layer}."
+    message: "Determine the built up area for administrative units in layer {wildcards.layer}."
     input:
-        units = rules.units.output,
-        built_up_areas = rules.settlements.output.built_up,
-        src = "src/geojson_to_csv.py"
+        "src/built_up_area.py",
+        rules.settlements.output.built_up,
+        rules.units.output
     output:
         "build/{layer}/built-up-areas.csv"
     shell:
-        """
-        fio cat {input.units} | \
-        rio zonalstats -r {input.built_up_areas} --prefix "bu_" --stats "mean" | \
-        {PYTHON} {input.src} -a id -a bu_mean |
-        sed -e 's/None/NaN/g' > \
-        {output}
-        """
+        PYTHON_SCRIPT
 
 
 rule population:
@@ -421,6 +415,7 @@ rule potentials:
         "build/{layer}/{scenario}/potentials.csv"
     shell:
         PYTHON_SCRIPT + " {wildcards.scenario} {CONFIG_FILE}"
+
 
 rule constrained_potentials:
     message:
