@@ -44,7 +44,7 @@ def _remove_water_bodies(population, land_cover):
     data["water"] = data[WATER]
     data["not_water"] = data[NOT_WATER].sum(axis=1)
     data["rel_water"] = data["water"] / (data["not_water"] + data["water"])
-    invalid_mask = (data["proper"] == 0) & (data["rel_water"] > WATER_THRESHOLD)
+    invalid_mask = (data["proper"] is False) & (data["rel_water"] > WATER_THRESHOLD)
     invalid_population = data.loc[invalid_mask, "population_sum"].sum()
     if invalid_population > 0:
         warnings.warn(f"Removing {invalid_population:.0f} people because they are in water bodies.")

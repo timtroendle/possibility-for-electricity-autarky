@@ -82,14 +82,14 @@ rule total_size_swiss_building_footprints_according_to_settlement_data:
             eligibility = f_eligibility.read(1)
         with rasterio.open(input.building_footprints, "r") as f_building_share:
             building_share = f_building_share.read(1)
-            affine = f_building_share.affine
+            transform = f_building_share.transform
         building_share[eligibility != Eligibility.ROOFTOP_PV] = 0
 
         with fiona.open(input.countries, "r", layer="nuts0") as src:
             zs = zonal_stats(
                 vectors=src,
                 raster=building_share,
-                affine=affine,
+                affine=transform,
                 stats="mean",
                 nodata=-999
             )

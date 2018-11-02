@@ -34,14 +34,14 @@ def rooftop_correction(path_to_rooftop_area_share, path_to_eligibility, path_to_
         eligibility = f_eligibility.read(1)
     with rasterio.open(path_to_rooftop_area_share, "r") as f_rooftop_area_share:
         rooftop_area_share = f_rooftop_area_share.read(1)
-        affine = f_rooftop_area_share.affine
+        transform = f_rooftop_area_share.transform
     rooftop_area_share[eligibility != Eligibility.ROOFTOP_PV] = 0
 
     with fiona.open(path_to_units, "r") as src:
         zs = zonal_stats(
             vectors=src,
             raster=rooftop_area_share,
-            affine=affine,
+            affine=transform,
             stats="mean",
             nodata=-999
         )

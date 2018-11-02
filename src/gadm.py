@@ -17,8 +17,7 @@ SCHEMA = {
         "id": "str", # a unique id of this unit
         "name": "str", # the name of the unit, not necessarily unqique
         "type": "str", # the type of the unit
-        "proper": "int" # flag indicating proper administrative unit (not the case for water bodies e.g.)
-        # FIXME should be bool, fixed in fiona 1.8: https://github.com/Toblerity/Fiona/issues/524
+        "proper": "boolean" # flag indicating proper administrative unit (not the case for water bodies e.g.)
     },
     "geometry": "MultiPolygon"
 }
