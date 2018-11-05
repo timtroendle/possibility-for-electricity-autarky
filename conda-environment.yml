@@ -17,7 +17,7 @@ dependencies:
   - rasterio=1.0.9
   - rasterstats=0.13.0
   - geopandas=0.4.0
-  - snakemake=4.4.0
+  - snakemake-minimal=5.3.0
   - xlrd=1.1.0
   - descartes=1.1
   - salib=1.1.2
