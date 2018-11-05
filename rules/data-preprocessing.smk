@@ -220,7 +220,7 @@ rule raw_srtm_elevation_data:
     output:
         temp("build/raw-srtm-elevation-data.tif")
     shell:
-        "rio merge {input} {output} --force-overwrite"
+        "rio merge {input} {output} --overwrite"
 
 
 rule raw_gmted_elevation_tile:
@@ -247,7 +247,7 @@ rule raw_gmted_elevation_data:
     output:
         temp("build/raw-gmted-elevation-data.tif")
     shell:
-        "rio merge {input} {output} --force-overwrite"
+        "rio merge {input} {output} --overwrite"
 
 
 rule raw_bathymetry_zipped:

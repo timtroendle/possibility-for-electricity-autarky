@@ -46,8 +46,6 @@ def determine_rooftop_areas(pixel_areas, path_to_building_share, path_to_rooftop
 
 def write_to_file(areas_of_eligibility, path_to_result, meta):
     meta.update(dtype=DATATYPE)
-    if "transform" in meta.keys():
-        del meta["transform"] # this is to avoid a deprecation warning of rasterio < 1.0
     with rasterio.open(path_to_result, 'w', **meta) as new_geotiff:
         new_geotiff.write(areas_of_eligibility, 1)
 

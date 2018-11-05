@@ -66,8 +66,6 @@ def _power_density_mw_per_km2(eligibility, pv_prio, flat_roof_share, config):
 
 
 def _write_to_file(path_to_file, capacities, meta):
-    if "transform" in meta.keys():
-        del meta["transform"] # this is to avoid a deprecation warning of rasterio < 1.0
     with rasterio.open(path_to_file, 'w', **meta) as new_geotiff:
         new_geotiff.write(capacities, 1)
 

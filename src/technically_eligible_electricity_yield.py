@@ -68,8 +68,6 @@ def _capacity_factor(eligibility, pv_prio, rooftop_cf, open_field_pv_cf, wind_cf
 
 
 def _write_to_file(path_to_file, electricity_yield, meta):
-    if "transform" in meta.keys():
-        del meta["transform"] # this is to avoid a deprecation warning of rasterio < 1.0
     with rasterio.open(path_to_file, 'w', **meta) as new_geotiff:
         new_geotiff.write(electricity_yield, 1)
 
