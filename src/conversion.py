@@ -1,4 +1,14 @@
 """Functions to convert units."""
+def _set_proj_lib():
+    # FIXME This is fragile and should not be necessary.
+    import os
+    from pathlib import Path
+    path_to_projlib = Path(os.environ['CONDA_PREFIX']) / "share" / "proj"
+    if not path_to_projlib.exists():
+        msg = "Could not locate proj library. Path works on Unix only."
+        raise ImportError(msg)
+    os.environ["PROJ_LIB"] = path_to_projlib.as_posix()
+_set_proj_lib()
 from functools import partial
 from itertools import product
 
