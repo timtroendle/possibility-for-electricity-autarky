@@ -64,7 +64,7 @@ rule total_size_swiss_building_footprints_according_to_settlement_data:
     message: "Sum the size of building footprints from settlement data."
     input:
         building_footprints = rules.settlements.output.buildings,
-        eligibility = "build/eligible-land.tif",
+        eligibility = "build/technically-eligible-land.tif",
         countries = rules.administrative_borders_nuts.output[0]
     output:
         "build/swiss/building-footprints-according-to-settlement-data-km2.txt"
