@@ -119,7 +119,11 @@ def _apply_scenario_config_to_area(eligible_areas, categories, land_cover, prote
     eligible_areas[mask] = eligible_areas[mask] * share_farmland_used
 
     # share-offshore-used
-    # FIXME add somehow
+    share_offshore_used = scenario_config["share-offshore-used"]
+    if share_offshore_used > 0:
+        msg = f"Offshore potentials cannot be considered when determining land use. share-offshore-used must be 0, "\
+              "but is {share-offshore-used}."
+    raise ValueError(msg)
 
     # share-protected-areas-used
     use_protected_areas = scenario_config["use-protected-areas"]

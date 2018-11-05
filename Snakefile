@@ -258,6 +258,8 @@ rule potentials:
     input:
         "src/potentials.py",
         rules.units.output,
+        rules.eez_in_europe.output,
+        rules.shared_coast.output,
         rules.electricity_yield_of_technical_eligibility.output,
         rules.category_of_technical_eligibility.output,
         rules.land_cover_in_europe.output,
