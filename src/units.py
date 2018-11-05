@@ -81,7 +81,7 @@ def _european_layer(layer):
     layer.loc[index, "country_code"] = "EUR"
     layer.loc[index, "name"] = "Europe"
     layer.loc[index, "type"] = "continent"
-    layer.loc[index, "proper"] = 1
+    layer.loc[index, "proper"] = True
     return layer
 
 

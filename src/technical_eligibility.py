@@ -86,7 +86,7 @@ def determine_eligibility(path_to_land_cover, path_to_slope,
                           path_to_result, config):
     """Determines eligibility of land for renewables."""
     with rasterio.open(path_to_land_cover) as src:
-        raster_affine = src.affine
+        transform = src.transform
         land_cover = src.read(1)
         crs = src.crs
     with rasterio.open(path_to_slope) as src:
@@ -107,7 +107,7 @@ def determine_eligibility(path_to_land_cover, path_to_slope,
     )
     with rasterio.open(path_to_result, 'w', driver='GTiff', height=eligibility.shape[0],
                        width=eligibility.shape[1], count=1, dtype=DATATYPE,
-                       crs=crs, transform=raster_affine) as new_geotiff:
+                       crs=crs, transform=transform) as new_geotiff:
         new_geotiff.write(eligibility, 1)
 
 
