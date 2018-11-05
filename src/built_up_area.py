@@ -17,7 +17,7 @@ def built_up_areas(path_to_built_up_share, path_to_units, path_to_result):
     with rasterio.open(path_to_built_up_share) as src:
         built_up_share = src.read(1)
         crs = src.crs
-        affine = src.affine
+        transform = src.transform
         bounds = src.bounds
         resolution = src.res[0]
     with fiona.open(path_to_units, "r") as src:
@@ -28,8 +28,8 @@ def built_up_areas(path_to_built_up_share, path_to_units, path_to_result):
     built_up_stats = pd.DataFrame(
         index=unit_ids,
         data={
-            "built_up_km2": _stats(unit_geometries, built_up_share * pixel_area, affine),
-            "non_built_up_km2": _stats(unit_geometries, (1 - built_up_share) * pixel_area, affine)
+            "built_up_km2": _stats(unit_geometries, built_up_share * pixel_area, transform),
+            "non_built_up_km2": _stats(unit_geometries, (1 - built_up_share) * pixel_area, transform)
         }
     )
     built_up_stats["built_up_share"] = (built_up_stats["built_up_km2"] /
@@ -42,11 +42,11 @@ def built_up_areas(path_to_built_up_share, path_to_units, path_to_result):
     )
 
 
-def _stats(unit_geometries, raster_area, affine):
+def _stats(unit_geometries, raster_area, transform):
     area = zonal_stats(
         unit_geometries,
         raster_area,
-        affine=affine,
+        affine=transform,
         stats="sum",
         nodata=-999
     )

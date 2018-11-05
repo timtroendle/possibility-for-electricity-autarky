@@ -299,8 +299,8 @@ rule elevation_in_europe:
     output:
         "build/elevation-europe.tif"
     params:
-        srtm_bounds = "{x_min} {y_min} {x_max} 60".format(**config["scope"]["bounds"]),
-        gmted_bounds = "{x_min} 59.5 {x_max} {y_max}".format(**config["scope"]["bounds"])
+        srtm_bounds = "{x_min},{y_min},{x_max},60".format(**config["scope"]["bounds"]),
+        gmted_bounds = "{x_min},59.5,{x_max},{y_max}".format(**config["scope"]["bounds"])
     threads: config["snakemake"]["max-threads"]
     shell:
         """
@@ -319,7 +319,7 @@ rule land_cover_in_europe:
     message: "Clip land cover data to Europe."
     input: rules.raw_land_cover.output
     output: "build/land-cover-europe.tif"
-    params: bounds = "{x_min} {y_min} {x_max} {y_max}".format(**config["scope"]["bounds"])
+    params: bounds = "{x_min},{y_min},{x_max},{y_max}".format(**config["scope"]["bounds"])
     shell: "rio clip {input} {output} --bounds {params.bounds}"
 
 
@@ -479,12 +479,8 @@ rule population_in_europe:
     output:
         "build/population-europe.tif"
     params:
-        bounds = "{} {} {} {}".format(*transform_bounds(
-            **config["scope"]["bounds"],
-            from_epsg=config["crs"],
-            to_epsg="ESRI:54009"
-        ))
+        bounds="{x_min},{y_min},{x_max},{y_max}".format(**config["scope"]["bounds"])
     shell:
         """
-        rio clip --bounds {params.bounds} --co compress=LZW {input.population} -o {output}
+        rio clip --geographic --bounds {params.bounds} --co compress=LZW {input.population} -o {output}
         """

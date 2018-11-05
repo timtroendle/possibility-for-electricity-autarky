@@ -31,12 +31,12 @@ def test_switzerland_rooftop_area():
         switzerland = [feature["geometry"] for feature in shapefile if feature["properties"]["country_code"] == "CHE"]
         assert len(switzerland) == 1
     with rasterio.open(PATH_TO_AREAS.as_posix()) as src:
-        affine = src.affine
+        transform = src.transform
         areas = src.read(1)
     with rasterio.open(PATH_TO_CATEGORIES.as_posix()) as src:
         categories = src.read(1)
     areas[categories != Eligibility.ROOFTOP_PV] = 0
-    zs = zonal_stats(switzerland, areas, affine=affine, stats="sum", nodata=-999)
+    zs = zonal_stats(switzerland, areas, affine=transform, stats="sum", nodata=-999)
     our_estimate = zs[0]["sum"]
     assert our_estimate == pytest.approx(sonnendach_estimate, 0.02) # 2% tolerance
 
@@ -54,12 +54,12 @@ def test_switzerland_energy_yield():
         switzerland = [feature["geometry"] for feature in shapefile if feature["properties"]["country_code"] == "CHE"]
         assert len(switzerland) == 1
     with rasterio.open(PATH_TO_ENERGY_YIELD.as_posix()) as src:
-        affine = src.affine
+        transform = src.transform
         energy_yield = src.read(1)
     with rasterio.open(PATH_TO_CATEGORIES.as_posix()) as src:
         categories = src.read(1)
     energy_yield[categories != Eligibility.ROOFTOP_PV] = 0
-    zs = zonal_stats(switzerland, energy_yield, affine=affine, stats="sum", nodata=-999)
+    zs = zonal_stats(switzerland, energy_yield, affine=transform, stats="sum", nodata=-999)
     our_estimate = zs[0]["sum"]
     assert our_estimate <= sonnendach_estimate
     assert our_estimate == pytest.approx(sonnendach_estimate, 0.10) # 10% tolerance

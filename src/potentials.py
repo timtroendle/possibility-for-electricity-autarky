@@ -95,7 +95,7 @@ def potentials(path_to_units, path_to_eez, path_to_shared_coast,
     with rasterio.open(path_to_eligibility_categories, "r") as src:
         eligibility_categories = src.read(1)
     with rasterio.open(path_to_electricity_yield_pv_prio, "r") as src:
-        affine = src.affine
+        transform = src.transform
         electricity_yield_pv_prio = src.read(1)
     with rasterio.open(path_to_electricity_yield_wind_prio, "r") as src:
         electricity_yield_wind_prio = src.read(1)
@@ -134,7 +134,7 @@ def potentials(path_to_units, path_to_eez, path_to_shared_coast,
                                    else electricity_yield_wind_prio),
                 eligibility_categories=eligibility_categories,
                 shapes=unit_geometries,
-                affine=affine
+                transform=transform
             )
             for potential in Potential.onshore()
         }
@@ -148,7 +148,7 @@ def potentials(path_to_units, path_to_eez, path_to_shared_coast,
                                    else electricity_yield_wind_prio),
                 eligibility_categories=eligibility_categories,
                 shapes=eez_geometries,
-                affine=affine
+                transform=transform
             )
             for potential in Potential.offshore()
         }
@@ -229,14 +229,14 @@ def _decide_between_pv_and_wind(electricity_yield_pv_prio, electricity_yield_win
     return open_field_yield, onshore_yield
 
 
-def _potentials(eligibilities, electricity_yield, eligibility_categories, shapes, affine):
+def _potentials(eligibilities, electricity_yield, eligibility_categories, shapes, transform):
     """Determine electricity yield of one eligibility category per shape."""
     electricity_yield = electricity_yield.copy()
     electricity_yield[~np.isin(eligibility_categories, eligibilities)] = 0
     potentials = zonal_stats(
         shapes,
         electricity_yield,
-        affine=affine,
+        affine=transform,
         stats="sum",
         nodata=-999
     )

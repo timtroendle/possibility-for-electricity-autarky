@@ -29,7 +29,7 @@ def footprint(path_to_eligibility_categories, path_to_eligible_areas, path_to_el
     with rasterio.open(path_to_eligibility_categories, "r") as src:
         eligibility_categories = src.read(1)
     with rasterio.open(path_to_eligible_areas, "r") as src:
-        affine = src.affine
+        transform = src.transform
         eligible_areas = src.read(1)
     with rasterio.open(path_to_electricity_yield_pv_prio, "r") as src:
         electricity_yield_pv_prio = src.read(1)
@@ -69,7 +69,7 @@ def footprint(path_to_eligibility_categories, path_to_eligible_areas, path_to_el
                                 else constrained_areas_wind),
                 eligibility_categories=eligibility_categories,
                 unit_geometries=unit_geometries,
-                affine=affine
+                transform=transform
             )
             for potential in Potential
         }
@@ -82,13 +82,13 @@ def footprint(path_to_eligibility_categories, path_to_eligible_areas, path_to_el
     )
 
 
-def _areas(eligibilities, eligible_areas, eligibility_categories, unit_geometries, affine):
+def _areas(eligibilities, eligible_areas, eligibility_categories, unit_geometries, transform):
     eligible_areas = eligible_areas.copy()
     eligible_areas[~np.isin(eligibility_categories, eligibilities)] = 0
     potentials = zonal_stats(
         unit_geometries,
         eligible_areas,
-        affine=affine,
+        affine=transform,
         stats="sum",
         nodata=-999
     )
