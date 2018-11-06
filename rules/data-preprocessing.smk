@@ -394,22 +394,16 @@ rule settlements:
     shadow: "full"
     shell:
         """
+        rio calc "(+ (+ (read 1) (read 2)) (read 3))" \
+        {input.class40} {input.class41} {input.class45} -o build/esm-class404145-temp-not-warped.tif
+        rio calc "(+ (+ (read 1) (read 2)) (read 3))" \
+        {input.class50} {input.class30} {input.class35} -o build/esm-class303550-temp-not-warped.tif
         rio warp {input.class50} -o {output.buildings} \
-        --like {input.reference} --threads {threads} --resampling bilinear --co compress=LZW
-        rio warp {input.class40} -o build/esm-class40.tif \
-        --like {input.reference} --threads {threads} --resampling bilinear --co compress=LZW
-        rio warp {input.class41} -o build/esm-class41.tif \
-        --like {input.reference} --threads {threads} --resampling bilinear --co compress=LZW
-        rio warp {input.class45} -o build/esm-class45.tif \
-        --like {input.reference} --threads {threads} --resampling bilinear --co compress=LZW
-        rio warp {input.class30} -o build/esm-class30.tif \
-        --like {input.reference} --threads {threads} --resampling bilinear --co compress=LZW
-        rio warp {input.class35} -o build/esm-class35.tif \
-        --like {input.reference} --threads {threads} --resampling bilinear --co compress=LZW
-        rio calc "(+ (+ (read 1) (read 2)) (read 3))" \
-        build/esm-class40.tif build/esm-class41.tif build/esm-class45.tif -o {output.urban_greens}
-        rio calc "(+ (+ (read 1) (read 2)) (read 3))" \
-        {output.buildings} build/esm-class30.tif build/esm-class35.tif -o {output.built_up}
+        --like {input.reference} --threads {threads} --resampling bilinear
+        rio warp build/esm-class404145-temp-not-warped.tif -o {output.urban_greens} \
+        --like {input.reference} --threads {threads} --resampling bilinear
+        rio warp build/esm-class303550-temp-not-warped.tif -o {output.built_up} \
+        --like {input.reference} --threads {threads} --resampling bilinear
         """
 
 
