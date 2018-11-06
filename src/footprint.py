@@ -71,7 +71,7 @@ def footprint(path_to_eligibility_categories, path_to_eligible_areas, path_to_el
                 unit_geometries=unit_geometries,
                 transform=transform
             )
-            for potential in Potential
+            for potential in Potential.onshore()
         }
     )
     footprint.index.name = "id"
@@ -123,7 +123,7 @@ def _apply_scenario_config_to_area(eligible_areas, categories, land_cover, prote
     if share_offshore_used > 0:
         msg = f"Offshore potentials cannot be considered when determining land use. share-offshore-used must be 0, "\
               "but is {share-offshore-used}."
-    raise ValueError(msg)
+        raise ValueError(msg)
 
     # share-protected-areas-used
     use_protected_areas = scenario_config["use-protected-areas"]
