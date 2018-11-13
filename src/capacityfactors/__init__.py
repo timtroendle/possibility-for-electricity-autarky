@@ -15,6 +15,10 @@ WGS84_PROJ4 = "+proj=longlat +datum=WGS84 +no_defs "
 def point_raster_on_shapes(bounds_wgs84, resolution_km2, shapes):
     """Creates a point raster with given resolution on a set of shapes.
 
+    Extends (=buffers) the shapes, so that each point less than half the resolution away is
+    included as well. This is to make sure that points on the edge of the shape are covered
+    by a square pixel as well.
+
     Parameters:
         * bounds_wgs84: the bounds of the point raster, given in WGS84
         * resolution_km2: the resolution of the point raster, given in km2
@@ -22,7 +26,6 @@ def point_raster_on_shapes(bounds_wgs84, resolution_km2, shapes):
     Returns:
         * point raster in WGS84 with given resolution, filtered by the shapes
     """
-    # TODO should include borders as well
     x_min, y_min, x_max, y_max = transform_bounds(
         bounds_wgs84["x_min"], bounds_wgs84["y_min"], bounds_wgs84["x_max"], bounds_wgs84["y_max"],
         from_epsg=WGS84,
@@ -33,7 +36,9 @@ def point_raster_on_shapes(bounds_wgs84, resolution_km2, shapes):
         for x in np.arange(start=x_min, stop=x_max, step=resolution_km2 * 1000)
         for y in np.arange(start=y_min, stop=y_max, step=resolution_km2 * 1000)
     ]
-    surface_areas = shapes.to_crs(EPSG_3035_PROJ4)
+    surface_areas = shapes.to_crs(EPSG_3035_PROJ4).simplify(resolution_km2 / 20 * 1000).buffer(
+        resolution_km2 / 2 * 1000
+    )
     prepared_polygons = [shapely.prepared.prep(polygon) for polygon in surface_areas.geometry]
     return gpd.GeoSeries(
         list(filter(

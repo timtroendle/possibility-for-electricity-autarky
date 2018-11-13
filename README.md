@@ -49,7 +49,7 @@ To generate a PDF of the dependency graph of all steps, run:
 
 At the moment, there is one manual step involved: running renewables.ninja simulations of wind and solar electricity. It is added to the automatic workflow as input data. Should you want to change the simulations, because you want to change parameters of the simulation (see `parameters.ninja` in the config), you can do that in three steps:
 
-1) Create input files by first chaning the config, then running `smake -s rules/ninja-input.smk`.
+1) Create input files by first chaning the config, then running `snakemake -s rules/ninja-input.smk`.
 2) Run the simulations on renewables.ninja.
 3) Update the data in `data/capacityfactors/{technology}`.
 
