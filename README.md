@@ -29,8 +29,7 @@ Whenever possible, data is downloaded automatically. As this is not always possi
 * [World Exclusive Economic Zones v10](http://www.marineregions.org/downloads.php), to be placed in `./data/World_EEZ_v10_20180221`
 * [Sonnendach.ch 2018-08-27](http://www.sonnendach.ch), to be placed in `./data/sonnendach/SOLKAT_20180827.gdb`
 * [Federal Register of Buildings and Dwellings (RBD/GWR) 2018-07-01](https://www.bfs.admin.ch/bfs/en/home/registers/federal-register-buildings-dwellings.html), to be placed in `./data/gwr/`
-* onshore wind capacity factors from renewable.ninja, to be placed in `./data/wind/`
-* simulated pv capacity factors from renewable.ninja, to be placed in `./data/pv.nc`
+* capacity factors from renewable.ninja, to be placed in `./data/capacityfactors/{technology}` for technology in ["wind-onshore", "wind-offshore", "rooftop-pv", "open-field-pv"] (where "open-field-pv" and "rooftop-pv" can be the same dataset and hence can be linked instead of copied)(to run simulations, see `Manual steps` below)
 
 ## Run the analysis
 
@@ -45,6 +44,14 @@ To generate a PDF of the dependency graph of all steps, run:
     snakemake --rulegraph | dot -Tpdf > dag.pdf
 
 (needs `dot`: `conda install graphviz`).
+
+## Manual steps
+
+At the moment, there is one manual step involved: running renewables.ninja simulations of wind and solar electricity. It is added to the automatic workflow as input data. Should you want to change the simulations, because you want to change parameters of the simulation (see `parameters.ninja` in the config), you can do that in three steps:
+
+1) Create input files by first chaning the config, then running `smake -s rules/ninja-input.smk`.
+2) Run the simulations on renewables.ninja.
+3) Update the data in `data/capacityfactors/{technology}`.
 
 ## Run the tests
 
@@ -64,4 +71,4 @@ To generate a PDF of the dependency graph of all steps, run:
 
 If you make use of this in academic work, please cite:
 
-Tim Tröndle, Stefan Pfenninger and Johan Lilliestam (in review). Home-made or made in Europe: on the possibility for renewable electricity autarky on all scales in Europe. Energy Strategy Reviews
+Tim Tröndle, Stefan Pfenninger, and Johan Lilliestam (in review). Home-made or made in Europe: on the possibility for renewable electricity autarky on all scales in Europe. Energy Strategy Reviews

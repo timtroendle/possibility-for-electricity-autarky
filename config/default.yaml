@@ -193,11 +193,16 @@ parameters:
         pv-on-flat-areas: 80 # [W/m^2] from (Gagnon:2016, Klauser:2016, Wirth:2017)
         onshore-wind: 8 # [W/m^2] from (European Environment Agency, 2009)
         offshore-wind: 15 # [W/m^2] from (European Environment Agency, 2009)
-    onshore-capacity-factor-replacement: # replace missing onshore cp from country_code
-        Albania: Greece
-        Bosnia and Herzegovina: Croatia
-        Montenegro: Croatia
-        Serbia: Romania
+    ninja: # change these with caution as the renewables.ninja simulations are not in the loop, see README
+        resolution-grid: 200 # [km^2] # FIXME should be 50, corresponding to MERRA
+        pv-efficiency: 0.16
+        pv-performance-ratio: 0.9
+        hub-height:
+            onshore: 80 # m
+            offshore: 120 # m
+        turbine:
+            onshore: "enercon e126 7000"
+            offshore: "vestas v164 7000"
     max-slope:
         pv: 3 # [°]
         wind: 20 # [°] (McKenna:2014)

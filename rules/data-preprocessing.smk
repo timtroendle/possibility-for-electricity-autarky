@@ -16,8 +16,6 @@ URL_CGIAR_TILE = "http://droppr.org/srtm/v4.1/6_5x5_TIFs/"
 URL_GMTED_TILE = "https://edcintl.cr.usgs.gov/downloads/sciweb1/shared/topo/downloads/GMTED/Global_tiles_GMTED/075darcsec/mea/"
 URL_GADM = "https://biogeo.ucdavis.edu/data/gadm3.6/gpkg/"
 URL_BATHYMETRIC = "https://www.ngdc.noaa.gov/mgg/global/relief/ETOPO1/data/bedrock/grid_registered/georeferenced_tiff/ETOPO1_Bed_g_geotiff.zip"
-URL_WIND_CP = "https://www.renewables.ninja/static/downloads/ninja_europe_wind_v1.1.zip"
-URL_PV_CP = "https://www.renewables.ninja/static/downloads/ninja_europe_pv_v1.1.zip"
 URL_POP = "http://cidportal.jrc.ec.europa.eu/ftp/jrc-opendata/GHSL/GHS_POP_GPW4_GLOBE_R2015A/GHS_POP_GPW42015_GLOBE_R2015A_54009_250/V1-0/GHS_POP_GPW42015_GLOBE_R2015A_54009_250_v1_0.zip"
 
 
@@ -261,34 +259,6 @@ rule raw_bathymetry:
     input: rules.raw_bathymetry_zipped.output
     output: temp("build/ETOPO1_Bed_g_geotiff.tif")
     shell: "unzip {input} -d ./build/"
-
-
-rule raw_wind_capacity_factors_zipped:
-    message: "Download national wind capacity factors as zip."
-    output: protected("data/automatic/raw-wind-capacity-factors.zip")
-    shell: "curl -sLo {output} '{URL_WIND_CP}'"
-
-
-rule raw_pv_capacity_factors_zipped:
-    message: "Download national pv capacity factors as zip."
-    output: protected("data/automatic/raw-pv-capacity-factors.zip")
-    shell: "curl -sLo {output} '{URL_PV_CP}'"
-
-
-rule raw_wind_capacity_factors:
-    message: "Extract national wind capacity factors from zip."
-    input: rules.raw_wind_capacity_factors_zipped.output
-    shadow: "full"
-    output: temp("build/ninja_wind_europe_v1.1_current_on-offshore.csv")
-    shell: "unzip {input} -d ./build"
-
-
-rule raw_pv_capacity_factors:
-    message: "Extract national pv capacity factors from zip."
-    input: rules.raw_pv_capacity_factors_zipped.output
-    shadow: "full"
-    output: temp("build/ninja_pv_europe_v1.1_sarah.csv")
-    shell: "unzip {input} -d ./build"
 
 
 rule elevation_in_europe:

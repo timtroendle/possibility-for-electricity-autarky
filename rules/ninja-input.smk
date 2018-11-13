@@ -7,34 +7,37 @@ PYTHON = "PYTHONPATH=./ python"
 PYTHON_SCRIPT = "PYTHONPATH=./ python {input} {output}"
 
 CONFIG_FILE = "config/default.yaml"
-RESOLUTION_KM2 = 200 # FIXME should be 50, corresponding to MERRA
 configfile: CONFIG_FILE
 
 include: "../Snakefile"
 include: "sonnendach.smk"
 
-rule all_ninja:
+rule ninja_simulation_input:
     message: "Create input files for renewable.ninja simulations."
     input:
-        "build/ninja/pv.csv",
-        "build/ninja/wind.csv"
+        "build/capacityfactors/ninja-input-pv.csv",
+        "build/capacityfactors/ninja-input-wind-onshore.csv",
+        "build/capacityfactors/ninja-input-wind-offshore.csv"
 
 
-rule pv:
-    message: "Create pv simulation parameters for renewables.ninja."
+rule pv_simulation_points:
+    message: "Create locations and parameters of pv simulations for renewables.ninja."
     input:
-        "src/ninja/pv.py",
+        "src/capacityfactors/ninja_input_pv.py",
         "build/european/units.geojson",
         rules.sonnendach_statistics.output.raw
-    output: "build/ninja/pv.csv"
-    shell: PYTHON_SCRIPT + " {RESOLUTION_KM2} {CONFIG_FILE}"
+    output:
+        points = "build/capacityfactors/ninja-input-pv.csv",
+    shell: PYTHON_SCRIPT + " {CONFIG_FILE}"
 
 
-rule wind:
-    message: "Create wind simulation parameters for renewables.ninja."
+rule wind_simulation_points:
+    message: "Create locations and parameters of wind simulations for renewables.ninja."
     input:
-        "src/ninja/wind.py",
+        "src/capacityfactors/ninja_input_wind.py",
         "build/european/units.geojson",
         "build/eez-in-europe.geojson"
-    output: "build/ninja/wind.csv"
-    shell: PYTHON_SCRIPT + " {RESOLUTION_KM2} {CONFIG_FILE}"
+    output:
+        points_onshore = "build/capacityfactors/ninja-input-wind-onshore.csv",
+        points_offhore = "build/capacityfactors/ninja-input-wind-offshore.csv",
+    shell: PYTHON_SCRIPT + " {CONFIG_FILE}"

@@ -22,6 +22,7 @@ def point_raster_on_shapes(bounds_wgs84, resolution_km2, shapes):
     Returns:
         * point raster in WGS84 with given resolution, filtered by the shapes
     """
+    # TODO should include borders as well
     x_min, y_min, x_max, y_max = transform_bounds(
         bounds_wgs84["x_min"], bounds_wgs84["y_min"], bounds_wgs84["x_max"], bounds_wgs84["y_max"],
         from_epsg=WGS84,

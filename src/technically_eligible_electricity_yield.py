@@ -5,7 +5,6 @@ import click
 import numpy as np
 import rasterio
 
-from src.technical_eligibility import Eligibility
 from src.conversion import watt_to_watthours
 
 
@@ -13,10 +12,14 @@ from src.conversion import watt_to_watthours
 @click.argument("path_to_eligibility_categories")
 @click.argument("path_to_capacities_pv_prio")
 @click.argument("path_to_capacities_wind_prio")
+@click.argument("path_to_cf_pv_prio")
+@click.argument("path_to_cf_wind_prio")
 @click.argument("path_to_pv_prio_result")
 @click.argument("path_to_wind_prio_result")
 def determine_electricity_yield(path_to_eligibility_categories, path_to_capacities_pv_prio,
-                                path_to_capacities_wind_prio, path_to_pv_prio_result, path_to_wind_prio_result):
+                                path_to_capacities_wind_prio, path_to_cf_pv_prio,
+                                path_to_cf_wind_prio,
+                                path_to_pv_prio_result, path_to_wind_prio_result):
     """Determines maximal electricity yield for renewables."""
     with rasterio.open(path_to_capacities_pv_prio) as src:
         meta = src.meta
@@ -25,46 +28,32 @@ def determine_electricity_yield(path_to_eligibility_categories, path_to_capaciti
         capacity_wind_prio_mw = src.read(1)
     with rasterio.open(path_to_eligibility_categories) as src:
         eligibility_categories = src.read(1)
-    rooftop_cf = watt_to_watthours(0.15, duration=timedelta(days=365)) # FIXME should be a map
-    open_field_pv_cf = watt_to_watthours(0.2, duration=timedelta(days=365)) # FIXME should be a map
-    wind_cf = watt_to_watthours(0.25, duration=timedelta(days=365)) # FIXME should be a map
+    with rasterio.open(path_to_cf_pv_prio) as src:
+        no_cf = src.nodata
+        cf_pv_prio = src.read(1)
+    with rasterio.open(path_to_cf_wind_prio) as src:
+        cf_wind_prio = src.read(1)
     electricity_yield_pv_prio = _determine_electricity_yield(
         capacity_mw=capacity_pv_prio_mw,
         eligibility_category=eligibility_categories,
-        rooftop_cf=rooftop_cf,
-        open_field_pv_cf=open_field_pv_cf,
-        wind_cf=wind_cf,
-        pv_prio=True
+        cf=cf_pv_prio,
+        data_mask=cf_pv_prio != no_cf
     )
     electricity_yield_wind_prio = _determine_electricity_yield(
         capacity_mw=capacity_wind_prio_mw,
         eligibility_category=eligibility_categories,
-        rooftop_cf=rooftop_cf,
-        open_field_pv_cf=open_field_pv_cf,
-        wind_cf=wind_cf,
-        pv_prio=False
+        cf=cf_wind_prio,
+        data_mask=cf_wind_prio != no_cf
     )
     _write_to_file(path_to_pv_prio_result, electricity_yield_pv_prio, meta)
     _write_to_file(path_to_wind_prio_result, electricity_yield_wind_prio, meta)
 
 
-def _determine_electricity_yield(capacity_mw, eligibility_category, rooftop_cf, open_field_pv_cf, wind_cf, pv_prio):
+def _determine_electricity_yield(capacity_mw, eligibility_category, cf, data_mask):
     electricity_yield_twh = np.zeros_like(capacity_mw)
-    for eligibility in Eligibility:
-        cf = _capacity_factor(eligibility, pv_prio, rooftop_cf, open_field_pv_cf, wind_cf)
-        mask = eligibility_category == eligibility
-        electricity_yield_twh[mask] = (capacity_mw * cf)[mask] / 1e6
+    cf[data_mask] = watt_to_watthours(cf[data_mask], duration=timedelta(days=365))
+    electricity_yield_twh[data_mask] = (capacity_mw * cf)[data_mask] / 1e6
     return electricity_yield_twh
-
-
-def _capacity_factor(eligibility, pv_prio, rooftop_cf, open_field_pv_cf, wind_cf):
-    return {
-        Eligibility.NOT_ELIGIBLE: 0,
-        Eligibility.ROOFTOP_PV: rooftop_cf,
-        Eligibility.ONSHORE_WIND_AND_PV: open_field_pv_cf if pv_prio else wind_cf,
-        Eligibility.ONSHORE_WIND: wind_cf,
-        Eligibility.OFFSHORE_WIND: wind_cf
-    }[eligibility]
 
 
 def _write_to_file(path_to_file, electricity_yield, meta):

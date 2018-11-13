@@ -7,8 +7,7 @@ CONFIG_FILE = "config/default.yaml"
 configfile: CONFIG_FILE
 include: "rules/data-preprocessing.smk"
 include: "rules/sonnendach.smk"
-
-RAW_PV_CAPACITY_FACTORS = "data/pv.nc"
+include: "rules/capacityfactors.smk"
 
 
 rule all:
@@ -33,6 +32,23 @@ rule category_of_technical_eligibility:
         "build/technically-eligible-land.tif"
     shell:
         PYTHON_SCRIPT + " {CONFIG_FILE}"
+
+
+rule capacityfactor_of_technical_eligibility:
+    message:
+        "Determine capacityfactor of eligibility category."
+    input:
+        "src/technically_eligible_capacityfactor.py",
+        rules.category_of_technical_eligibility.output,
+        expand(
+            "build/capacityfactors/{technology}-time-average.tif",
+            technology=["rooftop-pv", "open-field-pv", "wind-onshore", "wind-offshore"]
+        )
+    output:
+        "build/technically-eligible-capacityfactor-pv-prio.tif",
+        "build/technically-eligible-capacityfactor-wind-prio.tif"
+    shell:
+        PYTHON_SCRIPT
 
 
 rule area_of_technical_eligibility:
@@ -71,6 +87,7 @@ rule electricity_yield_of_technical_eligibility:
         "src/technically_eligible_electricity_yield.py",
         rules.category_of_technical_eligibility.output,
         rules.capacity_of_technical_eligibility.output,
+        rules.capacityfactor_of_technical_eligibility.output
     output:
         "build/technically-eligible-electricity-yield-pv-prio-twh.tif",
         "build/technically-eligible-electricity-yield-wind-prio-twh.tif",
@@ -180,73 +197,6 @@ rule shared_coast:
         rules.eez_in_europe.output
     output:
         "build/{layer}/shared-coast.csv"
-    threads: config["snakemake"]["max-threads"]
-    shell:
-        PYTHON_SCRIPT + " {threads}"
-
-
-rule national_capacity_factors:
-    message: "Merge national renewable capacity factors and replace missing."
-    input:
-        "src/capacity_factors_national.py",
-        rules.raw_wind_capacity_factors.output,
-        rules.raw_pv_capacity_factors.output
-    output:
-        "build/capacity-factors-national.csv"
-    shell:
-        PYTHON_SCRIPT + " {CONFIG_FILE}"
-
-
-rule wind_capacity_factors:
-    message: "Create wind capacity factors with highest spatial resolution."
-    input:
-        "src/capacity_factors_wind.py",
-        rules.national_capacity_factors.output,
-        "data/wind/",
-        "build/national/units.geojson",
-        rules.administrative_borders_nuts.output
-    output:
-        "build/capacity-factors-wind.geojson"
-    shell:
-        PYTHON_SCRIPT + " {CONFIG_FILE}"
-
-
-rule raw_regional_pv_capacity_factors:
-    message: "Process renewables.ninja capacity factors."
-    input:
-        RAW_PV_CAPACITY_FACTORS
-    output:
-        "build/capacity-factors-pv-raw.csv"
-    run:
-        import xarray as xr
-
-        ds = xr.open_dataset(input[0])
-        pv_cfs = ds.mean(dim="time_utc")
-        pv_cfs.to_dataframe().to_csv(output[0], header=True, index=True)
-
-
-rule pv_capacity_factors:
-    message: "Derive PV capacity factors on regional level."
-    input:
-        "src/capacity_factors_pv.py",
-        rules.raw_regional_pv_capacity_factors.output,
-        "build/regional/units.geojson",
-        rules.sonnendach_statistics.output.raw,
-    output:
-        "build/capacity-factors-pv.geojson"
-    shell:
-        PYTHON_SCRIPT
-
-
-rule local_capacity_factors:
-    message: "Determine capacity factors for units of layer {wildcards.layer} using {threads} threads."
-    input:
-        "src/capacity_factors_local.py",
-        rules.units.output,
-        rules.wind_capacity_factors.output,
-        rules.pv_capacity_factors.output
-    output:
-        "build/{layer}/capacity-factors.csv"
     threads: config["snakemake"]["max-threads"]
     shell:
         PYTHON_SCRIPT + " {threads}"
