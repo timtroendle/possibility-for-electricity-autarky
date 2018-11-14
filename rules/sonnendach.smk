@@ -1,11 +1,10 @@
 """These rules analyse the Swiss Sonnendach dataset.
 
-There are two types of information extracted from this dataset:
+There are two types of statistical information extracted from this dataset:
 
 (1) Statistics on the types of roofs: flat / tilted, orientation, and tilt. This is used to simulate
     the yield of roof-mounted PV.
-(2) A correction (multiplication) factor that relates area of building foot prints as identified
-    from ESM to area of rooftops usable for PV.
+(2) Total estimation of available Swiss roofs and their PV potential.
 """
 
 import sys; sys.path.append(os.getcwd()) # this is necessary to be able to import "src", not sure why
@@ -21,14 +20,14 @@ MULTI_FAMILY_BUILDING = 1025 # GKAT @BFE:2016 "Berechnung Potential in Gemeinden
 FALLBACK_BUILDING_TYPE = 1010 # GKAT @BFE:2016 "Berechnung Potential in Gemeinden"
 THEIR_PERFORMANCE_RATIO = 0.8 # @Klauser:2016 "Solarpotentialanalyse für Sonnendach.ch"
 THEIR_EFFICIENCY = 0.17 # @Klauser:2016 "Solarpotentialanalyse für Sonnendach.ch"
-CONFIG_FILE = "config/default.yaml"
-
-configfile: CONFIG_FILE
 
 
 rule all_sonnendach:
     input:
-        "build/swiss/pv-simulation-parameters.csv"
+        "build/swiss/total-rooftop-area-according-to-sonnendach-data-km2.txt",
+        "build/swiss/total-yield-according-to-sonnendach-data-twh.txt",
+        "build/swiss/roof-statistics.csv",
+        "build/swiss/roof-statistics-publish.csv"
 
 
 rule building_categories:
@@ -58,49 +57,6 @@ rule sonnendach_rooftop_data:
         "ogr2ogr -dialect sqlite -f csv \
         -sql 'SELECT DF_UID, GWR_EGID, FLAECHE, AUSRICHTUNG, NEIGUNG, MSTRAHLUNG, GSTRAHLUNG FROM {LAYER_NAME}' \
         {output} {input}"
-
-
-rule total_size_swiss_building_footprints_according_to_settlement_data:
-    message: "Sum the size of building footprints from settlement data."
-    input:
-        building_footprints = rules.settlements.output.buildings,
-        eligibility = "build/technically-eligible-land.tif",
-        countries = rules.administrative_borders_nuts.output[0]
-    output:
-        "build/swiss/building-footprints-according-to-settlement-data-km2.txt"
-    run:
-        import rasterio
-        import fiona
-        from rasterstats import zonal_stats
-        import pandas as pd
-        import geopandas as gpd
-
-        from src.technical_eligibility import Eligibility
-        from src.conversion import area_in_squaremeters
-
-        with rasterio.open(input.eligibility, "r") as f_eligibility:
-            eligibility = f_eligibility.read(1)
-        with rasterio.open(input.building_footprints, "r") as f_building_share:
-            building_share = f_building_share.read(1)
-            transform = f_building_share.transform
-        building_share[eligibility != Eligibility.ROOFTOP_PV] = 0
-
-        with fiona.open(input.countries, "r", layer="nuts0") as src:
-            zs = zonal_stats(
-                vectors=src,
-                raster=building_share,
-                affine=transform,
-                stats="mean",
-                nodata=-999
-            )
-            building_share = pd.Series(
-                index=[feat["properties"]["id"] for feat in src],
-                data=[stat["mean"] for stat in zs]
-            )
-        building_footprint_km2 = area_in_squaremeters(gpd.read_file(input.countries).set_index("id")).div(1e6) * building_share
-        swiss_building_footprint = building_footprint_km2.loc["CH"]
-        with open(output[0], "w") as f_out:
-            f_out.write(f"{swiss_building_footprint}")
 
 
 rule total_size_swiss_rooftops_according_to_sonnendach_data:
@@ -196,23 +152,6 @@ rule total_swiss_yield_according_to_sonnendach_data:
         total_yield_twh = total_radiation_kwh * THEIR_EFFICIENCY * THEIR_PERFORMANCE_RATIO / 1e9
         with open(output[0], "w") as f_out:
             f_out.write(f"{total_yield_twh}")
-
-
-rule correction_factor_building_footprint_to_available_rooftop:
-    message: "Determine the factor that maps from building footprints to available rooftop area for CH."
-    input:
-        rooftops = rules.total_size_swiss_rooftops_according_to_sonnendach_data.output[0],
-        building_footprints = rules.total_size_swiss_building_footprints_according_to_settlement_data.output[0]
-    output:
-        "build/swiss/ratio-esm-available.txt"
-    run:
-        with open(input.rooftops, "r") as f_in:
-            rooftops = float(f_in.read())
-        with open(input.building_footprints, "r") as f_in:
-            building_footprints = float(f_in.read())
-        ratio = rooftops / building_footprints
-        with open(output[0], "w") as f_out:
-            f_out.write(f"{ratio:.3f}")
 
 
 rule sonnendach_statistics:
