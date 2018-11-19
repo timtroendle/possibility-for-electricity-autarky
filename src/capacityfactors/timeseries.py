@@ -4,8 +4,10 @@ from pathlib import Path
 import click
 import xarray as xr
 
-SIM_ID_DIMENSION = "sim_id"
+SIM_ID_DIMENSION = "site"
 SITE_ID_VAR = "site_id"
+LAT_VAR = "lat"
+LON_VAR = "lon"
 WEIGHT_VAR = "weight"
 CAPACITY_FACTOR_VAR = "electricity"
 WEIGHTED_CAPACITY_FACTOR_VAR = "weighted_electricity"
@@ -37,7 +39,9 @@ def merge_time_series_in_folder(path_to_folder):
 
 def groupby_sites(ds):
     ds[CAPACITY_FACTOR_VAR] = ds[CAPACITY_FACTOR_VAR] * ds[WEIGHT_VAR]
-    return ds.groupby(SITE_ID_VAR).mean(dim=SIM_ID_DIMENSION)
+    cp = ds[[CAPACITY_FACTOR_VAR, SITE_ID_VAR]].groupby(SITE_ID_VAR).sum(dim=SIM_ID_DIMENSION)
+    coords = ds[[LAT_VAR, LON_VAR, SITE_ID_VAR]].groupby(SITE_ID_VAR).first()
+    return xr.merge([cp, coords])
 
 
 def select_flat_surfaces_only(ds):
