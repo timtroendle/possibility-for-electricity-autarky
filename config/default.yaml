@@ -193,11 +193,16 @@ parameters:
         pv-on-flat-areas: 80 # [W/m^2] from (Gagnon:2016, Klauser:2016, Wirth:2017)
         onshore-wind: 8 # [W/m^2] from (European Environment Agency, 2009)
         offshore-wind: 15 # [W/m^2] from (European Environment Agency, 2009)
-    onshore-capacity-factor-replacement: # replace missing onshore cp from country_code
-        Albania: Greece
-        Bosnia and Herzegovina: Croatia
-        Montenegro: Croatia
-        Serbia: Romania
+    ninja: # change these with caution as the renewables.ninja simulations are not in the loop, see README
+        resolution-grid: 200 # [km^2] # FIXME should be 50, corresponding to MERRA
+        pv-efficiency: 0.16
+        pv-performance-ratio: 0.9
+        hub-height:
+            onshore: 80 # m
+            offshore: 120 # m
+        turbine:
+            onshore: "enercon e126 7000"
+            offshore: "vestas v164 7000"
     max-slope:
         pv: 3 # [°]
         wind: 20 # [°] (McKenna:2014)
@@ -206,7 +211,7 @@ parameters:
     max-urban-green-share: 0.01 # Above, a pixel cannot be used for energy farms. Equals roughly 900m2. Removes e.g. Berlin's Tempelhofer Feld.
 scenarios:
     technical-potential:
-        share-protected-areas-used: 1.0
+        use-protected-areas: True
         pv-on-farmland: True
         share-farmland-used: 1.0
         share-forest-used-for-wind: 1.0
@@ -214,15 +219,23 @@ scenarios:
         share-offshore-used: 1.0
         share-rooftops-used: 1.0
     technical-social-potential:
-        share-protected-areas-used: 0.0
+        use-protected-areas: False
         pv-on-farmland: False
         share-farmland-used: 0.1
         share-forest-used-for-wind: 0.1
         share-other-land-used: 0.1
         share-offshore-used: 0.1
         share-rooftops-used: 1.0
+    necessary-land:
+        use-protected-areas: False
+        pv-on-farmland: False
+        share-farmland-used: 1
+        share-forest-used-for-wind: 1
+        share-other-land-used: 1
+        share-offshore-used: 0
+        share-rooftops-used: 1
     zero-protection:
-        share-protected-areas-used: 1.0
+        use-protected-areas: True
         pv-on-farmland: False
         share-farmland-used: 0.1
         share-forest-used-for-wind: 0.1
@@ -230,7 +243,7 @@ scenarios:
         share-offshore-used: 0.1
         share-rooftops-used: 1.0
     no-rooftop-pv:
-        share-protected-areas-used: 1.0
+        use-protected-areas: True
         pv-on-farmland: True
         share-farmland-used: 1.0
         share-forest-used-for-wind: 1.0
@@ -238,7 +251,7 @@ scenarios:
         share-offshore-used: 1.0
         share-rooftops-used: 0.0
     only-rooftop-pv:
-        share-protected-areas-used: 0.0
+        use-protected-areas: False
         pv-on-farmland: False
         share-farmland-used: 0.0
         share-forest-used-for-wind: 0.0
@@ -246,7 +259,7 @@ scenarios:
         share-offshore-used: 0.0
         share-rooftops-used: 1.0
     harakiri:
-        share-protected-areas-used: 0.0
+        use-protected-areas: False
         pv-on-farmland: False
         share-farmland-used: 0.0
         share-forest-used-for-wind: 0.0

@@ -81,12 +81,12 @@ def _european_layer(layer):
     layer.loc[index, "country_code"] = "EUR"
     layer.loc[index, "name"] = "Europe"
     layer.loc[index, "type"] = "continent"
-    layer.loc[index, "proper"] = True
+    layer.loc[index, "proper"] = 1
     return layer
 
 
-def _write_layer(gpd, path_to_file):
-    gpd.to_file(
+def _write_layer(gdf, path_to_file):
+    gdf.to_file(
         path_to_file,
         driver=DRIVER
     )

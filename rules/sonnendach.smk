@@ -1,11 +1,10 @@
 """These rules analyse the Swiss Sonnendach dataset.
 
-There are two types of information extracted from this dataset:
+There are two types of statistical information extracted from this dataset:
 
 (1) Statistics on the types of roofs: flat / tilted, orientation, and tilt. This is used to simulate
     the yield of roof-mounted PV.
-(2) A correction (multiplication) factor that relates area of building foot prints as identified
-    from ESM to area of rooftops usable for PV.
+(2) Total estimation of available Swiss roofs and their PV potential.
 """
 
 import sys; sys.path.append(os.getcwd()) # this is necessary to be able to import "src", not sure why
@@ -21,14 +20,14 @@ MULTI_FAMILY_BUILDING = 1025 # GKAT @BFE:2016 "Berechnung Potential in Gemeinden
 FALLBACK_BUILDING_TYPE = 1010 # GKAT @BFE:2016 "Berechnung Potential in Gemeinden"
 THEIR_PERFORMANCE_RATIO = 0.8 # @Klauser:2016 "Solarpotentialanalyse für Sonnendach.ch"
 THEIR_EFFICIENCY = 0.17 # @Klauser:2016 "Solarpotentialanalyse für Sonnendach.ch"
-CONFIG_FILE = "config/default.yaml"
-
-configfile: CONFIG_FILE
 
 
 rule all_sonnendach:
     input:
-        "build/swiss/pv-simulation-parameters.csv"
+        "build/swiss/total-rooftop-area-according-to-sonnendach-data-km2.txt",
+        "build/swiss/total-yield-according-to-sonnendach-data-twh.txt",
+        "build/swiss/roof-statistics.csv",
+        "build/swiss/roof-statistics-publish.csv"
 
 
 rule building_categories:
@@ -58,49 +57,6 @@ rule sonnendach_rooftop_data:
         "ogr2ogr -dialect sqlite -f csv \
         -sql 'SELECT DF_UID, GWR_EGID, FLAECHE, AUSRICHTUNG, NEIGUNG, MSTRAHLUNG, GSTRAHLUNG FROM {LAYER_NAME}' \
         {output} {input}"
-
-
-rule total_size_swiss_building_footprints_according_to_settlement_data:
-    message: "Sum the size of building footprints from settlement data."
-    input:
-        building_footprints = rules.settlements.output.buildings,
-        eligibility = "build/eligible-land.tif",
-        countries = rules.administrative_borders_nuts.output[0]
-    output:
-        "build/swiss/building-footprints-according-to-settlement-data-km2.txt"
-    run:
-        import rasterio
-        import fiona
-        from rasterstats import zonal_stats
-        import pandas as pd
-        import geopandas as gpd
-
-        from src.eligibility import Eligibility
-        from src.conversion import area_in_squaremeters
-
-        with rasterio.open(input.eligibility, "r") as f_eligibility:
-            eligibility = f_eligibility.read(1)
-        with rasterio.open(input.building_footprints, "r") as f_building_share:
-            building_share = f_building_share.read(1)
-            transform = f_building_share.transform
-        building_share[eligibility != Eligibility.ROOFTOP_PV] = 0
-
-        with fiona.open(input.countries, "r", layer="nuts0") as src:
-            zs = zonal_stats(
-                vectors=src,
-                raster=building_share,
-                affine=transform,
-                stats="mean",
-                nodata=-999
-            )
-            building_share = pd.Series(
-                index=[feat["properties"]["id"] for feat in src],
-                data=[stat["mean"] for stat in zs]
-            )
-        building_footprint_km2 = area_in_squaremeters(gpd.read_file(input.countries).set_index("id")).div(1e6) * building_share
-        swiss_building_footprint = building_footprint_km2.loc["CH"]
-        with open(output[0], "w") as f_out:
-            f_out.write(f"{swiss_building_footprint}")
 
 
 rule total_size_swiss_rooftops_according_to_sonnendach_data:
@@ -198,23 +154,6 @@ rule total_swiss_yield_according_to_sonnendach_data:
             f_out.write(f"{total_yield_twh}")
 
 
-rule correction_factor_building_footprint_to_available_rooftop:
-    message: "Determine the factor that maps from building footprints to available rooftop area for CH."
-    input:
-        rooftops = rules.total_size_swiss_rooftops_according_to_sonnendach_data.output[0],
-        building_footprints = rules.total_size_swiss_building_footprints_according_to_settlement_data.output[0]
-    output:
-        "build/swiss/ratio-esm-available.txt"
-    run:
-        with open(input.rooftops, "r") as f_in:
-            rooftops = float(f_in.read())
-        with open(input.building_footprints, "r") as f_in:
-            building_footprints = float(f_in.read())
-        ratio = rooftops / building_footprints
-        with open(output[0], "w") as f_out:
-            f_out.write(f"{ratio:.3f}")
-
-
 rule sonnendach_statistics:
     message: "Create statistics of roofs in Switzerland."
     input: rules.sonnendach_rooftop_data.output
@@ -257,58 +196,3 @@ rule sonnendach_statistics:
         )
         roof_categories["Share of roof areas [%]"] = roof_categories["Share of roof areas [%]"] * 100
         roof_categories.to_csv(output.publish, header=True, index=False, float_format="%.1f")
-
-
-rule pv_simulation_parameters:
-    message: "Create input parameters for simulation of photovoltaics."
-    input:
-        roof_categories = rules.sonnendach_statistics.output,
-        units = "build/regional/units.geojson"
-    output:
-        "build/swiss/pv-simulation-parameters.csv"
-    run:
-        import pandas as pd
-        import geopandas as gpd
-
-        def orientation_to_azimuth(orientation):
-            if orientation == "S":
-                return 180
-            elif orientation == "W":
-                return -90
-            elif orientation == "N":
-                return 0
-            elif orientation == "E":
-                return 90
-            elif orientation == "flat":
-                return 180
-            else:
-                raise ValueError()
-
-        def optimal_tilt(latitude):
-            # based on @Jacobson:2018
-            optimal_tilt = 1.3793 + latitude * (1.2011 + latitude * (-0.014404 + latitude * 0.000080509))
-            assert 90 > optimal_tilt >= 0
-            return optimal_tilt
-
-        roof_categories = pd.read_csv(input.roof_categories[0])
-        units = gpd.read_file(input.units).set_index("id")
-        lat_long = pd.DataFrame(
-            index=units.index,
-            data={
-                "lat": units.centroid.map(lambda point: point.y),
-                "long": units.centroid.map(lambda point: point.x)
-            }
-        )
-
-        index = pd.MultiIndex.from_product((units.index, roof_categories.index), names=["id", "roof_cat_id"])
-        data = pd.DataFrame(index=index).reset_index()
-        data = data.merge(roof_categories, left_on="roof_cat_id", right_index=True).drop(columns=["share of roof areas"])
-        data = data.merge(lat_long, left_on="id", right_index=True)
-        data["azim"] = data["orientation"].map(orientation_to_azimuth)
-        data["site_id"] = data.apply(
-            lambda row: "{}_{}_{}".format(row.id, row.orientation, round(row.tilt)),
-            axis=1
-        )
-        flat_mask = data["orientation"] == "flat"
-        data.loc[flat_mask, "tilt"] = data.loc[flat_mask, "lat"].map(optimal_tilt)
-        data[["site_id", "lat", "long", "tilt", "azim"]].sort_index().to_csv(output[0], header=True, index=False)

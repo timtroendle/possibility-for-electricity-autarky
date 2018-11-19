@@ -5,7 +5,7 @@ import click
 import pandas as pd
 import geopandas as gpd
 
-from src.eligibility import GlobCover
+from src.technical_eligibility import GlobCover
 from src.conversion import area_in_squaremeters
 
 WATER_THRESHOLD = 0.9 # units above this threshold are considered pure water bodies

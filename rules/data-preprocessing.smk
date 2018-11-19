@@ -2,10 +2,6 @@
 import pycountry
 from src.conversion import transform_bounds
 
-PYTHON = "PYTHONPATH=./ python"
-PYTHON_SCRIPT = "PYTHONPATH=./ python {input} {output}"
-PYTHON_SCRIPT_WITH_CONFIG = PYTHON_SCRIPT + " {CONFIG_FILE}"
-
 URL_LOAD = "https://data.open-power-system-data.org/time_series/2018-06-30/time_series_60min_stacked.csv"
 URL_NUTS = "http://ec.europa.eu/eurostat/cache/GISCO/geodatafiles/NUTS_2013_01M_SH.zip"
 URL_LAU = "http://ec.europa.eu/eurostat/cache/GISCO/geodatafiles/COMM-01M-2013-SH.zip"
@@ -16,9 +12,6 @@ URL_CGIAR_TILE = "http://droppr.org/srtm/v4.1/6_5x5_TIFs/"
 URL_GMTED_TILE = "https://edcintl.cr.usgs.gov/downloads/sciweb1/shared/topo/downloads/GMTED/Global_tiles_GMTED/075darcsec/mea/"
 URL_GADM = "https://biogeo.ucdavis.edu/data/gadm3.6/gpkg/"
 URL_BATHYMETRIC = "https://www.ngdc.noaa.gov/mgg/global/relief/ETOPO1/data/bedrock/grid_registered/georeferenced_tiff/ETOPO1_Bed_g_geotiff.zip"
-URL_WIND_CP = "https://www.renewables.ninja/static/downloads/ninja_europe_wind_v1.1.zip"
-URL_PV_CP = "https://www.renewables.ninja/static/downloads/ninja_europe_pv_v1.1.zip"
-URL_COUNTRY_SHAPES = "https://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/cultural/ne_10m_admin_0_countries.zip"
 URL_POP = "http://cidportal.jrc.ec.europa.eu/ftp/jrc-opendata/GHSL/GHS_POP_GPW4_GLOBE_R2015A/GHS_POP_GPW42015_GLOBE_R2015A_54009_250/V1-0/GHS_POP_GPW42015_GLOBE_R2015A_54009_250_v1_0.zip"
 
 
@@ -221,7 +214,7 @@ rule raw_srtm_elevation_data:
     output:
         temp("build/raw-srtm-elevation-data.tif")
     shell:
-        "rio merge {input} {output} --force-overwrite"
+        "rio merge {input} {output} --overwrite"
 
 
 rule raw_gmted_elevation_tile:
@@ -248,7 +241,7 @@ rule raw_gmted_elevation_data:
     output:
         temp("build/raw-gmted-elevation-data.tif")
     shell:
-        "rio merge {input} {output} --force-overwrite"
+        "rio merge {input} {output} --overwrite"
 
 
 rule raw_bathymetry_zipped:
@@ -264,34 +257,6 @@ rule raw_bathymetry:
     shell: "unzip {input} -d ./build/"
 
 
-rule raw_wind_capacity_factors_zipped:
-    message: "Download national wind capacity factors as zip."
-    output: protected("data/automatic/raw-wind-capacity-factors.zip")
-    shell: "curl -sLo {output} '{URL_WIND_CP}'"
-
-
-rule raw_pv_capacity_factors_zipped:
-    message: "Download national pv capacity factors as zip."
-    output: protected("data/automatic/raw-pv-capacity-factors.zip")
-    shell: "curl -sLo {output} '{URL_PV_CP}'"
-
-
-rule raw_wind_capacity_factors:
-    message: "Extract national wind capacity factors from zip."
-    input: rules.raw_wind_capacity_factors_zipped.output
-    shadow: "full"
-    output: temp("build/ninja_wind_europe_v1.1_current_on-offshore.csv")
-    shell: "unzip {input} -d ./build"
-
-
-rule raw_pv_capacity_factors:
-    message: "Extract national pv capacity factors from zip."
-    input: rules.raw_pv_capacity_factors_zipped.output
-    shadow: "full"
-    output: temp("build/ninja_pv_europe_v1.1_sarah.csv")
-    shell: "unzip {input} -d ./build"
-
-
 rule elevation_in_europe:
     message: "Merge SRTM and GMTED elevation data and warp/clip to Europe using {threads} threads."
     input:
@@ -300,8 +265,8 @@ rule elevation_in_europe:
     output:
         "build/elevation-europe.tif"
     params:
-        srtm_bounds = "{x_min} {y_min} {x_max} 60".format(**config["scope"]["bounds"]),
-        gmted_bounds = "{x_min} 59.5 {x_max} {y_max}".format(**config["scope"]["bounds"])
+        srtm_bounds = "{x_min},{y_min},{x_max},60".format(**config["scope"]["bounds"]),
+        gmted_bounds = "{x_min},59.5,{x_max},{y_max}".format(**config["scope"]["bounds"])
     threads: config["snakemake"]["max-threads"]
     shell:
         """
@@ -320,7 +285,7 @@ rule land_cover_in_europe:
     message: "Clip land cover data to Europe."
     input: rules.raw_land_cover.output
     output: "build/land-cover-europe.tif"
-    params: bounds = "{x_min} {y_min} {x_max} {y_max}".format(**config["scope"]["bounds"])
+    params: bounds = "{x_min},{y_min},{x_max},{y_max}".format(**config["scope"]["bounds"])
     shell: "rio clip {input} {output} --bounds {params.bounds}"
 
 
@@ -395,22 +360,16 @@ rule settlements:
     shadow: "full"
     shell:
         """
+        rio calc "(+ (+ (read 1) (read 2)) (read 3))" \
+        {input.class40} {input.class41} {input.class45} -o build/esm-class404145-temp-not-warped.tif
+        rio calc "(+ (+ (read 1) (read 2)) (read 3))" \
+        {input.class50} {input.class30} {input.class35} -o build/esm-class303550-temp-not-warped.tif
         rio warp {input.class50} -o {output.buildings} \
-        --like {input.reference} --threads {threads} --resampling bilinear --co compress=LZW
-        rio warp {input.class40} -o build/esm-class40.tif \
-        --like {input.reference} --threads {threads} --resampling bilinear --co compress=LZW
-        rio warp {input.class41} -o build/esm-class41.tif \
-        --like {input.reference} --threads {threads} --resampling bilinear --co compress=LZW
-        rio warp {input.class45} -o build/esm-class45.tif \
-        --like {input.reference} --threads {threads} --resampling bilinear --co compress=LZW
-        rio warp {input.class30} -o build/esm-class30.tif \
-        --like {input.reference} --threads {threads} --resampling bilinear --co compress=LZW
-        rio warp {input.class35} -o build/esm-class35.tif \
-        --like {input.reference} --threads {threads} --resampling bilinear --co compress=LZW
-        rio calc "(+ (+ (read 1) (read 2)) (read 3))" \
-        build/esm-class40.tif build/esm-class41.tif build/esm-class45.tif -o {output.urban_greens}
-        rio calc "(+ (+ (read 1) (read 2)) (read 3))" \
-        {output.buildings} build/esm-class30.tif build/esm-class35.tif -o {output.built_up}
+        --like {input.reference} --threads {threads} --resampling bilinear
+        rio warp build/esm-class404145-temp-not-warped.tif -o {output.urban_greens} \
+        --like {input.reference} --threads {threads} --resampling bilinear
+        rio warp build/esm-class303550-temp-not-warped.tif -o {output.built_up} \
+        --like {input.reference} --threads {threads} --resampling bilinear
         """
 
 
@@ -453,26 +412,6 @@ rule industry:
         PYTHON_SCRIPT
 
 
-rule raw_country_shapes:
-    message: "Download raw shapes of countries worldwide."
-    output:
-        protected("data/automatic/raw-country-shapes.zip")
-    shell:
-        "curl -sLo {output} '{URL_COUNTRY_SHAPES}'"
-
-
-rule country_shapes:
-    message: "Converting country shapes from shape file to GeoJSON."
-    input: rules.raw_country_shapes.output
-    output: "build/worldwide-countries.geojson"
-    shadow: "full"
-    shell:
-        """
-        unzip {input} -d ./build
-        fio dump build/ne_10m_admin_0_countries.shp > {output}
-        """
-
-
 rule raw_population_zipped:
     message: "Download population data."
     output:
@@ -500,12 +439,8 @@ rule population_in_europe:
     output:
         "build/population-europe.tif"
     params:
-        bounds = "{} {} {} {}".format(*transform_bounds(
-            **config["scope"]["bounds"],
-            from_epsg=config["crs"],
-            to_epsg="ESRI:54009"
-        ))
+        bounds="{x_min},{y_min},{x_max},{y_max}".format(**config["scope"]["bounds"])
     shell:
         """
-        rio clip --bounds {params.bounds} --co compress=LZW {input.population} -o {output}
+        rio clip --geographic --bounds {params.bounds} --co compress=LZW {input.population} -o {output}
         """

@@ -17,7 +17,9 @@ SCHEMA = {
         "id": "str", # a unique id of this unit
         "name": "str", # the name of the unit, not necessarily unqique
         "type": "str", # the type of the unit
-        "proper": "boolean" # flag indicating proper administrative unit (not the case for water bodies e.g.)
+        "proper": "int" # flag indicating proper administrative unit (not the case for water bodies e.g.)
+        # FIXME should be bool, but GeoPandas doesn't support bool: https://github.com/geopandas/geopandas/issues/437
+        # will be fixed here: https://github.com/geopandas/geopandas/pull/855
     },
     "geometry": "MultiPolygon"
 }
