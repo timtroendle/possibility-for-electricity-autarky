@@ -5,6 +5,8 @@
 * allocate the onshore potentials to the administrative units,
 * allocate the offshore potentials to exclusive economic zones (EEZ),
 * allocate the offshore potential of EEZ to units based on the fraction of shared coast.
+
+This is in analogy to `areas.py` but for potentials [TWh/a] rather than areas [km2] .
 """
 
 from enum import IntEnum, Enum

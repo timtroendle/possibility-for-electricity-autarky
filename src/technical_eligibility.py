@@ -29,6 +29,23 @@ class Eligibility(IntEnum):
     def energy_column_name(self):
         return "eligibility_{}_twh_per_year".format(self.name.lower())
 
+    @staticmethod
+    def onshore():
+        """Returns all onshore eligibilities."""
+        return [
+            Eligibility.NOT_ELIGIBLE,
+            Eligibility.ROOFTOP_PV,
+            Eligibility.ONSHORE_WIND_AND_PV,
+            Eligibility.ONSHORE_WIND,
+        ]
+
+    @staticmethod
+    def offshore():
+        """Returns all offshore eligibilities."""
+        return [
+            Eligibility.OFFSHORE_WIND
+        ]
+
 
 class GlobCover(IntEnum):
     """Original categories taken from GlobCover 2009 land cover."""
