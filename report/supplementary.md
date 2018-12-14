@@ -1,5 +1,5 @@
 ---
-title: 'Home-made or made in Europe: on the possibility for renewable electricity autarky on all scales in Europe'
+title: 'Home-made or imported: on the possibility for renewable electricity autarky on all scales in Europe'
 subtitle: 'Supplementary Material'
 author:
     - Tim Tröndle

@@ -71,4 +71,4 @@ At the moment, there is one manual step involved: running renewables.ninja simul
 
 If you make use of this in academic work, please cite:
 
-Tim Tröndle, Stefan Pfenninger, and Johan Lilliestam (in review). Home-made or made in Europe: on the possibility for renewable electricity autarky on all scales in Europe. Energy Strategy Reviews
+Tim Tröndle, Stefan Pfenninger, and Johan Lilliestam (in review). Home-made or imported: on the possibility for renewable electricity autarky on all scales in Europe. Energy Strategy Reviews
