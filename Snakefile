@@ -78,6 +78,24 @@ rule paper_docx:
         """
 
 
+rule paper_html:
+    message: "Create a self-contained html version of the paper."
+    input:
+        paper = "report/paper.md",
+        metadata = "report/pandoc-metadata.yml",
+        css = "report/report.css",
+        template = "report/template.html",
+        all_other = rules.paper.output # to avoid repeating actual dependencies
+    output: "index.html"
+    shell:
+        """
+        cd ./report
+        {PANDOC} ../report/paper.md ../report/pandoc-metadata.yml -o ../index.html \
+        -f markdown+simple_tables+table_captions+yaml_metadata_block -t html --standalone \
+        --css ../report/report.css --number-sections --self-contained --template template.html
+        """
+
+
 rule supplementary_material:
     message: "Compile the supplementary material."
     input:
