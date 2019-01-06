@@ -7,6 +7,9 @@ data/
 # ignore notebooks
 notebooks/
 
+# ignore fonts
+report/KlinicSlab*
+
 ## Core latex/pdflatex auxiliary files:
 *.aux
 *.lof
