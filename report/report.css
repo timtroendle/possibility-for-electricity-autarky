@@ -36,7 +36,7 @@ body {
     background: #faf8f5;
     color: rgba(0, 0, 0, 0.9);
     font-family: KlinicSlabBook, serif;
-    padding: 0;
+    padding: 10px 20px;
     display: block;
     -webkit-font-smoothing: antialiased;
     font-size: large;
@@ -137,7 +137,7 @@ figure {
 }
 
 img {
-    max-width: 700px;
+    max-width: 100%;
     height: auto
 }
 
@@ -255,5 +255,9 @@ table tbody tr:nth-child(odd) th, table tbody tr:nth-child(odd) td {
 table caption {
     top: 5px;
     margin-bottom: 18px
+}
+
+#refs a {
+    word-wrap: break-word; /* break long URLs */
 }
 
