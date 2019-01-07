@@ -61,13 +61,13 @@ rule total_size_swiss_building_footprints_according_to_settlement_data:
                 data=[stat["mean"] for stat in zs]
             )
         building_footprint_km2 = area_in_squaremeters(gpd.read_file(input.countries).set_index("id")).div(1e6) * building_share
-        swiss_building_footprint = building_footprint_km2.loc["CH"]
+        swiss_building_footprint = building_footprint_km2.loc["CHE"]
         with open(output[0], "w") as f_out:
             f_out.write(f"{swiss_building_footprint}")
 
 
 rule correction_factor_building_footprint_to_available_rooftop:
-    message: "Determine the factor that maps from building footprints to available rooftop area for CH."
+    message: "Determine the factor that maps from building footprints to available rooftop area for CHE."
     input:
         rooftops = rules.total_size_swiss_rooftops_according_to_sonnendach_data.output[0],
         building_footprints = rules.total_size_swiss_building_footprints_according_to_settlement_data.output[0]
