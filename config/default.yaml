@@ -194,15 +194,15 @@ parameters:
         onshore-wind: 8 # [W/m^2] from (European Environment Agency, 2009)
         offshore-wind: 15 # [W/m^2] from (European Environment Agency, 2009)
     ninja: # change these with caution as the renewables.ninja simulations are not in the loop, see README
-        resolution-grid: 200 # [km^2] # FIXME should be 50, corresponding to MERRA
+        resolution-grid: 50 # [km^2] corresponding to MERRA resolution
         pv-efficiency: 0.16
         pv-performance-ratio: 0.9
         hub-height:
-            onshore: 80 # m
-            offshore: 120 # m
+            onshore: 105 # m, median hub height of V90/2000 in Europe between 2010 and 2018
+            offshore: 87 # m, median hub height of SWT-3.6-107 in Europe between 2010 and 2018
         turbine:
-            onshore: "enercon e126 7000"
-            offshore: "vestas v164 7000"
+            onshore: "enercon v90 2000"
+            offshore: "siemens swt 3.6 107"
     max-slope:
         pv: 3 # [°]
         wind: 20 # [°] (McKenna:2014)
