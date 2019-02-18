@@ -48,11 +48,10 @@ def pv_simulation_parameters(path_to_shapes_of_land_surface, path_to_roof_catego
     )
     flat_mask = data["orientation"] == "flat"
     data.loc[flat_mask, "tilt"] = data.loc[flat_mask, "lat"].map(optimal_tilt)
-    data["efficiency"] = config["parameters"]["ninja"]["pv-efficiency"]
     data["pr"] = config["parameters"]["ninja"]["pv-performance-ratio"]
     data[
         ["sim_id", "weight", "site_id", "lat", "long", "tilt",
-         "orientation", "azim", "efficiency", "pr"]
+         "orientation", "azim", "pr"]
     ].sort_index().to_csv(
         path_to_output,
         header=True,

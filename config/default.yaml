@@ -189,13 +189,12 @@ layers:
         Switzerland: lau2
 parameters:
     maximum-installable-power-density: # this is not the yield, but the density of installed power
-        pv-on-tilted-roofs: 160 # [W/m^2] from (Gagnon:2016, Klauser:2016)
+        pv-on-tilted-roofs: 160 # [W/m^2] from (Gagnon:2016, Klauser:2016), i.e. 16% efficiency
         pv-on-flat-areas: 80 # [W/m^2] from (Gagnon:2016, Klauser:2016, Wirth:2017)
         onshore-wind: 8 # [W/m^2] from (European Environment Agency, 2009)
         offshore-wind: 15 # [W/m^2] from (European Environment Agency, 2009)
     ninja: # change these with caution as the renewables.ninja simulations are not in the loop, see README
         resolution-grid: 50 # [km^2] corresponding to MERRA resolution
-        pv-efficiency: 0.16
         pv-performance-ratio: 0.9
         hub-height:
             onshore: 105 # m, median hub height of V90/2000 in Europe between 2010 and 2018
