@@ -48,7 +48,7 @@ rule potentials_sufficiency_map:
     message: "Plot potential sufficiency maps for scenario {wildcards.scenario}."
     input:
         "src/vis/potentials_sufficiency_map.py",
-        "build/european/{scenario}/merged-results.geojson",
+        "build/continental/{scenario}/merged-results.geojson",
         "build/national/{scenario}/merged-results.geojson",
         "build/regional/{scenario}/merged-results.geojson",
         "build/municipal/{scenario}/merged-results.geojson"
@@ -147,7 +147,7 @@ rule scenario_overview:
             df["layer"] = layer_name
             return df
 
-        ALL_LAYERS = ["european", "national", "regional", "municipal"]
+        ALL_LAYERS = ["continental", "national", "regional", "municipal"]
 
         normed_potential = pd.concat([pd.read_csv(path, index_col="id").pipe(lambda df: add_layer(df, path))
                                      for path in input.normed_potentials])

@@ -43,7 +43,7 @@ scope:
         y_min: 30  # in degrees north
         y_max: 75  # in degrees north
 layers:
-    european:
+    continental:
         Austria: nuts0
         Belgium: nuts0
         Bulgaria: nuts0

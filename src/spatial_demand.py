@@ -51,7 +51,7 @@ def _determine_industry_demand(industries):
 
 
 def _determine_non_industry_demand(total_demand, local_industry_demand, units):
-    if (len(units.index) == 1) and (units.iloc[0].id == "EUR"): # special case for European level
+    if (len(units.index) == 1) and (units.iloc[0].id == "EUR"): # special case for continental level
         return pd.Series(
             index=units.index,
             data=[total_demand["twh_per_year"].sum() - local_industry_demand.sum()]

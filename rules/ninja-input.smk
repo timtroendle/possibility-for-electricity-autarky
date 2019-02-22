@@ -24,7 +24,7 @@ rule pv_simulation_points:
     message: "Create locations and parameters of pv simulations for renewables.ninja."
     input:
         "src/capacityfactors/ninja_input_pv.py",
-        "build/european/units.geojson",
+        "build/continental/units.geojson",
         rules.sonnendach_statistics.output.raw
     output:
         points = "build/capacityfactors/ninja-input-pv.csv",
@@ -35,7 +35,7 @@ rule wind_simulation_points:
     message: "Create locations and parameters of wind simulations for renewables.ninja."
     input:
         "src/capacityfactors/ninja_input_wind.py",
-        "build/european/units.geojson",
+        "build/continental/units.geojson",
         "build/eez-in-europe.geojson"
     output:
         points_onshore = "build/capacityfactors/ninja-input-wind-onshore.csv",
