@@ -97,7 +97,7 @@ rule capacityfactor_of_technical_eligibility:
         "build/technically-eligible-capacityfactor-pv-prio.tif",
         "build/technically-eligible-capacityfactor-wind-prio.tif"
     shell:
-        PYTHON_SCRIPT
+        PYTHON_SCRIPT + " {CONFIG_FILE}"
 
 
 rule area_of_technical_eligibility:

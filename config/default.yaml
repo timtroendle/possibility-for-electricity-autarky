@@ -193,6 +193,9 @@ parameters:
         pv-on-flat-areas: 80 # [W/m^2] from (Gagnon:2016, Klauser:2016, Wirth:2017)
         onshore-wind: 8 # [W/m^2] from (European Environment Agency, 2009)
         offshore-wind: 15 # [W/m^2] from (European Environment Agency, 2009)
+    availability:
+        wind-onshore: 0.97 # [-] from (European Environment Agency, 2009)
+        wind-offshore: 0.9 # [-] from (European Environment Agency, 2009)
     ninja: # change these with caution as the renewables.ninja simulations are not in the loop, see README
         resolution-grid: 50 # [km^2] corresponding to MERRA resolution
         pv-performance-ratio: 0.9
