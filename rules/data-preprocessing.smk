@@ -178,9 +178,10 @@ rule raw_protected_areas:
     message: "Extract protected areas data as zip."
     input: rules.raw_protected_areas_zipped.output
     output:
-        polygons = "build/raw-wdpa-jan2018/WDPA_Jan2018-shapefile-polygons.shp",
-        points = "build/raw-wdpa-jan2018/WDPA_Jan2018-shapefile-points.shp"
-    shell: "unzip {input} -d build/raw-wdpa-jan2018"
+        polygons = temp("build/raw-wdpa-jan2018/WDPA_Jan2018-shapefile-polygons.shp"),
+        polygon_data = temp("build/raw-wdpa-jan2018/WDPA_Jan2018-shapefile-polygons.dbf"),
+        points = temp"build/raw-wdpa-jan2018/WDPA_Jan2018-shapefile-points.shp")
+    shell: "unzip -o {input} -d build/raw-wdpa-jan2018"
 
 
 rule raw_srtm_elevation_tile_zipped:
@@ -263,7 +264,7 @@ rule elevation_in_europe:
         gmted = rules.raw_gmted_elevation_data.output,
         srtm = rules.raw_srtm_elevation_data.output
     output:
-        "build/elevation-europe.tif"
+        temp("build/elevation-europe.tif")
     params:
         srtm_bounds = "{x_min},{y_min},{x_max},60".format(**config["scope"]["bounds"]),
         gmted_bounds = "{x_min},59.5,{x_max},{y_max}".format(**config["scope"]["bounds"])
