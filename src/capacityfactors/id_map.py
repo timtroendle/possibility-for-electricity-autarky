@@ -9,7 +9,7 @@ import rasterio
 from rasterio.transform import from_origin
 import xarray as xr
 
-DTYPE = np.int32
+DTYPE = np.uint16
 NO_DATA_VALUE = -1
 INDEX_EPSILON = 10e-3
 
