@@ -7,7 +7,7 @@ URL_NUTS = "http://ec.europa.eu/eurostat/cache/GISCO/geodatafiles/NUTS_2013_01M_
 URL_LAU = "http://ec.europa.eu/eurostat/cache/GISCO/geodatafiles/COMM-01M-2013-SH.zip"
 URL_DEGURBA = "http://ec.europa.eu/eurostat/cache/GISCO/geodatafiles/DGURBA_2014_SH.zip"
 URL_LAND_COVER = "http://due.esrin.esa.int/files/Globcover2009_V2.3_Global_.zip"
-URL_PROTECTED_AREAS = "https://www.protectedplanet.net/downloads/WDPA_Jan2018?type=shapefile"
+URL_PROTECTED_AREAS = "https://www.protectedplanet.net/downloads/WDPA_Feb2019?type=shapefile"
 URL_CGIAR_TILE = "http://srtm.csi.cgiar.org/wp-content/uploads/files/srtm_5x5/TIFF/"
 URL_GMTED_TILE = "https://edcintl.cr.usgs.gov/downloads/sciweb1/shared/topo/downloads/GMTED/Global_tiles_GMTED/075darcsec/mea/"
 URL_GADM = "https://biogeo.ucdavis.edu/data/gadm3.6/gpkg/"
@@ -178,10 +178,10 @@ rule raw_protected_areas:
     message: "Extract protected areas data as zip."
     input: rules.raw_protected_areas_zipped.output
     output:
-        polygons = temp("build/raw-wdpa-jan2018/WDPA_Jan2018-shapefile-polygons.shp"),
-        polygon_data = temp("build/raw-wdpa-jan2018/WDPA_Jan2018-shapefile-polygons.dbf"),
-        points = temp"build/raw-wdpa-jan2018/WDPA_Jan2018-shapefile-points.shp")
-    shell: "unzip -o {input} -d build/raw-wdpa-jan2018"
+        polygons = temp("build/raw-wdpa-feb2019/WDPA_Feb2019-shapefile-polygons.shp"),
+        polygon_data = temp("build/raw-wdpa-feb2019/WDPA_Feb2019-shapefile-polygons.dbf"),
+        points = temp"build/raw-wdpa-feb2019/WDPA_Feb2019-shapefile-points.shp")
+    shell: "unzip -o {input} -d build/raw-wdpa-feb2019"
 
 
 rule raw_srtm_elevation_tile_zipped:
