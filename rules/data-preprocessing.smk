@@ -29,6 +29,11 @@ SRTM_Y_MAX = 8
 GMTED_Y = ["50N", "70N"]
 GMTED_X = ["030W", "000E", "030E"]
 
+localrules: raw_load, raw_gadm_administrative_borders_zipped, raw_protected_areas_zipped,
+    raw_nuts_units_zipped, raw_lau_units_zipped, raw_urbanisation_zipped, raw_land_cover_zipped,
+    raw_land_cover, raw_protected_areas, raw_srtm_elevation_tile_zipped, raw_gmted_elevation_tile,
+    raw_bathymetry_zipped, raw_bathymetry, raw_population_zipped, raw_population
+
 
 rule raw_load:
     message: "Download raw load."
@@ -178,9 +183,9 @@ rule raw_protected_areas:
     message: "Extract protected areas data as zip."
     input: rules.raw_protected_areas_zipped.output
     output:
-        polygons = temp("build/raw-wdpa-feb2019/WDPA_Feb2019-shapefile-polygons.shp"),
-        polygon_data = temp("build/raw-wdpa-feb2019/WDPA_Feb2019-shapefile-polygons.dbf"),
-        points = temp"build/raw-wdpa-feb2019/WDPA_Feb2019-shapefile-points.shp")
+        polygons = "build/raw-wdpa-feb2019/WDPA_Feb2019-shapefile-polygons.shp",
+        polygon_data = "build/raw-wdpa-feb2019/WDPA_Feb2019-shapefile-polygons.dbf",
+        points = "build/raw-wdpa-feb2019/WDPA_Feb2019-shapefile-points.shp"
     shell: "unzip -o {input} -d build/raw-wdpa-feb2019"
 
 

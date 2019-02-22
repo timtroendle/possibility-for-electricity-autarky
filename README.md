@@ -11,11 +11,10 @@ This repository contains the entire research project, including code and report.
 The following dependencies are needed to set up an environment in which the analysis can be run and the paper be build:
 
 * [conda](https://conda.io/docs/index.html)
-* `LaTeX` to [produce a PDF](http://pandoc.org/MANUAL.html#creating-a-pdf). Can be avoided by switching to [any other output format supported by pandoc](http://pandoc.org/index.html).
 
 When these dependencies are installed, you can create a conda environment from within you can run the analysis:
 
-    conda env create -f conda-environment.yml
+    conda env create -f environment.yaml
 
 Don't forget to activate the environment. To see what you can do now, run:
 
@@ -44,6 +43,14 @@ To generate a PDF of the dependency graph of all steps, run:
     snakemake --rulegraph | dot -Tpdf > dag.pdf
 
 (needs `dot`: `conda install graphviz`).
+
+## Run on Euler cluster
+
+To run on Euler, use the following command:
+
+    snakemake --profile config/euler
+
+If you want to run on another cluster, read [snakemake's documentation on cluster execution](https://snakemake.readthedocs.io/en/stable/executable.html#cluster-execution) and take `config/euler` as a starting point.
 
 ## Manual steps
 

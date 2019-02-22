@@ -1,0 +1,3 @@
+# build files to ignore when receiving from Euler
+*.tif
+raw-wdpa-*/

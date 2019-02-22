@@ -12,6 +12,7 @@ configfile: CONFIG_FILE
 include: "../Snakefile"
 include: "sonnendach.smk"
 
+
 rule ninja_simulation_input:
     message: "Create input files for renewable.ninja simulations."
     input:

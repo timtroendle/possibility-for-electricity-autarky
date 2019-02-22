@@ -11,12 +11,18 @@ include: "rules/sonnendach.smk"
 include: "rules/capacityfactors.smk"
 include: "rules/potential.smk"
 include: "rules/analysis.smk"
+include: "rules/sync.smk"
+
+localrules: all, paper, paper_docx, supplementary_material, clean
+
+
+onstart:
+    shell("mkdir -p build/logs")
 
 
 rule all:
     message: "Run entire analysis and compile report."
     input:
-        "build/paper.pdf",
         "build/paper.docx",
         "build/supplementary-material.docx"
 
@@ -56,25 +62,11 @@ rule paper:
         "build/exclusion-layers-ROU.png",
         rules.layer_overview.output
     output:
-        "build/paper.pdf"
+        "build/paper.docx"
     shell:
         """
         cd ./report
-        {PANDOC} paper.md pandoc-metadata.yml -t latex -o ../build/paper.pdf
-        """
-
-
-rule paper_docx:
-    message: "Compile paper to docx."
-    input:
-        paper = "report/paper.md",
-        metadata = "report/pandoc-metadata.yml",
-        all_other = rules.paper.output # to avoid repeating actual depdencies
-    output: "build/paper.docx"
-    shell:
-        """
-        cd ./report
-        {PANDOC} ../report/paper.md ../report/pandoc-metadata.yml -t docx -o ../build/paper.docx
+        {PANDOC} paper.md pandoc-metadata.yml -t docx -o ../build/paper.docx
         """
 
 

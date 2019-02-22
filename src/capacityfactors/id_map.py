@@ -10,7 +10,7 @@ from rasterio.transform import from_origin
 import xarray as xr
 
 DTYPE = np.uint16
-NO_DATA_VALUE = -1
+NO_DATA_VALUE = 64001
 INDEX_EPSILON = 10e-3
 
 EPSG_3035_PROJ4 = "+proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs "
