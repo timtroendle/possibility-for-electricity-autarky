@@ -6,15 +6,15 @@ dependencies:
   - python=3.6
   - numpy=1.13.3
   - pandas=0.23.2
-  - gdal=2.3
+  - gdal=2.4
   - matplotlib=2.2
   - seaborn=0.9
   - pandoc=2.1.1
   - pytest=3.2.3
   - click=6.7
   - ipython
-  - fiona=1.8.0
-  - rasterio=1.0.9
+  - fiona=1.8.4
+  - rasterio=1.0.18
   - rasterstats=0.13.0
   - geopandas=0.4.0
   - snakemake-minimal=5.3.0
