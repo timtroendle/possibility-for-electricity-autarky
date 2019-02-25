@@ -59,8 +59,14 @@ def areas(path_to_units, path_to_eez, path_to_shared_coast, path_to_eligible_are
         eez_geometries = [feature["geometry"] for feature in src]
     shared_coasts = pd.read_csv(path_to_shared_coast, index_col=0)
 
-    area_map = apply_scenario_config(
+    area_map = apply_scenario_config_to_areas(
         area_map=area_map,
+        category_map=category_map,
+        land_cover=land_cover,
+        protected_areas=protected_areas,
+        scenario_config=config["scenarios"][scenario]
+    )
+    category_map = apply_scenario_config_to_categories(
         category_map=category_map,
         land_cover=land_cover,
         protected_areas=protected_areas,
@@ -105,8 +111,8 @@ def areas(path_to_units, path_to_eez, path_to_shared_coast, path_to_eligible_are
     )
 
 
-def apply_scenario_config(area_map, category_map,
-                          land_cover, protected_areas, scenario_config):
+def apply_scenario_config_to_areas(area_map, category_map,
+                                   land_cover, protected_areas, scenario_config):
     """Limit eligible area of each pixel based on scenario config."""
 
     # share-rooftops-used
@@ -134,19 +140,25 @@ def apply_scenario_config(area_map, category_map,
     mask = category_map == Eligibility.OFFSHORE_WIND
     area_map[mask] = area_map[mask] * share_offshore_used
 
+    return area_map
+
+
+def apply_scenario_config_to_categories(category_map, land_cover, protected_areas, scenario_config):
+    """Change categories of each pixel based on scenario config."""
+
     # pv-on-farmland
     pv_on_farmland = scenario_config["pv-on-farmland"]
     if not pv_on_farmland:
         mask = np.isin(land_cover, FARM) & (category_map == Eligibility.ONSHORE_WIND_AND_PV)
-        area_map[mask] = Eligibility.ONSHORE_WIND
+        category_map[mask] = Eligibility.ONSHORE_WIND
 
-    # share-protected-areas-used
+    # protected-areas-used
     use_protected_areas = scenario_config["use-protected-areas"]
     if not use_protected_areas:
         mask = (protected_areas == ProtectedArea.PROTECTED) & (category_map != Eligibility.ROOFTOP_PV)
-        area_map[mask] = 0
+        category_map[mask] = Eligibility.NOT_ELIGIBLE
 
-    return area_map
+    return category_map
 
 
 def _area(eligibility_category, area_map, category_map, shapes, transform):
