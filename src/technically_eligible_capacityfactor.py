@@ -30,9 +30,13 @@ def determine_capacityfactor(path_to_eligibility_categories, path_to_rooftop_pv_
     with rasterio.open(path_to_open_field_pv_cf) as src:
         open_field_pv_cf = src.read(1)
     with rasterio.open(path_to_wind_onshore_cf) as src:
-        wind_onshore_cf = src.read(1) * availability["wind-onshore"]
+        wind_onshore_cf = src.read(1)
+        valid = wind_onshore_cf != meta["nodata"]
+        wind_onshore_cf[valid] = wind_onshore_cf[valid] * availability["wind-onshore"]
     with rasterio.open(path_to_wind_offshore_cf) as src:
-        wind_offshore_cf = src.read(1) * availability["wind-offshore"]
+        wind_offshore_cf = src.read(1)
+        valid = wind_offshore_cf != meta["nodata"]
+        wind_offshore_cf[valid] = wind_offshore_cf[valid] * availability["wind-offshore"]
     capacityfactor_pv_prio = _determine_capacityfactor(
         eligibility_category=eligibility_categories,
         rooftop_pv_cf=rooftop_pv_cf,

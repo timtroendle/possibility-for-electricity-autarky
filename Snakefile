@@ -13,7 +13,7 @@ include: "rules/potential.smk"
 include: "rules/analysis.smk"
 include: "rules/sync.smk"
 
-localrules: all, paper, paper_docx, supplementary_material, clean
+localrules: all, paper, supplementary_material, clean
 
 
 onstart:
