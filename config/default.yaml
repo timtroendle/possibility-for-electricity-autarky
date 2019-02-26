@@ -206,7 +206,7 @@ parameters:
             onshore: "enercon v90 2000"
             offshore: "siemens swt 3.6 107"
     max-slope:
-        pv: 3 # [°]
+        pv: 10 # [°] (AlGarni:2018)
         wind: 20 # [°] (McKenna:2014)
     max-depth-offshore: -50
     max-building-share: 0.01 # Above, a pixel cannot be used for energy farms. Equals roughly 900m2

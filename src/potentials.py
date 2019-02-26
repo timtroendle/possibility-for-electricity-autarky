@@ -223,7 +223,7 @@ def _decide_between_pv_and_wind(electricity_yield_pv_prio, electricity_yield_win
     open_field_yield = electricity_yield_pv_prio.copy()
     onshore_yield = electricity_yield_wind_prio.copy()
     pv_and_wind_possible = eligibility_categories == Eligibility.ONSHORE_WIND_AND_PV
-    higher_wind_yield = electricity_yield_pv_prio < electricity_yield_wind_prio
+    higher_wind_yield = electricity_yield_pv_prio <= electricity_yield_wind_prio
 
     open_field_yield[pv_and_wind_possible & higher_wind_yield] = 0
     onshore_yield[pv_and_wind_possible & ~higher_wind_yield] = 0
