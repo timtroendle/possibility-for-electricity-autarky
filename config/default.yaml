@@ -203,8 +203,8 @@ parameters:
             onshore: 105 # m, median hub height of V90/2000 in Europe between 2010 and 2018
             offshore: 87 # m, median hub height of SWT-3.6-107 in Europe between 2010 and 2018
         turbine:
-            onshore: "enercon v90 2000"
-            offshore: "siemens swt 3.6 107"
+            onshore: "vestas v90 2000" # most built between 2010 and 2018 in Europe
+            offshore: "siemens swt 3.6 107" # most built between 2010 and 2018 in Europe
     max-slope:
         pv: 10 # [°] (AlGarni:2018)
         wind: 20 # [°] (McKenna:2014)
