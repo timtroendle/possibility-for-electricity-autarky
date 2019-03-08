@@ -22,3 +22,8 @@ shared_coast:
     cores: 4
 sensitivities:
     cores: 4
+capacityfactor_timeseries:
+    memory: 64000
+    runtime: 180
+time_average_capacityfactor_map:
+    memory: 32000

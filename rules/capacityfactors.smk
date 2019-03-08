@@ -15,7 +15,7 @@ rule capacityfactor_timeseries:
     message: "Create index capacity factor timeseries of {wildcards.technology}."
     input:
         "src/capacityfactors/timeseries.py",
-        "data/capacityfactors/{technology}",
+        "data/capacityfactors/{technology}.nc"
     output:
         "build/capacityfactors/{technology}-timeseries.nc"
     shell:
