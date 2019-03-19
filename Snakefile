@@ -105,7 +105,7 @@ rule clean: # removes all generated results
 
 rule test:
     input:
-        "build/paper.pdf", # proxy for: all has to exist before running the tests
+        rules.paper.output, # proxy for: all has to exist before running the tests
         rules.total_swiss_yield_according_to_sonnendach_data.output
     shell:
         "py.test"
