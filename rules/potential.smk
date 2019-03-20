@@ -287,6 +287,26 @@ rule areas:
         PYTHON_SCRIPT + " {wildcards.scenario} {CONFIG_FILE}"
 
 
+rule capacities:
+    message:
+        "Determine installable capacities for layer {wildcards.layer} in scenario {wildcards.scenario}."
+    input:
+        "src/capacities.py",
+        rules.units.output,
+        rules.eez_in_europe.output,
+        rules.shared_coast.output,
+        rules.capacity_of_technical_eligibility.output,
+        rules.electricity_yield_of_technical_eligibility.output,
+        rules.category_of_technical_eligibility.output,
+        rules.land_cover_in_europe.output,
+        rules.protected_areas_in_europe.output
+    output:
+        "build/{layer}/{scenario}/capacities.csv"
+    shell:
+        PYTHON_SCRIPT + " {wildcards.scenario} {CONFIG_FILE}"
+
+
+
 rule normed_potentials:
     message:
         "Determine potentials relative to demand for layer {wildcards.layer} "

@@ -25,10 +25,6 @@ class Eligibility(IntEnum):
     def area_column_name(self):
         return "eligibility_{}_km2".format(self.name.lower())
 
-    @property
-    def energy_column_name(self):
-        return "eligibility_{}_twh_per_year".format(self.name.lower())
-
     @staticmethod
     def onshore():
         """Returns all onshore eligibilities."""

@@ -4,11 +4,11 @@ import fiona
 import numpy as np
 import pandas as pd
 import rasterio
-from rasterstats import zonal_stats
 
 from src.utils import Config
 from src.technical_eligibility import Eligibility, FOREST, FARM, OTHER
-from src.potentials import ProtectedArea, apply_scenario_config, Potential
+from src.potentials import ProtectedArea, apply_scenario_config, Potential, \
+    decide_between_pv_and_wind, potentials_per_shape
 
 
 @click.command()
@@ -50,25 +50,31 @@ def footprint(path_to_eligibility_categories, path_to_eligible_areas, path_to_el
         protected_areas=protected_areas,
         scenario_config=config["scenarios"][scenario]
     )
-    constrained_areas_pv, constrained_areas_wind = _decide_between_pv_and_wind(
-        areas=constrained_areas,
-        electricity_yield_pv_prio=electricity_yield_pv_prio,
-        electricity_yield_wind_prio=electricity_yield_wind_prio,
+    electricity_yield_pv_prio, electricity_yield_wind_prio = apply_scenario_config(
+        potential_pv_prio=electricity_yield_pv_prio,
+        potential_wind_prio=electricity_yield_wind_prio,
         categories=eligibility_categories,
         land_cover=land_cover,
         protected_areas=protected_areas,
         scenario_config=config["scenarios"][scenario]
     )
+    constrained_areas_pv, constrained_areas_wind = decide_between_pv_and_wind(
+        potential_pv_prio=constrained_areas.copy(),
+        potential_wind_prio=constrained_areas.copy(),
+        electricity_yield_pv_prio=electricity_yield_pv_prio,
+        electricity_yield_wind_prio=electricity_yield_wind_prio,
+        eligibility_categories=eligibility_categories
+    )
 
     footprint = pd.DataFrame(
         index=unit_ids,
         data={
-            potential.area_name: _areas(
+            potential.area_name: potentials_per_shape(
                 eligibilities=potential.eligible_on,
-                eligible_areas=(constrained_areas_pv if "pv" in str(potential).lower()
-                                else constrained_areas_wind),
+                potential_map=(constrained_areas_pv if "pv" in str(potential).lower()
+                               else constrained_areas_wind),
                 eligibility_categories=eligibility_categories,
-                unit_geometries=unit_geometries,
+                shapes=unit_geometries,
                 transform=transform
             )
             for potential in Potential.onshore()
@@ -80,19 +86,6 @@ def footprint(path_to_eligibility_categories, path_to_eligible_areas, path_to_el
         header=True,
         index=True
     )
-
-
-def _areas(eligibilities, eligible_areas, eligibility_categories, unit_geometries, transform):
-    eligible_areas = eligible_areas.copy()
-    eligible_areas[~np.isin(eligibility_categories, eligibilities)] = 0
-    potentials = zonal_stats(
-        unit_geometries,
-        eligible_areas,
-        affine=transform,
-        stats="sum",
-        nodata=-999
-    )
-    return [stat["sum"] for stat in potentials]
 
 
 def _apply_scenario_config_to_area(eligible_areas, categories, land_cover, protected_areas, scenario_config):
@@ -132,28 +125,6 @@ def _apply_scenario_config_to_area(eligible_areas, categories, land_cover, prote
         eligible_areas[mask] = 0
 
     return eligible_areas
-
-
-def _decide_between_pv_and_wind(areas, electricity_yield_pv_prio, electricity_yield_wind_prio, categories,
-                                land_cover, protected_areas, scenario_config):
-    """Based on higher yield, choose open field pv or wind where both are possible."""
-    electricity_yield_pv_prio, electricity_yield_wind_prio = apply_scenario_config(
-        electricity_yield_pv_prio=electricity_yield_pv_prio,
-        electricity_yield_wind_prio=electricity_yield_wind_prio,
-        categories=categories,
-        land_cover=land_cover,
-        protected_areas=protected_areas,
-        scenario_config=scenario_config
-    )
-    pv_and_wind_possible = categories == Eligibility.ONSHORE_WIND_AND_PV
-    higher_wind_yield = electricity_yield_pv_prio < electricity_yield_wind_prio
-
-    areas_pv = areas.copy()
-    areas_wind = areas.copy()
-    areas_pv[pv_and_wind_possible & higher_wind_yield] = 0
-    areas_wind[pv_and_wind_possible & ~higher_wind_yield] = 0
-
-    return areas_pv, areas_wind
 
 
 if __name__ == "__main__":
