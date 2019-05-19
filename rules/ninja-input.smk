@@ -29,6 +29,7 @@ rule pv_simulation_points:
         rules.sonnendach_statistics.output.raw
     output:
         points = "build/capacityfactors/ninja-input-pv.csv",
+    conda: "../envs/default.yaml"
     shell: PYTHON_SCRIPT + " {CONFIG_FILE}"
 
 
@@ -41,4 +42,5 @@ rule wind_simulation_points:
     output:
         points_onshore = "build/capacityfactors/ninja-input-wind-onshore.csv",
         points_offhore = "build/capacityfactors/ninja-input-wind-offshore.csv",
+    conda: "../envs/default.yaml"
     shell: PYTHON_SCRIPT + " {CONFIG_FILE}"

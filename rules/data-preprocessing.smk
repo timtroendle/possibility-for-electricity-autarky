@@ -50,6 +50,7 @@ rule electricity_demand_national:
         rules.raw_load.output
     output:
         "build/electricity-demand-national.csv"
+    conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT_WITH_CONFIG
 
@@ -77,6 +78,7 @@ rule administrative_borders_gadm:
          ]
     params: max_layer_depth = 3
     output: "build/administrative-borders-gadm.gpkg"
+    conda: "../envs/default.yaml"
     shell:
         PYTHON + " {input} {params.max_layer_depth} {output} {CONFIG_FILE}"
 
@@ -97,6 +99,7 @@ rule administrative_borders_nuts:
     output:
         "build/administrative-borders-nuts.gpkg"
     shadow: "full"
+    conda: "../envs/default.yaml"
     shell:
         """
         unzip {input.zip} -d ./build
@@ -122,6 +125,7 @@ rule administrative_borders_lau:
     output:
         "build/administrative-borders-lau.gpkg"
     shadow: "full"
+    conda: "../envs/default.yaml"
     shell:
         """
         unzip {input.zip} -d ./build
@@ -149,6 +153,7 @@ rule lau2_urbanisation_degree:
     output:
         "build/administrative-borders-lau-urbanisation.csv"
     shadow: "full"
+    conda: "../envs/default.yaml"
     shell:
         """
         unzip {input.lau2} -d ./build
@@ -219,6 +224,7 @@ rule raw_srtm_elevation_data:
          if not (x is 34 and y in [3, 4, 5, 6])] # these tiles do not exist
     output:
         temp("build/raw-srtm-elevation-data.tif")
+    conda: "../envs/default.yaml"
     shell:
         "rio merge {input} {output} --overwrite"
 
@@ -246,6 +252,7 @@ rule raw_gmted_elevation_data:
          ]
     output:
         temp("build/raw-gmted-elevation-data.tif")
+    conda: "../envs/default.yaml"
     shell:
         "rio merge {input} {output} --overwrite"
 
@@ -274,6 +281,7 @@ rule elevation_in_europe:
         srtm_bounds = "{x_min},{y_min},{x_max},60".format(**config["scope"]["bounds"]),
         gmted_bounds = "{x_min},59.5,{x_max},{y_max}".format(**config["scope"]["bounds"])
     threads: config["snakemake"]["max-threads"]
+    conda: "../envs/default.yaml"
     shell:
         """
         rio clip --bounds {params.srtm_bounds} {input.srtm} -o build/tmp-srtm.tif
@@ -292,6 +300,7 @@ rule land_cover_in_europe:
     input: rules.raw_land_cover.output
     output: "build/land-cover-europe.tif"
     params: bounds = "{x_min},{y_min},{x_max},{y_max}".format(**config["scope"]["bounds"])
+    conda: "../envs/default.yaml"
     shell: "rio clip {input} {output} --bounds {params.bounds}"
 
 
@@ -303,6 +312,7 @@ rule slope_in_europe:
     output:
         "build/slope-europe.tif"
     threads: config["snakemake"]["max-threads"]
+    conda: "../envs/default.yaml"
     shell:
         """
         gdaldem slope -s 111120 -compute_edges {input.elevation} build/slope-temp.tif
@@ -319,6 +329,7 @@ rule protected_areas_points_to_circles:
         rules.raw_protected_areas.output.points
     output:
         temp("build/protected-areas-points-as-circles.geojson")
+    conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT_WITH_CONFIG
 
@@ -335,6 +346,7 @@ rule protected_areas_in_europe:
         "build/rasterisation-benchmark.txt"
     params:
         bounds = "{x_min},{y_min},{x_max},{y_max}".format(**config["scope"]["bounds"])
+    conda: "../envs/default.yaml"
     shell:
         # The filter is in accordance to the way UNEP-WCMC calculates statistics:
         # https://www.protectedplanet.net/c/calculating-protected-area-coverage
@@ -364,6 +376,7 @@ rule settlements:
         built_up = "build/esm-class303550-built-up.tif"
     threads: config["snakemake"]["max-threads"]
     shadow: "full"
+    conda: "../envs/default.yaml"
     shell:
         """
         rio calc "(+ (+ (read 1) (read 2)) (read 3))" \
@@ -386,6 +399,7 @@ rule bathymetry_in_europe:
         reference = rules.land_cover_in_europe.output
     output:
         "build/bathymetry-in-europe.tif"
+    conda: "../envs/default.yaml"
     shell:
         """
         rio warp {input.bathymetry} -o {output} --like {input.reference} --resampling min
@@ -399,6 +413,7 @@ rule eez_in_europe:
     params:
         bounds="{x_min},{y_min},{x_max},{y_max}".format(**config["scope"]["bounds"]),
         countries=",".join(["'{}'".format(country) for country in config["scope"]["countries"]])
+    conda: "../envs/default.yaml"
     shell:
         """
         fio cat --bbox {params.bounds} {input}\
@@ -414,6 +429,7 @@ rule industry:
         RAW_INDUSTRY_DATA
     output:
         "build/industrial-load.geojson"
+    conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT
 
@@ -446,6 +462,7 @@ rule population_in_europe:
         "build/population-europe.tif"
     params:
         bounds="{x_min},{y_min},{x_max},{y_max}".format(**config["scope"]["bounds"])
+    conda: "../envs/default.yaml"
     shell:
         """
         rio clip --geographic --bounds {params.bounds} --co compress=LZW {input.population} -o {output}

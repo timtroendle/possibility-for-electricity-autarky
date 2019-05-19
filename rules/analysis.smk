@@ -40,6 +40,7 @@ rule normed_potential_boxplots:
         "build/municipal/{scenario}/merged-results.geojson"
     output:
         "build/{scenario}/normed-potentials-boxplots.png"
+    conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT
 
@@ -54,6 +55,7 @@ rule potentials_sufficiency_map:
         "build/municipal/{scenario}/merged-results.geojson"
     output:
         "build/{scenario}/sufficient-potentials-map.png"
+    conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT
 
@@ -68,6 +70,7 @@ rule necessary_land_plot_all_layers:
         expand("build/{layer}/population.csv", layer=config["layers"].keys()),
     output:
         "build/{scenario}/necessary-land-all-layers.png"
+    conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT
 
@@ -82,6 +85,7 @@ rule necessary_land_map:
         expand("build/{layer}/population.csv", layer=config["layers"].keys())
     output:
         "build/{scenario}/necessary-land-map-when-pv-{pvshare}%.png"
+    conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT
 
@@ -97,6 +101,7 @@ rule exclusion_layers_plot:
         rules.settlements.output.buildings,
     output:
         "build/exclusion-layers-{country_code}.png"
+    conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT + " {wildcards.country_code}"
 

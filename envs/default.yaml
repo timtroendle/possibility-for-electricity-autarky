@@ -1,7 +1,6 @@
-name: possibility-for-electricity-autarky
+name: default
 channels:
   - conda-forge
-  - bioconda
 dependencies:
   - python=3.6
   - numpy=1.13.3
@@ -9,15 +8,16 @@ dependencies:
   - gdal=2.4
   - matplotlib=2.2
   - seaborn=0.9
+  - pytest=3.2.3
   - click=6.7
   - ipython
   - fiona=1.8.4
   - rasterio=1.0.18
   - rasterstats=0.13.0
   - geopandas=0.4.1
-  - snakemake-minimal=5.4
   - xlrd=1.1.0
   - descartes=1.1
   - xarray=0.10.8
   - pip:
+      - pytest-pythonpath # adds the root path "./" to PYTHONPATH
       - pycountry

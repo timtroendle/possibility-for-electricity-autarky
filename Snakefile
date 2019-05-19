@@ -33,24 +33,6 @@ rule all:
         "build/supplementary-material.docx"
 
 
-rule sensitivities:
-    message: "Perform sensitivity analysis on layer {wildcards.layer} using {threads} threads."
-    input:
-        "src/sensitivity.py",
-        "build/{layer}/unconstrained-potentials-prefer-pv.csv",
-        "build/{layer}/unconstrained-potentials-prefer-wind.csv",
-        "build/{layer}/demand.csv",
-        "build/{layer}/population.csv",
-        "build/{layer}/units.geojson"
-    output:
-        "build/{layer}/sensitivities-urban-population.txt",
-        "build/{layer}/sensitivities-rural-population.txt",
-        "build/{layer}/sensitivities-number.txt"
-    threads: config["snakemake"]["max-threads"]
-    shell:
-        PYTHON_SCRIPT + " {threads}"
-
-
 rule paper:
     message: "Compile paper."
     input:
@@ -69,6 +51,7 @@ rule paper:
         rules.layer_overview.output
     output:
         "build/paper.docx"
+    conda: "envs/report.yaml"
     shell:
         """
         cd ./report
@@ -88,6 +71,7 @@ rule supplementary_material:
         )
     output:
         "build/supplementary-material.docx"
+    conda: "envs/report.yaml"
     shell:
         """
         cd ./report
@@ -107,5 +91,6 @@ rule test:
     input:
         rules.paper.output, # proxy for: all has to exist before running the tests
         rules.total_swiss_yield_according_to_sonnendach_data.output
+    conda: "envs/default.yaml"
     shell:
         "py.test"

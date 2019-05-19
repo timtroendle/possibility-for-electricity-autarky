@@ -19,6 +19,7 @@ rule category_of_technical_eligibility:
         rules.settlements.output.urban_greens
     output:
         "build/technically-eligible-land.tif"
+    conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT + " {CONFIG_FILE}"
 
@@ -96,6 +97,7 @@ rule capacityfactor_of_technical_eligibility:
     output:
         "build/technically-eligible-capacityfactor-pv-prio.tif",
         "build/technically-eligible-capacityfactor-wind-prio.tif"
+    conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT + " {CONFIG_FILE}"
 
@@ -110,6 +112,7 @@ rule area_of_technical_eligibility:
         rules.correction_factor_building_footprint_to_available_rooftop.output
     output:
         "build/technically-eligible-area-km2.tif"
+    conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT
 
@@ -125,6 +128,7 @@ rule capacity_of_technical_eligibility:
     output:
         "build/technically-eligible-capacity-pv-prio-mw.tif",
         "build/technically-eligible-capacity-wind-prio-mw.tif",
+    conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT + " {CONFIG_FILE}"
 
@@ -140,6 +144,7 @@ rule electricity_yield_of_technical_eligibility:
     output:
         "build/technically-eligible-electricity-yield-pv-prio-twh.tif",
         "build/technically-eligible-electricity-yield-wind-prio-twh.tif",
+    conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT
 
@@ -153,6 +158,7 @@ rule units:
         rules.administrative_borders_gadm.output
     output:
         "build/{layer}/units.geojson"
+    conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT + " {wildcards.layer} {CONFIG_FILE}"
 
@@ -165,6 +171,7 @@ rule local_land_cover:
         src = "src/geojson_to_csv.py"
     output:
         "build/{layer}/land-cover.csv"
+    conda: "../envs/default.yaml"
     shell:
         """
         fio cat {input.units} | \
@@ -185,6 +192,7 @@ rule local_built_up_area:
         rules.units.output
     output:
         "build/{layer}/built-up-areas.csv"
+    conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT
 
@@ -199,6 +207,7 @@ rule population:
         land_cover = rules.local_land_cover.output
     output:
         "build/{layer}/population.csv"
+    conda: "../envs/default.yaml"
     shell:
         """
         crs=$(rio info --crs {input.population})
@@ -220,6 +229,7 @@ rule demand:
         rules.population.output
     output:
         "build/{layer}/demand.csv"
+    conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT
 
@@ -234,6 +244,7 @@ rule eez_eligibility:
     output:
         "build/eez-eligibility.csv"
     threads: config["snakemake"]["max-threads"]
+    conda: "../envs/default.yaml"
     shell:
         PYTHON + " {input.src} offshore {input.regions} {input.eligibility} {output} {threads}"
 
@@ -247,6 +258,7 @@ rule shared_coast:
     output:
         "build/{layer}/shared-coast.csv"
     threads: config["snakemake"]["max-threads"]
+    conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT + " {threads}"
 
@@ -265,6 +277,7 @@ rule potentials:
         rules.protected_areas_in_europe.output
     output:
         "build/{layer}/{scenario}/potentials.csv"
+    conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT + " {wildcards.scenario} {CONFIG_FILE}"
 
@@ -283,6 +296,7 @@ rule areas:
         rules.protected_areas_in_europe.output
     output:
         "build/{layer}/{scenario}/areas.csv"
+    conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT + " {wildcards.scenario} {CONFIG_FILE}"
 
@@ -302,6 +316,7 @@ rule capacities:
         rules.protected_areas_in_europe.output
     output:
         "build/{layer}/{scenario}/capacities.csv"
+    conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT + " {wildcards.scenario} {CONFIG_FILE}"
 
@@ -317,6 +332,7 @@ rule normed_potentials:
         rules.potentials.output
     output:
         "build/{layer}/{scenario}/normed-potentials.csv"
+    conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT
 
@@ -334,6 +350,7 @@ rule footprint:
         rules.units.output
     output:
         "build/{layer}/{scenario}/footprint.csv"
+    conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT + " {wildcards.scenario} {CONFIG_FILE}"
 
@@ -349,6 +366,7 @@ rule necessary_land:
         rules.local_built_up_area.output
     output:
         "build/{layer}/{scenario}/necessary-land-when-pv-{pvshare}%.csv"
+    conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT + " {wildcards.pvshare}"
 

@@ -32,7 +32,7 @@ Whenever possible, data is downloaded automatically. As this is not always possi
 
 ## Run the analysis
 
-    snakemake paper
+    snakemake --use-conda paper
 
 This will run all analysis steps to reproduce results and eventually build the paper.
 
@@ -48,7 +48,7 @@ To generate a PDF of the dependency graph of all steps, run:
 
 To run on Euler, use the following command:
 
-    snakemake --profile config/euler
+    snakemake --use-conda --profile config/euler
 
 If you want to run on another cluster, read [snakemake's documentation on cluster execution](https://snakemake.readthedocs.io/en/stable/executable.html#cluster-execution) and take `config/euler` as a starting point.
 
@@ -62,7 +62,7 @@ At the moment, there is one manual step involved: running renewables.ninja simul
 
 ## Run the tests
 
-    snakemake test
+    snakemake --use-conda test
 
 ## Repo structure
 

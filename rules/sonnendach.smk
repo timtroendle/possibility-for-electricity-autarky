@@ -53,6 +53,7 @@ rule sonnendach_rooftop_data:
     input: RAW_SONNENDACH_DATA
     output:
         "build/swiss/roofs-without-geometry.csv"
+    conda: "../envs/default.yaml"
     shell:
         "ogr2ogr -dialect sqlite -f csv \
         -sql 'SELECT DF_UID, GWR_EGID, FLAECHE, AUSRICHTUNG, NEIGUNG, MSTRAHLUNG, GSTRAHLUNG FROM {LAYER_NAME}' \
