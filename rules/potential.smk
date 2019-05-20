@@ -274,7 +274,8 @@ rule potentials:
         rules.electricity_yield_of_technical_eligibility.output,
         rules.category_of_technical_eligibility.output,
         rules.land_cover_in_europe.output,
-        rules.protected_areas_in_europe.output
+        rules.protected_areas_in_europe.output,
+        "build/{layer}/hydro-potential.csv" # TODO use "rules" instead of explicit file name
     output:
         "build/{layer}/{scenario}/potentials.csv"
     conda: "../envs/default.yaml"

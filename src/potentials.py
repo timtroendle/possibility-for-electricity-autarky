@@ -34,6 +34,7 @@ class Potential(Enum):
     OPEN_FIELD_PV = (2, [Eligibility.ONSHORE_WIND_AND_PV])
     ONSHORE_WIND = (3, [Eligibility.ONSHORE_WIND_AND_PV, Eligibility.ONSHORE_WIND])
     OFFSHORE_WIND = (4, [Eligibility.OFFSHORE_WIND])
+    HYDRO = (5, [])
 
     def __init__(self, int_id, corresponding_eligibilities):
         self.int_id = int_id
@@ -83,13 +84,14 @@ class Potential(Enum):
 @click.argument("path_to_eligibility_categories")
 @click.argument("path_to_land_cover")
 @click.argument("path_to_protected_areas")
+@click.argument("path_to_hydro_potentials")
 @click.argument("path_to_result")
 @click.argument("scenario")
 @click.argument("config", type=Config())
 def potentials(path_to_units, path_to_eez, path_to_shared_coast,
                path_to_electricity_yield_pv_prio, path_to_electricity_yield_wind_prio,
                path_to_eligibility_categories, path_to_land_cover, path_to_protected_areas,
-               path_to_result, scenario, config):
+               path_to_hydro_potentials, path_to_result, scenario, config):
     """Determine potential of renewable electricity in each administrative unit.
 
     * Take the (only technically restricted) raster data potentials,
@@ -133,6 +135,7 @@ def potentials(path_to_units, path_to_eez, path_to_shared_coast,
         eligibility_categories=eligibility_categories
     )
 
+    hydro_potentials = pd.read_csv(path_to_hydro_potentials, index_col="id")
     onshore_potentials = pd.DataFrame(
         index=unit_ids,
         data={
@@ -165,7 +168,8 @@ def potentials(path_to_units, path_to_eez, path_to_shared_coast,
         data=shared_coasts.dot(offshore_eez_potentials),
         columns=Potential.offshore()
     )
-    potentials = pd.concat([onshore_potentials, offshore_potentials], axis=1)
+
+    potentials = pd.concat([onshore_potentials, offshore_potentials, hydro_potentials], axis=1)
     potentials.index.name = "id"
     potentials.to_csv(
         path_to_result,

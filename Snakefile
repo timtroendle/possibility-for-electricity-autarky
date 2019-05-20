@@ -11,6 +11,7 @@ include: "rules/sonnendach.smk"
 include: "rules/capacityfactors.smk"
 include: "rules/potential.smk"
 include: "rules/analysis.smk"
+include: "rules/hydro.smk"
 include: "rules/sync.smk"
 
 localrules: all, paper, supplementary_material, clean
