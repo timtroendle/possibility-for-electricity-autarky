@@ -56,3 +56,4 @@ rules/export.smk
 
 # Marked2
 report/marked2_custom_processor.sh
+report/build
