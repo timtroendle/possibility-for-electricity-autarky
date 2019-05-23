@@ -8,7 +8,7 @@ author:
 institute: ETH Zürich
 bibliography:
     - 'literature.bib'
-csl: 'energy-strategy-reviews.csl'
+csl: plos-one.csl
 link-citations: True
 ---
 
