@@ -195,12 +195,4 @@ Very high shares of building integrated PV, for example by using all rooftops fo
 
 Instead, our results show that large shares of demand can be covered by locally generated renewable electricity, in all countries, regions and most municipalities of Europe. Full autarky, i.e. without any trading between areas, is not possible in the most densely populated regions, and hence a non-trivial share of the European population would be undersupplied if their municipality, and in a few cases, their region, declared itself electricity autarkic. In many areas, especially in and around larger cities, autarky is possible from a resource perspective, but it would come at the cost of high additional pressure on as yet not built-up land. Here, we have shown in which parts of Europe autarky would be at all possible and where not. Whether and where this is really attractive is a still open question.
 
-# Acknowledgements
-
-The work of Tim Tröndle and Johan Lilliestam was supported by a European Research Council grant (TRIPOD project, grant agreement number 715132).
-
-# Declarations of interest
-
-None.
-
 # Bibliography
