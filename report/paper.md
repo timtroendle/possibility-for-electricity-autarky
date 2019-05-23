@@ -46,7 +46,7 @@ The regional level is defined by the first-level administrative divisions, e.g. 
 ---
 caption: 'Administrative levels considered in this study. {#tbl:administrative-levels}'
 alignment: LRL
-include: ../build/overview-administrative-levels.csv
+include: ./build/overview-administrative-levels.csv
 markdown: True
 ---
 ```
@@ -81,7 +81,7 @@ For open field PV and flat roof-mounted PV, we assume a capacity density of 80 M
 
 We first assess the technical potential which is only restricted by technological constraints. To quantify it, we use the following rules: We allow wind farms to be built on farmland, forests, open vegetation and bare land with slope below 20° (slope constraint taken from [@McKenna:2015]). An example of exclusion layers for Romania is shown in Figure @fig:exclusion-layers (see Supplementary Material for exclusion layers of all 34 countries in this study). We furthermore allow open field PV to be built on farmland, vegetation and bare land with slope below 3° (slope constraint taken from [@AlGarni:2018]).  In grid cells where both onshore wind farms and open field PV can be built, we choose the option with the higher electricity yield. Lastly, we allow offshore wind farms to be built in water depths of less than 50m. Grid cells identified as built-up area cannot be used for open field PV or wind farms, only for roof-mounted PV.
 
-![Exclusion layers for determining the potential of wind power in Romania: shaded areas are not available for electricity generation (technical potential ignores protected areas).](../build/exclusion-layers-ROU.png){#fig:exclusion-layers .class}
+![Exclusion layers for determining the potential of wind power in Romania: shaded areas are not available for electricity generation (technical potential ignores protected areas).](./build/exclusion-layers-ROU.png){#fig:exclusion-layers .class}
 
 ### Technical-social potential
 
@@ -115,11 +115,11 @@ On the **regional level**, the technical potential is sufficient for almost all 
 
 Despite the vast continental potential, the **municipal level** sometimes shows technical potentials which are too small to allow for autarky. Although almost all --- about 98% --- of municipalities have a technical potential exceeding current demand (see Figure @fig:sufficient-potentials-map-technical), about 10% of Europe's population would be undersupplied. It is largely an issue of densely populated municipalities: 98% of the impacted population lives in municipalities with a population density higher than 1000 people per km^2^. Using the definition of the European Commission and the OECD of the degree of urbanisation (DEGURBA) [@Dijkstra:2014], 93% of the impacted population lives in cities, 7% in towns and suburbs, and none in rural areas.
 
-![Administrative units where the technical potential exceeds electricity demand (light/green) and where it does not (dark/red), on all four administrative levels. For each level the text box furthermore shows from top to bottom: the name of the level, the fraction of undersupplied administrative units, and the fraction of the European population living in undersupplied administrative units.](../build/technical-potential/sufficient-potentials-map.png){#fig:sufficient-potentials-map-technical .class}
+![Administrative units where the technical potential exceeds electricity demand (light/green) and where it does not (dark/red), on all four administrative levels. For each level the text box furthermore shows from top to bottom: the name of the level, the fraction of undersupplied administrative units, and the fraction of the European population living in undersupplied administrative units.](./build/technical-potential/sufficient-potentials-map.png){#fig:sufficient-potentials-map-technical .class}
 
 Figure @fig:normed-potentials-boxplots-technical shows the ranges of relative technical potential for all countries when assuming autarky on the municipal level. It shows how some countries have better prerequisites for electricity autarky on this level than others: in Montenegro for example, almost everyone lives in municipalities with very high potential; a situation which is similar in other Balkans countries and Cyprus. Other countries like Switzerland, United Kingdom, Ireland, and Greece have a quarter of their population living in municipalities with a potential lower than or close to their current demand, making municipal level autarky impossible. The figure furthermore shows that the relative potential varies largely within countries: in Greece for example, despite the low potential it has to offer for a quarter of its population, the majority of the remaining population lives in municipalities where the potential exceeds demand 20 times. Countries with such high variability could pool resources and seek autarky for sets of municipalities --- combining those with low potential with neighbouring municipalities with high potential to achieve sufficient supply for all.
 
-![Distribution of technical potential per country and all of Europe as experienced by the population when considering autarky on the municipal level: the boxes show the potential of the municipalities in which half of the population lives; centred around the median. Whiskers (green lines) show 95% of the population. Outliers (2.5% below and above each whisker) are not depicted.](../build/technical-potential/normed-potentials-boxplots.png){#fig:normed-potentials-boxplots-technical .class}
+![Distribution of technical potential per country and all of Europe as experienced by the population when considering autarky on the municipal level: the boxes show the potential of the municipalities in which half of the population lives; centred around the median. Whiskers (green lines) show 95% of the population. Outliers (2.5% below and above each whisker) are not depicted.](./build/technical-potential/normed-potentials-boxplots.png){#fig:normed-potentials-boxplots-technical .class}
 
 ## Technical-social potential
 
@@ -129,13 +129,13 @@ On the **national level**, every country still has sufficient autarky potential:
 
 On the **regional level**, we find the lowest relative potentials in subnational regions within city borders. Oslo reveals the lowest potential, where less than a quarter of demand can be supplied by local renewable generation. Other urban areas also have an insufficient technical-social potential, including the Île-de-France (Paris) region, Dublin, and Berlin (see Figure @fig:sufficient-potentials-map-technical-social). Almost all --- 97% --- of the 502 first-level administrative units holding 95% of Europe's population have a technical-social potential exceeding their current demand.
 
-![Administrative units where the technical-social potential exceeds electricity demand (light/green) and where it does not (dark/red), on all four administrative levels. For each level the text box furthermore shows from top to bottom: the name of the level, the fraction of undersupplied administrative units, and the fraction of the European population living in undersupplied administrative units. ](../build/technical-social-potential/sufficient-potentials-map.png){#fig:sufficient-potentials-map-technical-social .class}
+![Administrative units where the technical-social potential exceeds electricity demand (light/green) and where it does not (dark/red), on all four administrative levels. For each level the text box furthermore shows from top to bottom: the name of the level, the fraction of undersupplied administrative units, and the fraction of the European population living in undersupplied administrative units. ](./build/technical-social-potential/sufficient-potentials-map.png){#fig:sufficient-potentials-map-technical-social .class}
 
 Applying **municipal level** electricity autarky, about 84% of the population lives in the 97% of municipalities where the technical-social potential exceeds current demand. The majority of those undersupplied --- 90% --- live in municipalities with a population density above 1000 people per km^2^. According to the DEGURBA definition, 85% of the affected population lives in cities, 12% in towns and suburbs, and only 2% lives in rural areas. In undersupplied rural municipalities, national parks or natural reserves often cover a large share of the area, making it impossible to supply even a small population with sufficient amounts of renewable electricity. A few municipalities, such as Dormanstown (UK), Fos-sur-Mer (France), or Deuna (Germany), are undersupplied because of electricity-intensive industries. Overall, however, whether the technical-social renewables potential is sufficient or not is almost exclusively a function of population density.
 
 Figure @fig:normed-potentials-boxplots-technical-social shows the ranges of technical-social potential for all countries when assuming autarky on the municipal level. It shows that for several countries, more than a quarter of the population lives in municipalities with insufficient potential. Should the actually realisable potential be lower than the technical-social potential --- for example because of public opposition --- more municipalities will have insufficient potentials. The figure also shows that there are very high relative potentials in Europe, with the median person living in a municipality with a potential more than twice as high as their current electricity demand.
 
-![Distribution of technical-social potential per country and all Europe as experienced by the population when considering autarky on the municipal level: the boxes show the potential of the municipalities in which half of the population lives; centred around the median. Whiskers (green lines) show 95% of the population. Outliers (2.5% below and above each whisker) are not depicted.](../build/technical-social-potential/normed-potentials-boxplots.png){#fig:normed-potentials-boxplots-technical-social .class}
+![Distribution of technical-social potential per country and all Europe as experienced by the population when considering autarky on the municipal level: the boxes show the potential of the municipalities in which half of the population lives; centred around the median. Whiskers (green lines) show 95% of the population. Outliers (2.5% below and above each whisker) are not depicted.](./build/technical-social-potential/normed-potentials-boxplots.png){#fig:normed-potentials-boxplots-technical-social .class}
 
 ## Land footprint
 
@@ -145,7 +145,7 @@ Results of assessing the land area necessary for electricity autarky are shown i
 ---
 caption: 'Fractions of non-built-up land and roof surfaces used for electricity generation and share of demand supplied by roof-mounted PV when considering autarky. Values are given as average of all administrative units per level. Roof-mounted PV is prioritised. {#tbl:necessary-land-100}'
 alignment: LRRR
-include: ../build/necessary-land/overview-necessary-land-when-pv-100%.csv
+include: ./build/necessary-land/overview-necessary-land-when-pv-100%.csv
 markdown: True
 ---
 ```
@@ -156,16 +156,16 @@ Many electricity scenarios for Europe foresee much lower shares of PV and roof-m
 ---
 caption: 'Fractions of non-built-up land and roof surfaces used for electricity generation and share of demand supplied by roof-mounted PV when considering autarky. Values are given as average of all administrative units per level. Roof-mounted PV is prioritised, but prohibited to contribute more than 40% to the electricity demand in each administrative unit. {#tbl:necessary-land-40}'
 alignment: LRRR
-include: ../build/necessary-land/overview-necessary-land-when-pv-40%.csv
+include: ./build/necessary-land/overview-necessary-land-when-pv-40%.csv
 markdown: True
 ---
 ```
 
-![Fraction of non-built-up area needed for renewable power installations when demanding electricity autarky, for all administrative units on all four levels. The text labels on each level show the level's name and the median value based on population. For example, at the national level, 50% of Europe's population lives in a country that requires less than 3% of its non-built-up area for renewable electricity autarky. Here, we assume farmland is not available for open field PV, we ignore offshore wind generation, and limit roof-mounted PV to 40% of demand. ](../build/necessary-land/necessary-land-map-when-pv-40%.png){#fig:necessary-land-map-40 .class}
+![Fraction of non-built-up area needed for renewable power installations when demanding electricity autarky, for all administrative units on all four levels. The text labels on each level show the level's name and the median value based on population. For example, at the national level, 50% of Europe's population lives in a country that requires less than 3% of its non-built-up area for renewable electricity autarky. Here, we assume farmland is not available for open field PV, we ignore offshore wind generation, and limit roof-mounted PV to 40% of demand. ](./build/necessary-land/necessary-land-map-when-pv-40%.png){#fig:necessary-land-map-40 .class}
 
 The availability of roof-mounted PV clearly has a major impact on the share of land used. In Figure @fig:necessary-land-all-layers we show results for other diffusion levels of roof-mounted PV from a population-centred perspective. The figure shows the fraction of the European population that lives in administrative units with high *electricity generation density* which we define as units where a third or more of the non-built-up area is used for electricity generation through wind turbines or open field PV. Restricting roof-mounted PV exposes larger parts of the population to generation density: the share of population living in generation dense municipalities more than doubles when roof-mounted PV is restricted to 40% compared to the unrestricted case. Furthermore, autarky on lower levels also exposes larger parts of the population to generation density: for the same 40% restriction case, the population living in generation dense municipalities is 7 times larger than the population living in generation dense regions; while on the national and continental levels no one is exposed to generation density.
 
-![Share of the European population living in administrative units with high electricity generation density, i.e. units in which a third or more of the non-built-up land is used for wind turbines or open field PV, as a function of the maximum share of roof-mounted PV. Total land excludes maritime regions and hence offshore wind is not considered. Roof-mounted PV is preferred over onshore wind farms and open field PV.](../build/necessary-land/necessary-land-all-layers.png){#fig:necessary-land-all-layers .class}
+![Share of the European population living in administrative units with high electricity generation density, i.e. units in which a third or more of the non-built-up land is used for wind turbines or open field PV, as a function of the maximum share of roof-mounted PV. Total land excludes maritime regions and hence offshore wind is not considered. Roof-mounted PV is preferred over onshore wind farms and open field PV.](./build/necessary-land/necessary-land-all-layers.png){#fig:necessary-land-all-layers .class}
 
 # Discussion and Conclusion
 

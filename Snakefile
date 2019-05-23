@@ -51,11 +51,12 @@ rule paper:
         rules.layer_overview.output
     output:
         "build/paper.docx"
+    shadow: "full"
     conda: "envs/report.yaml"
     shell:
         """
-        cd ./report
-        {PANDOC} paper.md pandoc-metadata.yml -t docx -o ../build/paper.docx
+        cp report/* .
+        {PANDOC} paper.md pandoc-metadata.yml -t docx -o {output}
         """
 
 
@@ -71,11 +72,12 @@ rule supplementary_material:
         )
     output:
         "build/supplementary-material.docx"
+    shadow: "full"
     conda: "envs/report.yaml"
     shell:
         """
-        cd ./report
-        {PANDOC} supplementary.md -t docx -o ../build/supplementary-material.docx --table-of-contents
+        cp ./report/* .
+        {PANDOC} supplementary.md -t docx -o {output} --table-of-contents
         """
 
 
