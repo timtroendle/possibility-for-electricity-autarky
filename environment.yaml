@@ -19,5 +19,6 @@ dependencies:
   - xlrd=1.1.0
   - descartes=1.1
   - xarray=0.12.1
+  - pip=19.1.1
   - pip:
       - pycountry

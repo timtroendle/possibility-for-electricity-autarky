@@ -19,6 +19,7 @@ dependencies:
   - descartes=1.1
   - xarray=0.12.1
   - pyyaml=5.1
+  - pip=19.1.1
   - pip:
       - pytest-pythonpath # adds the root path "./" to PYTHONPATH
       - pycountry
