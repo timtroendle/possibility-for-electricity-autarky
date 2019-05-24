@@ -49,7 +49,7 @@ def necessary_land_map(paths_to_units_and_fraction_land_necessary_and_population
 
 
 def _map(unit_layers, layer_names, path_to_plot):
-    fig = plt.figure(figsize=(8, 8), constrained_layout=True)
+    fig = plt.figure(figsize=(7, 7), constrained_layout=True)
     axes = fig.subplots(2, 2).flatten()
     norm = matplotlib.colors.Normalize(vmin=0, vmax=1)
     cmap = sns.light_palette(sns.desaturate(RED, 0.85), reverse=False, as_cmap=True)
@@ -59,7 +59,10 @@ def _map(unit_layers, layer_names, path_to_plot):
     _plot_layer(unit_layers[3], layer_names[3], norm, cmap, axes[3])
 
     _plot_colorbar(fig, axes, norm, cmap)
-    fig.savefig(path_to_plot, dpi=300, transparent=True)
+    if path_to_plot[-3:] == "png":
+        fig.savefig(path_to_plot, dpi=300, transparent=True)
+    else:
+        fig.savefig(path_to_plot, dpi=600, transparent=False, pil_kwargs={"compression": "tiff_lzw"})
 
 
 def _plot_layer(units, layer_name, norm, cmap, ax):

@@ -37,7 +37,7 @@ def necessary_land_map(paths_to_results, path_to_output):
 
 
 def _map(unit_layers, layer_names, path_to_plot):
-    fig = plt.figure(figsize=(8, 8), constrained_layout=True)
+    fig = plt.figure(figsize=(7, 7), constrained_layout=True)
     axes = fig.subplots(2, 2).flatten()
     fig.subplots_adjust(left=0, right=1.0, bottom=0.0, top=1.0, wspace=0.0, hspace=0.0)
     _plot_layer(unit_layers[0], layer_names[0], axes[0], linewidth=0.0)
@@ -45,7 +45,10 @@ def _map(unit_layers, layer_names, path_to_plot):
     _plot_layer(unit_layers[2], layer_names[2], axes[2], linewidth=0.12)
     _plot_layer(unit_layers[3], layer_names[3], axes[3], linewidth=0.025)
 
-    fig.savefig(path_to_plot, dpi=300, transparent=True)
+    if path_to_plot[-3:] == "png":
+        fig.savefig(path_to_plot, dpi=300, transparent=True)
+    else:
+        fig.savefig(path_to_plot, dpi=600, transparent=False, pil_kwargs={"compression": "tiff_lzw"})
 
 
 def _plot_layer(units, layer_name, ax, linewidth=0.1):

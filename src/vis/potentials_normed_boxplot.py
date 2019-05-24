@@ -43,7 +43,7 @@ def visualise_normed_potentials(path_to_results, path_to_plot):
     people_eu["country"] = "Europe"
     people = pd.concat([people, people_eu])
 
-    fig = plt.figure(figsize=(8, 10), constrained_layout=True)
+    fig = plt.figure(figsize=(7, 8.75), constrained_layout=True)
     ax = fig.add_subplot(111)
     sns.boxplot(
         data=people,
@@ -76,7 +76,10 @@ def visualise_normed_potentials(path_to_results, path_to_plot):
     eu_patch.set_edgecolor(BLUE)
     eu_patch.set_alpha(0.8)
     eu_patch.set_zorder(100000)
-    fig.savefig(path_to_plot, dpi=300, transparent=True)
+    if path_to_plot[-3:] == "png":
+        fig.savefig(path_to_plot, dpi=300, transparent=True)
+    else:
+        fig.savefig(path_to_plot, dpi=600, transparent=False, pil_kwargs={"compression": "tiff_lzw"})
 
 
 if __name__ == "__main__":

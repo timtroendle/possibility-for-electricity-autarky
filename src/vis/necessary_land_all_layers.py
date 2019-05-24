@@ -20,7 +20,7 @@ def necessary_land(paths_to_input, path_to_output):
     paths_to_necessary_land = [path for path in paths_to_input if "population" not in path]
     all_data = _read_all_data(paths_to_population, paths_to_necessary_land)
 
-    fig = plt.figure(figsize=(8, 4), constrained_layout=True)
+    fig = plt.figure(figsize=(7, 3.5), constrained_layout=True)
     ax = fig.add_subplot(111)
 
     population_sum = all_data.groupby(["rooftop_pv_share", "layer"]).population_sum.sum()
@@ -59,7 +59,10 @@ def necessary_land(paths_to_input, path_to_output):
     ax.set_xticklabels(["{:.0f}%".format(tick) for tick in all_data.rooftop_pv_share.unique()])
     ax.set_yticklabels(["{:.0f}%".format(tick * 100) for tick in ax.get_yticks()])
     sns.despine(fig=fig)
-    fig.savefig(path_to_output, dpi=300, transparent=True)
+    if path_to_output[-3:] == "png":
+        fig.savefig(path_to_output, dpi=300, transparent=True)
+    else:
+        fig.savefig(path_to_output, dpi=600, transparent=False, pil_kwargs={"compression": "tiff_lzw"})
 
 
 def _read_all_data(paths_to_population, paths_to_necessary_land):

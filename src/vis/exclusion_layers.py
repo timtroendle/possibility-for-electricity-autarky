@@ -41,7 +41,11 @@ def exclusion_layers(path_to_shapes, path_to_land_cover, path_to_slope, path_to_
         path_to_settlements
 
     )
-    fig = plt.figure(figsize=(10, 5.5), frameon=False, constrained_layout=True)
+    fig = plt.figure(
+        figsize=(10, 5.5),
+        frameon=False if path_to_output[-3:] == "png" else True,
+        constrained_layout=True
+    )
     ax1 = fig.add_subplot(221)
     show(land_cover, extent=(x_min, x_max, y_min, y_max), ax=ax1,
          cmap=ListedColormap(sns.light_palette(sns.desaturate(BLUE, 0.85)).as_hex()))
@@ -67,8 +71,11 @@ def exclusion_layers(path_to_shapes, path_to_land_cover, path_to_slope, path_to_
         ax.spines["bottom"].set_visible(False)
         ax.spines["left"].set_visible(False)
     fig.set_constrained_layout_pads(hspace=0.1, wspace=0.1)
-    fig.savefig(path_to_output, dpi=300, transparent=True)
-    _add_alpha_mask(path_to_output)
+    if path_to_output[-3:] == "png":
+        fig.savefig(path_to_output, dpi=300, transparent=True)
+        _add_alpha_mask(path_to_output)
+    else:
+        fig.savefig(path_to_output, dpi=600, transparent=False, pil_kwargs={"compression": "tiff_lzw"})
 
 
 def _read_raster(x_min, y_min, x_max, y_max, path_to_land_cover, path_to_slope,
