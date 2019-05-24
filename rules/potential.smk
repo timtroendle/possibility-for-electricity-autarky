@@ -363,7 +363,8 @@ rule necessary_land:
         rules.demand.output,
         rules.potentials.output,
         rules.footprint.output,
-        rules.local_built_up_area.output
+        rules.local_built_up_area.output,
+        rules.units.output
     output:
         "build/{layer}/{scenario}/necessary-land-when-pv-{pvshare}%.csv"
     conda: "../envs/default.yaml"

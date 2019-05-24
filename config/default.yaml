@@ -229,7 +229,7 @@ scenarios:
         share-offshore-used: 0.1
         share-rooftops-used: 1.0
     necessary-land:
-        use-protected-areas: False
+        use-protected-areas: True
         pv-on-farmland: False
         share-farmland-used: 1
         share-forest-used-for-wind: 1
