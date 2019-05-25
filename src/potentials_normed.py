@@ -23,7 +23,6 @@ def normed_potential(paths_to_unit_attributes, path_to_output):
 def determine_normed_potentials(demand_twh_per_year, potentials):
     max_yield_twh_per_year = potentials.sum(axis=1)
     normed_potential = max_yield_twh_per_year / demand_twh_per_year
-    normed_potential[normed_potential == pd.np.inf] = pd.np.nan # handle regions with no demand
     normed_potential.name = "normed_potential"
     normed_potential.index.name = "id"
     return normed_potential

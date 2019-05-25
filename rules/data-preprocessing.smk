@@ -123,7 +123,7 @@ rule administrative_borders_lau:
         src = "src/lau.py",
         zip = rules.raw_lau_units_zipped.output
     output:
-        "build/administrative-borders-lau.gpkg"
+        "build/administrative-borders-lau.geojson"
     shadow: "full"
     conda: "../envs/default.yaml"
     shell:
