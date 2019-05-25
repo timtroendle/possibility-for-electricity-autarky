@@ -381,7 +381,7 @@ rule scenario_results:
         constrained_potentials = rules.potentials.output,
         normed_potentials = rules.normed_potentials.output
     output:
-        "build/{layer}/{scenario}/merged-results.geojson"
+        "build/{layer}/{scenario}/merged-results.gpkg"
     run:
         import pandas as pd
         import geopandas as gpd
@@ -393,4 +393,4 @@ rule scenario_results:
             ),
             left_on="id",
             right_index=True
-        ).to_file(output[0], driver="GeoJSON")
+        ).to_file(output[0], driver="GPKG")

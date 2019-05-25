@@ -37,7 +37,7 @@ rule normed_potential_boxplots:
     message: "Plot ranges of relative potential for scenario {wildcards.scenario}."
     input:
         "src/vis/potentials_normed_boxplot.py",
-        "build/municipal/{scenario}/merged-results.geojson"
+        "build/municipal/{scenario}/merged-results.gpkg"
     output:
         "build/{scenario}/normed-potentials-boxplots.png"
     conda: "../envs/default.yaml"
@@ -49,10 +49,10 @@ rule potentials_sufficiency_map:
     message: "Plot potential sufficiency maps for scenario {wildcards.scenario}."
     input:
         "src/vis/potentials_sufficiency_map.py",
-        "build/continental/{scenario}/merged-results.geojson",
-        "build/national/{scenario}/merged-results.geojson",
-        "build/regional/{scenario}/merged-results.geojson",
-        "build/municipal/{scenario}/merged-results.geojson"
+        "build/continental/{scenario}/merged-results.gpkg",
+        "build/national/{scenario}/merged-results.gpkg",
+        "build/regional/{scenario}/merged-results.gpkg",
+        "build/municipal/{scenario}/merged-results.gpkg"
     output:
         "build/{scenario}/sufficient-potentials-map.png"
     conda: "../envs/default.yaml"
