@@ -30,7 +30,8 @@ rule all:
     message: "Run entire analysis and compile report."
     input:
         "build/paper.docx",
-        "build/supplementary-material.docx"
+        "build/supplementary-material.docx",
+        "build/logs/test-report.html"
 
 
 rule paper:
@@ -93,6 +94,7 @@ rule test:
     input:
         rules.paper.output, # proxy for: all has to exist before running the tests
         rules.total_swiss_yield_according_to_sonnendach_data.output
+    output: "build/logs/test-report.html"
     conda: "envs/default.yaml"
     shell:
-        "py.test"
+        "py.test --html={output} --self-contained-html"
