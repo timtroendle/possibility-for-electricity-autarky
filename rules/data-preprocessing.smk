@@ -32,7 +32,8 @@ GMTED_X = ["030W", "000E", "030E"]
 localrules: raw_load, raw_gadm_administrative_borders_zipped, raw_protected_areas_zipped,
     raw_nuts_units_zipped, raw_lau_units_zipped, raw_urbanisation_zipped, raw_land_cover_zipped,
     raw_land_cover, raw_protected_areas, raw_srtm_elevation_tile_zipped, raw_gmted_elevation_tile,
-    raw_bathymetry_zipped, raw_bathymetry, raw_population_zipped, raw_population
+    raw_bathymetry_zipped, raw_bathymetry, raw_population_zipped, raw_population,
+    raw_gadm_administrative_borders
 
 
 rule raw_load:
@@ -152,7 +153,7 @@ rule lau2_urbanisation_degree:
         degurba = rules.raw_urbanisation_zipped.output
     output:
         "build/administrative-borders-lau-urbanisation.csv"
-    shadow: "full"
+    shadow: "minimal"
     conda: "../envs/default.yaml"
     shell:
         """
@@ -174,7 +175,7 @@ rule raw_land_cover:
     message: "Extract land cover data as zip."
     input: rules.raw_land_cover_zipped.output
     output: temp("build/GLOBCOVER_L4_200901_200912_V2.3.tif")
-    shadow: "full"
+    shadow: "minimal"
     shell: "unzip {input} -d ./build/"
 
 
@@ -210,9 +211,13 @@ rule raw_srtm_elevation_tile:
         "data/automatic/raw-srtm/srtm_{x}_{y}.zip"
     output:
         temp("build/srtm_{x}_{y}.tif")
-    shadow: "full"
-    shell:
-        "unzip {input} -d build"
+    run: # using Python here, because "unzip" issues a warning sometimes causing snakemake to break
+        import zipfile
+        from pathlib import Path
+
+        file_to_extract = Path(input[0]).with_suffix(".tif").name
+        with zipfile.ZipFile(input[0], "r") as zipref:
+            zipref.extract(file_to_extract, path="build")
 
 
 rule raw_srtm_elevation_data:
@@ -375,7 +380,7 @@ rule settlements:
         urban_greens = "build/esm-class404145-urban-greens.tif",
         built_up = "build/esm-class303550-built-up.tif"
     threads: config["snakemake"]["max-threads"]
-    shadow: "full"
+    shadow: "minimal"
     conda: "../envs/default.yaml"
     shell:
         """
@@ -446,7 +451,7 @@ rule raw_population:
     message: "Extract population data as zip."
     input: rules.raw_population_zipped.output
     output: temp("build/GHS_POP_GPW42015_GLOBE_R2015A_54009_250_v1_0.tif")
-    shadow: "full"
+    shadow: "minimal"
     shell:
         """
         unzip {input} -d ./build/
