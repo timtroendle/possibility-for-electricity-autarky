@@ -153,7 +153,7 @@ rule lau2_urbanisation_degree:
         degurba = rules.raw_urbanisation_zipped.output
     output:
         "build/administrative-borders-lau-urbanisation.csv"
-    shadow: "minimal"
+    shadow: "full"
     conda: "../envs/default.yaml"
     shell:
         """

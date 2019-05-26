@@ -2,4 +2,4 @@ cluster: bsub -oo {cluster.output} -W {cluster.runtime} -n {cluster.cores} -R "r
 jobs: 999
 cluster-config: config/euler/cluster-config.yaml
 local-cores: 1
-latency-wait: 30
+latency-wait: 60

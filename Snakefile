@@ -31,7 +31,8 @@ rule all:
     input:
         "build/paper.docx",
         "build/supplementary-material.docx",
-        "build/logs/test-report.html"
+        "build/logs/test-report.html",
+        "build/municipal/overview-scenarios.csv"
 
 
 rule paper:
