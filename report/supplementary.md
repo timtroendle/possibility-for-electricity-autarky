@@ -12,13 +12,30 @@ csl: 'energy-strategy-reviews.csl'
 link-citations: True
 ---
 
+# Code and data
+
+The code and reproducible workflow used in this analysis is available online (ADD citation). Furthermore, the resulting data is available online as well (ADD citation).
+
+# Spatial and spatio-temporal data sources
+
+Table @tbl:data-sources lists all spatial and spatio-temporal data sources used in this study, together with their most important technical characteristics and their source.
+
+```table
+---
+caption: 'Spatial and spatio-temporal data sources used in this study. {#tbl:data-sources tag="S1"}'
+alignment: LRRRRR
+include: data-sources.csv
+markdown: True
+---
+```
+
 # Roofs for PV
 
 Table @tbl:roof-statistics shows the share of roof categories from the sonnendach.ch dataset, which we assume to be representative for all countries in our study and which we thus use Europe-wide.
 
 ```table
 ---
-caption: 'Area share of roof categories used Europe-wide, based on data from Switzerland in the sonnendach.ch dataset [@SwissFederalOfficeofEnergy:2018]. {#tbl:roof-statistics tag="S1"}'
+caption: 'Area share of roof categories used Europe-wide, based on data from Switzerland in the sonnendach.ch dataset [@SwissFederalOfficeofEnergy:2018]. {#tbl:roof-statistics tag="S2"}'
 alignment: CCC
 include: ./build/swiss/roof-statistics-publish.csv
 markdown: True
@@ -96,5 +113,31 @@ Figures @fig:exclusion-layers-alb -- @fig:exclusion-layers-gbr show the exclusio
 ![Exclusion layers for determining the potential of wind power in Switzerland: shaded areas are not available for electricity generation.](./build/exclusion-layers-CHE.png){#fig:exclusion-layers-che .class tag="S33"}
 
 ![Exclusion layers for determining the potential of wind power in The United Kingdom: shaded areas are not available for electricity generation.](./build/exclusion-layers-GBR.png){#fig:exclusion-layers-gbr .class tag="S34"}
+
+# Technical potential
+
+Based on the input data, we determine the technical potential of renewable electricity for all Europe, all countries, all regions, and all municipalities in Europe. Table @tbl:technical-potential-national shows the technical potential for all countries in Europe. This data, and data on the continental, regional, and municipal levels is available for download, see above.
+
+```table
+---
+caption: 'Technical potential of open field PV, roof mounted PV, onshore wind turbines, and offshore wind turbines on the national scale. {#tbl:technical-potential-national tag="S3"}'
+alignment: CRRRRR
+include: ./build/national/technical-potential/potentials-polished.csv
+markdown: True
+---
+```
+
+# Technical-social potential
+
+Based on the input data, we determine the technical-social potential of renewable electricity for all Europe, all countries, all regions, and all municipalities in Europe. Table @tbl:technical-social-potential-national shows the technical-social potential for all countries in Europe. This data, and data on the continental, regional, and municipal levels is available for download, see above.
+
+```table
+---
+caption: 'Technical-social potential of open field PV, roof mounted PV, onshore wind turbines, and offshore wind turbines on the national level. {#tbl:technical-social-potential-national tag="S4"}'
+alignment: CRRRRR
+include: ./build/national/technical-social-potential/potentials-polished.csv
+markdown: True
+---
+```
 
 # Bibliography

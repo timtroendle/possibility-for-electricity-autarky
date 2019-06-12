@@ -282,6 +282,26 @@ rule potentials:
         PYTHON_SCRIPT + " {wildcards.scenario} {CONFIG_FILE}"
 
 
+rule potentials_polished:
+    message: "Polish potential data for publication."
+    input:
+        potentials = rules.potentials.output[0],
+        demand = rules.demand.output[0]
+    output: "build/{layer}/{scenario}/potentials-polished.csv"
+    run:
+        import pandas as pd
+
+        potentials = pd.read_csv(input.potentials, index_col=0)
+        demand = pd.read_csv(input.demand, index_col=0)
+        potentials["Demand [TWh/yr]"] = demand["demand_twh_per_year"]
+        potentials.rename(columns={
+            "rooftop_pv_twh_per_year": "Roof mounted PV [TWh/yr]",
+            "open_field_pv_twh_per_year": "Open field PV [TWh/yr]",
+            "onshore_wind_twh_per_year": "Onshore wind [TWh/yr]",
+            "offshore_wind_twh_per_year": "Offshore wind [TWh/yr]"
+        }).to_csv(output[0], index=True, header=True, float_format="%.1f")
+
+
 rule areas:
     message:
         "Determine eligible areas for layer {wildcards.layer} in scenario {wildcards.scenario}."
@@ -319,7 +339,6 @@ rule capacities:
     conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT + " {wildcards.scenario} {CONFIG_FILE}"
-
 
 
 rule normed_potentials:

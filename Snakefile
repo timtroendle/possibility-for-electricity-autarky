@@ -71,7 +71,9 @@ rule supplementary_material:
             "build/exclusion-layers-{country_code}.png",
             country_code=[pycountry.countries.lookup(country).alpha_3
                           for country in config["scope"]["countries"]]
-        )
+        ),
+        "build/national/technical-potential/potentials-polished.csv",
+        "build/national/technical-social-potential/potentials-polished.csv"
     output:
         "build/supplementary-material.docx"
     shadow: "full"
