@@ -14,7 +14,7 @@ link-citations: True
 
 # Code and data
 
-The code and reproducible workflow used in this analysis is available online (ADD citation). Furthermore, the resulting data is available online as well (ADD citation).
+The code and reproducible workflow used to perform this analysis is available online [@Trondle:2019b]. Furthermore, the resulting data is available online as well [@Trondle:2019a].
 
 # Spatial and spatio-temporal data sources
 

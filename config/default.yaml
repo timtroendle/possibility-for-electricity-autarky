@@ -272,3 +272,10 @@ paper:
     europe-level-results:
         - technical-potential
         - technical-social-potential
+    pv-shares:
+        - 0
+        - 20
+        - 40
+        - 60
+        - 80
+        - 100

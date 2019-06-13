@@ -4,6 +4,8 @@ Is your European region able to provide itself with 100% renewable electricity?
 
 This repository contains the entire research project, including code and report. The philosophy behind this repository is that no intermediary results are included, but all results are computed from raw data and code.
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3244985.svg)](https://doi.org/10.5281/zenodo.3244985)
+
 ## Getting ready
 
 ### Installation
@@ -56,7 +58,7 @@ If you want to run on another cluster, read [snakemake's documentation on cluste
 
 At the moment, there is one manual step involved: running renewables.ninja simulations of wind and solar electricity. It is added to the automatic workflow as input data. Should you want to change the simulations, because you want to change parameters of the simulation (see `parameters.ninja` in the config), you can do that in three steps:
 
-1) Create input files by first chaning the config, then running `snakemake -s rules/ninja-input.smk`.
+1) Create input files by first changing the config, then running `snakemake -s rules/ninja-input.smk`.
 2) Run the simulations on renewables.ninja.
 3) Update the data in `data/capacityfactors/{technology}`.
 

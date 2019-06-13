@@ -66,7 +66,7 @@ rule necessary_land_plot_all_layers:
         "src/vis/necessary_land_all_layers.py",
         expand("build/{layer}/{{scenario}}/necessary-land-when-pv-{pvshare}%.csv",
                layer=config["layers"].keys(),
-               pvshare=[0, 20, 40, 60, 80, 100]),
+               pvshare=config["paper"]["pv-shares"]),
         expand("build/{layer}/population.csv", layer=config["layers"].keys()),
     output:
         "build/{scenario}/necessary-land-all-layers.png"
