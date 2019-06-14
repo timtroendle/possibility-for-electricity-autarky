@@ -36,7 +36,13 @@ rule all:
         "build/paper.docx",
         "build/supplementary-material.docx",
         "build/logs/test-report.html",
-        "build/municipal/overview-scenarios.csv"
+        "build/technical-potential/normed-potentials-boxplots.tif",
+        "build/technical-potential/sufficient-potentials-map.tif",
+        "build/technical-social-potential/sufficient-potentials-map.tif",
+        "build/technical-social-potential/normed-potentials-boxplots.tif",
+        "build/necessary-land/necessary-land-map-when-pv-40%.tif",
+        "build/necessary-land/necessary-land-all-layers.tif",
+        "build/exclusion-layers-ROU.tif",
 
 
 PAPER_DEPENDENCIES = [

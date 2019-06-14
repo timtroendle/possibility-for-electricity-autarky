@@ -15,4 +15,4 @@ rule send:
 rule receive:
     message: "Receive build changes from Euler"
     shell:
-        "rsync -avzh --progress --delete -r --exclude-from=.syncignore-build {EULER_URL}:{EULER_BUILD_DIR} {LOCAL_EULER_RESULTS}"
+        "rsync -avzh --progress --delete -r --max-size=1g --exclude-from=.syncignore-build {EULER_URL}:{EULER_BUILD_DIR} {LOCAL_EULER_RESULTS}"
