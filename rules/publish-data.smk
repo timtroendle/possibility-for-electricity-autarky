@@ -14,6 +14,7 @@ rule prepare_everything_for_publication:
         expand("build/publish/{layer}/demand.csv", layer=LAYERS),
         expand("build/publish/{layer}/shared-coast.csv", layer=LAYERS),
         expand("build/publish/{layer}/{scenario}/areas.csv", layer=LAYERS, scenario=SCENARIOS),
+        expand("build/publish/{layer}/{scenario}/farmland.csv", layer=LAYERS, scenario=SCENARIOS),
         expand("build/publish/{layer}/{scenario}/capacities.csv", layer=LAYERS, scenario=SCENARIOS),
         expand("build/publish/{layer}/{scenario}/potentials.csv", layer=LAYERS, scenario=SCENARIOS),
         expand("build/publish/{layer}/{scenario}/normed-potentials.csv", layer=LAYERS, scenario=SCENARIOS),

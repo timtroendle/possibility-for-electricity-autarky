@@ -321,6 +321,23 @@ rule areas:
         PYTHON_SCRIPT + " {wildcards.scenario} {CONFIG_FILE}"
 
 
+rule farmland_areas: # This is to be able to determine the potential of bioenergy.
+    message:
+        "Determine farmland areas for layer {wildcards.layer} in scenario {wildcards.scenario}."
+    input:
+        "src/farmland.py",
+        rules.units.output,
+        rules.area_of_technical_eligibility.output,
+        rules.category_of_technical_eligibility.output,
+        rules.land_cover_in_europe.output,
+        rules.protected_areas_in_europe.output
+    output:
+        "build/{layer}/{scenario}/farmland.csv"
+    conda: "../envs/default.yaml"
+    shell:
+        PYTHON_SCRIPT + " {wildcards.scenario} {CONFIG_FILE}"
+
+
 rule capacities:
     message:
         "Determine installable capacities for layer {wildcards.layer} in scenario {wildcards.scenario}."
