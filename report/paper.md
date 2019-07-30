@@ -96,11 +96,11 @@ alignment: LRR
 markdown: True
 ---
 ,Technical potential,Technical-social potential
-protected areas usable,yes,no
+Protected areas usable,yes,no
 PV on agricultural land,yes,no
-eligible land usable,100%,10%
-eligible water surfaces usable,100%,10%
-eligible roof areas usable,100%,100%
+Eligible land usable,100%,10%
+Eligible water surfaces usable,100%,10%
+Eligible roof areas usable,100%,100%
 ```
 
 ### Land footprint
