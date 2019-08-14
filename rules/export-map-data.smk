@@ -12,10 +12,10 @@ rule export_map_data:
         "build/export/map/national-boundaries-national-level.shp",
         "build/export/map/national-boundaries-regional-level.shp",
         "build/export/map/national-boundaries-municipal-level.shp",
-        "build/export/map/continental--technical-potential.mbtiles",
-        "build/export/map/national--technical-potential.mbtiles",
-        "build/export/map/regional--technical-potential.mbtiles",
-        "build/export/map/municipal--technical-potential.mbtiles",
+        "build/export/map/continental--technical-social-potential.mbtiles",
+        "build/export/map/national--technical-social-potential.mbtiles",
+        "build/export/map/regional--technical-social-potential.mbtiles",
+        "build/export/map/municipal--technical-social-potential.mbtiles",
 
 
 rule national_boundaries:
@@ -30,18 +30,46 @@ rule national_boundaries:
 
 
 rule scenario_result:
-    message: "Export merged result of scenario {wildcards.scenario} of {wildcards.layer} layer."
-    input: "build/{layer}/{scenario}/merged-results.gpkg"
-    output: "build/export/map/{layer}--{scenario}.geojson"
+    message: "Export data of {wildcards.layer} layer together with our rating of possibility."
+    input:
+        technical_potential = "build/{layer}/technical-potential/merged-results.gpkg",
+        technical_social_potential = "build/{layer}/technical-social-potential/merged-results.gpkg",
+    output: "build/export/map/{layer}--technical-social-potential.geojson"
     run:
+        import pandas as pd
         import geopandas as gpd
 
-        (gpd
-         .read_file(input[0])
-         .rename(columns={"id": "unit_id"})
-         .rename_axis("id", axis="index")
-         .reset_index()
-         .to_file(output[0], driver="GeoJSON"))
+        technical_potential = (gpd
+                               .read_file(input.technical_potential)
+                               .rename(columns={"id": "unit_id"})
+                               .set_index("unit_id"))
+        technical_social_potential = (gpd
+                                      .read_file(input.technical_social_potential)
+                                      .rename(columns={"id": "unit_id"})
+                                      .set_index("unit_id"))
+
+        def our_rating(technical_potential, technical_social_potential):
+            rating = pd.Series(index=technical_social_potential.index, data=None, dtype=pd.np.object)
+            rating[technical_social_potential >= 1] = "is likely possible"
+            rating[(technical_social_potential < 1)
+                   & (technical_potential >= 2)] = "is maybe possible"
+            rating[(technical_social_potential < 1)
+                   & (technical_potential < 2)
+                   & (technical_potential >= 1)] = "is likely impossible"
+            rating[technical_potential < 1] = "is impossible"
+            return rating
+
+        technical_social_potential["our_rating"] = our_rating(
+            technical_potential=technical_potential["normed_potential"],
+            technical_social_potential=technical_social_potential["normed_potential"]
+        )
+        technical_social_potential["total_potential_twh_per_year"] = (
+            technical_social_potential["offshore_wind_twh_per_year"]
+            + technical_social_potential["onshore_wind_twh_per_year"]
+            + technical_social_potential["rooftop_pv_twh_per_year"]
+            + technical_social_potential["open_field_pv_twh_per_year"]
+        )
+        technical_social_potential.to_file(output[0], driver="GeoJSON")
 
 
 def zoom_range_parameters(wildcards):
