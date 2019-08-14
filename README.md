@@ -4,8 +4,9 @@ Is your European region able to provide itself with 100% renewable electricity?
 
 This repository contains the entire research project, including code and report. The philosophy behind this repository is that no intermediary results are included, but all results are computed from raw data and code.
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3244985.svg)](https://doi.org/10.5281/zenodo.3244985)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3246303.svg)](https://doi.org/10.5281/zenodo.3246303)
+[![article DOI](https://img.shields.io/badge/article-10.1016%2Fj.esr.2019.100388-blue)](https://doi.org/10.1016/j.esr.2019.100388)
+[![data DOI](https://img.shields.io/badge/data-10.5281%2Fzenodo.3244985-blue)](https://doi.org/10.5281/zenodo.3244985)
+[![code DOI](https://img.shields.io/badge/code-10.5281%2Fzenodo.3246303-blue)](https://doi.org/10.5281/zenodo.3246303)
 
 ## Getting ready
 
