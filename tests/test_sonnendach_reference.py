@@ -46,7 +46,6 @@ def test_switzerland_rooftop_area():
 @pytest.mark.skipif(
     not PATH_TO_SONNENDACH_YIELD_ESTIMATE.exists(),
     reason="Sonnendach yield estimation not available.")
-@pytest.mark.xfail(reason="Capacity factors not correct at the moment.")
 def test_switzerland_energy_yield():
     with open(PATH_TO_SONNENDACH_YIELD_ESTIMATE, "r") as f_sonnendach_estimate:
         sonnendach_estimate = float(f_sonnendach_estimate.readline())

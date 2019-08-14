@@ -75,6 +75,14 @@
         $if(date)$
         <p class="date">$date$</p>
         $endif$
+        $if(publication)$
+        <p>
+            The original version of this article has been published in $publication.journal$.
+            <a href="https://doi.org/$publication.DOI$">
+                <img src="https://img.shields.io/badge/DOI-$publication.DOI$-blue" alt="article DOI">
+            </a>
+        </p>
+        $endif$
         $if(abstract)$
         <h1 id="abstract">Abstract</h1>
         $abstract$

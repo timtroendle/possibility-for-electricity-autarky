@@ -7,6 +7,9 @@ import seaborn as sns
 from src.vis import RED, GREEN, BLUE
 
 GENERATION_DENSE = 0.33 # land is generation dense when more than this fraction is used for energy farming
+LIGHT_RED = "#E3D9D9"
+LIGHT_GREEN = "#DFE2DB"
+LIGHT_BLUE = "#DADCE2"
 
 
 @click.command()
@@ -34,10 +37,9 @@ def necessary_land(paths_to_input, path_to_output):
         x="rooftop_pv_share",
         y="population_sum",
         hue="layer",
-        palette=[GREEN, RED, BLUE],
-        saturation=0.85,
+        palette=[LIGHT_GREEN, LIGHT_RED, LIGHT_BLUE],
+        saturation=1,
         hue_order=["municipal", "regional", "national"],
-        alpha=0.10,
         ax=ax
     )
     sns.barplot(
@@ -48,7 +50,6 @@ def necessary_land(paths_to_input, path_to_output):
         palette=[GREEN, RED, BLUE],
         saturation=0.85,
         hue_order=["municipal", "regional", "national"],
-        alpha=1,
         ax=ax
     )
 
@@ -59,7 +60,10 @@ def necessary_land(paths_to_input, path_to_output):
     ax.set_xticklabels(["{:.0f}%".format(tick) for tick in all_data.rooftop_pv_share.unique()])
     ax.set_yticklabels(["{:.0f}%".format(tick * 100) for tick in ax.get_yticks()])
     sns.despine(fig=fig)
-    fig.savefig(path_to_output, dpi=300, transparent=True)
+    if path_to_output[-3:] == "png":
+        fig.savefig(path_to_output, dpi=600, transparent=False)
+    else:
+        fig.savefig(path_to_output, dpi=600, transparent=False, pil_kwargs={"compression": "tiff_lzw"})
 
 
 def _read_all_data(paths_to_population, paths_to_necessary_land):

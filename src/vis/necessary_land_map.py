@@ -59,7 +59,10 @@ def _map(unit_layers, layer_names, path_to_plot):
     _plot_layer(unit_layers[3], layer_names[3], norm, cmap, axes[3])
 
     _plot_colorbar(fig, axes, norm, cmap)
-    fig.savefig(path_to_plot, dpi=300, transparent=True)
+    if path_to_plot[-3:] == "png":
+        fig.savefig(path_to_plot, dpi=600, transparent=False)
+    else:
+        fig.savefig(path_to_plot, dpi=600, transparent=False, pil_kwargs={"compression": "tiff_lzw"})
 
 
 def _plot_layer(units, layer_name, norm, cmap, ax):

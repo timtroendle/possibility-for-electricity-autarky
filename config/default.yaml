@@ -43,7 +43,7 @@ scope:
         y_min: 30  # in degrees north
         y_max: 75  # in degrees north
 layers:
-    european:
+    continental:
         Austria: nuts0
         Belgium: nuts0
         Bulgaria: nuts0
@@ -189,22 +189,24 @@ layers:
         Switzerland: lau2
 parameters:
     maximum-installable-power-density: # this is not the yield, but the density of installed power
-        pv-on-tilted-roofs: 160 # [W/m^2] from (Gagnon:2016, Klauser:2016)
+        pv-on-tilted-roofs: 160 # [W/m^2] from (Gagnon:2016, Klauser:2016), i.e. 16% efficiency
         pv-on-flat-areas: 80 # [W/m^2] from (Gagnon:2016, Klauser:2016, Wirth:2017)
         onshore-wind: 8 # [W/m^2] from (European Environment Agency, 2009)
         offshore-wind: 15 # [W/m^2] from (European Environment Agency, 2009)
+    availability:
+        wind-onshore: 0.97 # [-] from (European Environment Agency, 2009)
+        wind-offshore: 0.9 # [-] from (European Environment Agency, 2009)
     ninja: # change these with caution as the renewables.ninja simulations are not in the loop, see README
-        resolution-grid: 200 # [km^2] # FIXME should be 50, corresponding to MERRA
-        pv-efficiency: 0.16
+        resolution-grid: 50 # [km^2] corresponding to MERRA resolution
         pv-performance-ratio: 0.9
         hub-height:
-            onshore: 80 # m
-            offshore: 120 # m
+            onshore: 105 # m, median hub height of V90/2000 in Europe between 2010 and 2018
+            offshore: 87 # m, median hub height of SWT-3.6-107 in Europe between 2010 and 2018
         turbine:
-            onshore: "enercon e126 7000"
-            offshore: "vestas v164 7000"
+            onshore: "vestas v90 2000" # most built between 2010 and 2018 in Europe
+            offshore: "siemens swt 3.6 107" # most built between 2010 and 2018 in Europe
     max-slope:
-        pv: 3 # [°]
+        pv: 10 # [°] (AlGarni:2018)
         wind: 20 # [°] (McKenna:2014)
     max-depth-offshore: -50
     max-building-share: 0.01 # Above, a pixel cannot be used for energy farms. Equals roughly 900m2
@@ -227,7 +229,7 @@ scenarios:
         share-offshore-used: 0.1
         share-rooftops-used: 1.0
     necessary-land:
-        use-protected-areas: False
+        use-protected-areas: True
         pv-on-farmland: False
         share-farmland-used: 1
         share-forest-used-for-wind: 1
@@ -270,3 +272,10 @@ paper:
     europe-level-results:
         - technical-potential
         - technical-social-potential
+    pv-shares:
+        - 0
+        - 20
+        - 40
+        - 60
+        - 80
+        - 100

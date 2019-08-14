@@ -12,6 +12,7 @@ configfile: CONFIG_FILE
 include: "../Snakefile"
 include: "sonnendach.smk"
 
+
 rule ninja_simulation_input:
     message: "Create input files for renewable.ninja simulations."
     input:
@@ -24,10 +25,11 @@ rule pv_simulation_points:
     message: "Create locations and parameters of pv simulations for renewables.ninja."
     input:
         "src/capacityfactors/ninja_input_pv.py",
-        "build/european/units.geojson",
+        "build/continental/units.geojson",
         rules.sonnendach_statistics.output.raw
     output:
         points = "build/capacityfactors/ninja-input-pv.csv",
+    conda: "../envs/default.yaml"
     shell: PYTHON_SCRIPT + " {CONFIG_FILE}"
 
 
@@ -35,9 +37,10 @@ rule wind_simulation_points:
     message: "Create locations and parameters of wind simulations for renewables.ninja."
     input:
         "src/capacityfactors/ninja_input_wind.py",
-        "build/european/units.geojson",
+        "build/continental/units.geojson",
         "build/eez-in-europe.geojson"
     output:
         points_onshore = "build/capacityfactors/ninja-input-wind-onshore.csv",
         points_offhore = "build/capacityfactors/ninja-input-wind-offshore.csv",
+    conda: "../envs/default.yaml"
     shell: PYTHON_SCRIPT + " {CONFIG_FILE}"

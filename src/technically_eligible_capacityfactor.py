@@ -4,6 +4,7 @@ import numpy as np
 import rasterio
 
 from src.technical_eligibility import Eligibility
+from src.utils import Config
 
 
 @click.command()
@@ -14,11 +15,13 @@ from src.technical_eligibility import Eligibility
 @click.argument("path_to_wind_offshore_cf")
 @click.argument("path_to_output_pv_prio")
 @click.argument("path_to_output_wind_prio")
+@click.argument("config", type=Config())
 def determine_capacityfactor(path_to_eligibility_categories, path_to_rooftop_pv_cf,
                              path_to_open_field_pv_cf, path_to_wind_onshore_cf,
                              path_to_wind_offshore_cf, path_to_output_pv_prio,
-                             path_to_output_wind_prio):
+                             path_to_output_wind_prio, config):
     """Determines capacity factors for each eligibility category on a map."""
+    availability = config["parameters"]["availability"]
     with rasterio.open(path_to_eligibility_categories) as src:
         eligibility_categories = src.read(1)
     with rasterio.open(path_to_rooftop_pv_cf) as src:
@@ -28,8 +31,12 @@ def determine_capacityfactor(path_to_eligibility_categories, path_to_rooftop_pv_
         open_field_pv_cf = src.read(1)
     with rasterio.open(path_to_wind_onshore_cf) as src:
         wind_onshore_cf = src.read(1)
+        valid = wind_onshore_cf != meta["nodata"]
+        wind_onshore_cf[valid] = wind_onshore_cf[valid] * availability["wind-onshore"]
     with rasterio.open(path_to_wind_offshore_cf) as src:
         wind_offshore_cf = src.read(1)
+        valid = wind_offshore_cf != meta["nodata"]
+        wind_offshore_cf[valid] = wind_offshore_cf[valid] * availability["wind-offshore"]
     capacityfactor_pv_prio = _determine_capacityfactor(
         eligibility_category=eligibility_categories,
         rooftop_pv_cf=rooftop_pv_cf,

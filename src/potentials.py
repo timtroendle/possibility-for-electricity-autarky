@@ -44,6 +44,10 @@ class Potential(Enum):
         return "{}_km2".format(self.name.lower())
 
     @property
+    def capacity_name(self):
+        return "{}_mw".format(self.name.lower())
+
+    @property
     def electricity_yield_name(self):
         return "{}_twh_per_year".format(self.name.lower())
 
@@ -114,14 +118,16 @@ def potentials(path_to_units, path_to_eez, path_to_shared_coast,
     shared_coasts = pd.read_csv(path_to_shared_coast, index_col=0)
 
     electricity_yield_pv_prio, electricity_yield_wind_prio = apply_scenario_config(
-        electricity_yield_pv_prio=electricity_yield_pv_prio,
-        electricity_yield_wind_prio=electricity_yield_wind_prio,
+        potential_pv_prio=electricity_yield_pv_prio,
+        potential_wind_prio=electricity_yield_wind_prio,
         categories=eligibility_categories,
         land_cover=land_cover,
         protected_areas=protected_areas,
         scenario_config=config["scenarios"][scenario]
     )
-    electricity_yield_pv_prio, electricity_yield_wind_prio = _decide_between_pv_and_wind(
+    electricity_yield_pv_prio, electricity_yield_wind_prio = decide_between_pv_and_wind(
+        potential_pv_prio=electricity_yield_pv_prio,
+        potential_wind_prio=electricity_yield_wind_prio,
         electricity_yield_pv_prio=electricity_yield_pv_prio,
         electricity_yield_wind_prio=electricity_yield_wind_prio,
         eligibility_categories=eligibility_categories
@@ -130,10 +136,10 @@ def potentials(path_to_units, path_to_eez, path_to_shared_coast,
     onshore_potentials = pd.DataFrame(
         index=unit_ids,
         data={
-            potential: _potentials(
+            potential: potentials_per_shape(
                 eligibilities=potential.eligible_on,
-                electricity_yield=(electricity_yield_pv_prio if "pv" in str(potential).lower()
-                                   else electricity_yield_wind_prio),
+                potential_map=(electricity_yield_pv_prio if "pv" in str(potential).lower()
+                               else electricity_yield_wind_prio),
                 eligibility_categories=eligibility_categories,
                 shapes=unit_geometries,
                 transform=transform
@@ -144,10 +150,10 @@ def potentials(path_to_units, path_to_eez, path_to_shared_coast,
     offshore_eez_potentials = pd.DataFrame(
         index=eez_ids,
         data={
-            potential: _potentials(
+            potential: potentials_per_shape(
                 eligibilities=potential.eligible_on,
-                electricity_yield=(electricity_yield_pv_prio if "pv" in str(potential).lower()
-                                   else electricity_yield_wind_prio),
+                potential_map=(electricity_yield_pv_prio if "pv" in str(potential).lower()
+                               else electricity_yield_wind_prio),
                 eligibility_categories=eligibility_categories,
                 shapes=eez_geometries,
                 transform=transform
@@ -168,76 +174,76 @@ def potentials(path_to_units, path_to_eez, path_to_shared_coast,
     )
 
 
-def apply_scenario_config(electricity_yield_pv_prio, electricity_yield_wind_prio, categories,
+def apply_scenario_config(potential_pv_prio, potential_wind_prio, categories,
                           land_cover, protected_areas, scenario_config):
-    """Limit electricity yield of each pixel based on scenario config."""
+    """Limit potential in each pixel based on scenario config."""
 
     # share-rooftops-used
     share_rooftops_used = scenario_config["share-rooftops-used"]
     mask = categories == Eligibility.ROOFTOP_PV
-    electricity_yield_pv_prio[mask] = electricity_yield_pv_prio[mask] * share_rooftops_used
-    electricity_yield_wind_prio[mask] = electricity_yield_wind_prio[mask] * share_rooftops_used
+    potential_pv_prio[mask] = potential_pv_prio[mask] * share_rooftops_used
+    potential_wind_prio[mask] = potential_wind_prio[mask] * share_rooftops_used
 
     # share-forest-used-for-wind
     share_forest_used_for_wind = scenario_config["share-forest-used-for-wind"]
     mask = np.isin(land_cover, FOREST) & (categories != Eligibility.ROOFTOP_PV)
-    electricity_yield_pv_prio[mask] = electricity_yield_pv_prio[mask] * share_forest_used_for_wind
-    electricity_yield_wind_prio[mask] = electricity_yield_wind_prio[mask] * share_forest_used_for_wind
+    potential_pv_prio[mask] = potential_pv_prio[mask] * share_forest_used_for_wind
+    potential_wind_prio[mask] = potential_wind_prio[mask] * share_forest_used_for_wind
 
     # share-other-land-used
     share_other_land_used = scenario_config["share-other-land-used"]
     mask = np.isin(land_cover, OTHER) & (categories != Eligibility.ROOFTOP_PV)
-    electricity_yield_pv_prio[mask] = electricity_yield_pv_prio[mask] * share_other_land_used
-    electricity_yield_wind_prio[mask] = electricity_yield_wind_prio[mask] * share_other_land_used
+    potential_pv_prio[mask] = potential_pv_prio[mask] * share_other_land_used
+    potential_wind_prio[mask] = potential_wind_prio[mask] * share_other_land_used
 
     # share-farmland-used
     share_farmland_used = scenario_config["share-farmland-used"]
     mask = np.isin(land_cover, FARM) & (categories != Eligibility.ROOFTOP_PV)
-    electricity_yield_pv_prio[mask] = electricity_yield_pv_prio[mask] * share_farmland_used
-    electricity_yield_wind_prio[mask] = electricity_yield_wind_prio[mask] * share_farmland_used
+    potential_pv_prio[mask] = potential_pv_prio[mask] * share_farmland_used
+    potential_wind_prio[mask] = potential_wind_prio[mask] * share_farmland_used
 
     # share-offshore-used
     share_offshore_used = scenario_config["share-offshore-used"]
     mask = categories == Eligibility.OFFSHORE_WIND
-    electricity_yield_pv_prio[mask] = electricity_yield_pv_prio[mask] * share_offshore_used
-    electricity_yield_wind_prio[mask] = electricity_yield_wind_prio[mask] * share_offshore_used
+    potential_pv_prio[mask] = potential_pv_prio[mask] * share_offshore_used
+    potential_wind_prio[mask] = potential_wind_prio[mask] * share_offshore_used
 
     # pv-on-farmland
     pv_on_farmland = scenario_config["pv-on-farmland"]
     if not pv_on_farmland:
         mask = np.isin(land_cover, FARM) & (categories == Eligibility.ONSHORE_WIND_AND_PV)
-        electricity_yield_pv_prio[mask] = 0
+        potential_pv_prio[mask] = 0
 
     # share-protected-areas-used
     use_protected_areas = scenario_config["use-protected-areas"]
     if not use_protected_areas:
         mask = (protected_areas == ProtectedArea.PROTECTED) & (categories != Eligibility.ROOFTOP_PV)
-        electricity_yield_pv_prio[mask] = 0
-        electricity_yield_wind_prio[mask] = 0
+        potential_pv_prio[mask] = 0
+        potential_wind_prio[mask] = 0
 
-    return electricity_yield_pv_prio, electricity_yield_wind_prio
+    return potential_pv_prio, potential_wind_prio
 
 
-def _decide_between_pv_and_wind(electricity_yield_pv_prio, electricity_yield_wind_prio, eligibility_categories):
+def decide_between_pv_and_wind(potential_pv_prio, potential_wind_prio,
+                               electricity_yield_pv_prio, electricity_yield_wind_prio,
+                               eligibility_categories):
     """When both are possible, choose PV when its electricity yield is higher, or vice versa."""
-    open_field_yield = electricity_yield_pv_prio.copy()
-    onshore_yield = electricity_yield_wind_prio.copy()
     pv_and_wind_possible = eligibility_categories == Eligibility.ONSHORE_WIND_AND_PV
-    higher_wind_yield = electricity_yield_pv_prio < electricity_yield_wind_prio
+    higher_wind_yield = electricity_yield_pv_prio <= electricity_yield_wind_prio
 
-    open_field_yield[pv_and_wind_possible & higher_wind_yield] = 0
-    onshore_yield[pv_and_wind_possible & ~higher_wind_yield] = 0
+    potential_pv_prio[pv_and_wind_possible & higher_wind_yield] = 0
+    potential_wind_prio[pv_and_wind_possible & ~higher_wind_yield] = 0
 
-    return open_field_yield, onshore_yield
+    return potential_pv_prio, potential_wind_prio
 
 
-def _potentials(eligibilities, electricity_yield, eligibility_categories, shapes, transform):
-    """Determine electricity yield of one eligibility category per shape."""
-    electricity_yield = electricity_yield.copy()
-    electricity_yield[~np.isin(eligibility_categories, eligibilities)] = 0
+def potentials_per_shape(eligibilities, potential_map, eligibility_categories, shapes, transform):
+    """Determine potential of one eligibility category per shape."""
+    potential_map = potential_map.copy()
+    potential_map[~np.isin(eligibility_categories, eligibilities)] = 0
     potentials = zonal_stats(
         shapes,
-        electricity_yield,
+        potential_map,
         affine=transform,
         stats="sum",
         nodata=-999

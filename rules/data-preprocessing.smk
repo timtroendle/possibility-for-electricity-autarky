@@ -7,8 +7,8 @@ URL_NUTS = "http://ec.europa.eu/eurostat/cache/GISCO/geodatafiles/NUTS_2013_01M_
 URL_LAU = "http://ec.europa.eu/eurostat/cache/GISCO/geodatafiles/COMM-01M-2013-SH.zip"
 URL_DEGURBA = "http://ec.europa.eu/eurostat/cache/GISCO/geodatafiles/DGURBA_2014_SH.zip"
 URL_LAND_COVER = "http://due.esrin.esa.int/files/Globcover2009_V2.3_Global_.zip"
-URL_PROTECTED_AREAS = "https://www.protectedplanet.net/downloads/WDPA_Jan2018?type=shapefile"
-URL_CGIAR_TILE = "http://droppr.org/srtm/v4.1/6_5x5_TIFs/"
+URL_PROTECTED_AREAS = "https://www.protectedplanet.net/downloads/WDPA_Feb2019?type=shapefile"
+URL_CGIAR_TILE = "http://srtm.csi.cgiar.org/wp-content/uploads/files/srtm_5x5/TIFF/"
 URL_GMTED_TILE = "https://edcintl.cr.usgs.gov/downloads/sciweb1/shared/topo/downloads/GMTED/Global_tiles_GMTED/075darcsec/mea/"
 URL_GADM = "https://biogeo.ucdavis.edu/data/gadm3.6/gpkg/"
 URL_BATHYMETRIC = "https://www.ngdc.noaa.gov/mgg/global/relief/ETOPO1/data/bedrock/grid_registered/georeferenced_tiff/ETOPO1_Bed_g_geotiff.zip"
@@ -29,6 +29,12 @@ SRTM_Y_MAX = 8
 GMTED_Y = ["50N", "70N"]
 GMTED_X = ["030W", "000E", "030E"]
 
+localrules: raw_load, raw_gadm_administrative_borders_zipped, raw_protected_areas_zipped,
+    raw_nuts_units_zipped, raw_lau_units_zipped, raw_urbanisation_zipped, raw_land_cover_zipped,
+    raw_land_cover, raw_protected_areas, raw_srtm_elevation_tile_zipped, raw_gmted_elevation_tile,
+    raw_bathymetry_zipped, raw_bathymetry, raw_population_zipped, raw_population,
+    raw_gadm_administrative_borders
+
 
 rule raw_load:
     message: "Download raw load."
@@ -45,6 +51,7 @@ rule electricity_demand_national:
         rules.raw_load.output
     output:
         "build/electricity-demand-national.csv"
+    conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT_WITH_CONFIG
 
@@ -72,6 +79,7 @@ rule administrative_borders_gadm:
          ]
     params: max_layer_depth = 3
     output: "build/administrative-borders-gadm.gpkg"
+    conda: "../envs/default.yaml"
     shell:
         PYTHON + " {input} {params.max_layer_depth} {output} {CONFIG_FILE}"
 
@@ -92,6 +100,7 @@ rule administrative_borders_nuts:
     output:
         "build/administrative-borders-nuts.gpkg"
     shadow: "full"
+    conda: "../envs/default.yaml"
     shell:
         """
         unzip {input.zip} -d ./build
@@ -115,8 +124,9 @@ rule administrative_borders_lau:
         src = "src/lau.py",
         zip = rules.raw_lau_units_zipped.output
     output:
-        "build/administrative-borders-lau.gpkg"
+        "build/administrative-borders-lau.geojson"
     shadow: "full"
+    conda: "../envs/default.yaml"
     shell:
         """
         unzip {input.zip} -d ./build
@@ -144,6 +154,7 @@ rule lau2_urbanisation_degree:
     output:
         "build/administrative-borders-lau-urbanisation.csv"
     shadow: "full"
+    conda: "../envs/default.yaml"
     shell:
         """
         unzip {input.lau2} -d ./build
@@ -164,7 +175,7 @@ rule raw_land_cover:
     message: "Extract land cover data as zip."
     input: rules.raw_land_cover_zipped.output
     output: temp("build/GLOBCOVER_L4_200901_200912_V2.3.tif")
-    shadow: "full"
+    shadow: "minimal"
     shell: "unzip {input} -d ./build/"
 
 
@@ -178,9 +189,10 @@ rule raw_protected_areas:
     message: "Extract protected areas data as zip."
     input: rules.raw_protected_areas_zipped.output
     output:
-        polygons = "build/raw-wdpa-jan2018/WDPA_Jan2018-shapefile-polygons.shp",
-        points = "build/raw-wdpa-jan2018/WDPA_Jan2018-shapefile-points.shp"
-    shell: "unzip {input} -d build/raw-wdpa-jan2018"
+        polygons = "build/raw-wdpa-feb2019/WDPA_Feb2019-shapefile-polygons.shp",
+        polygon_data = "build/raw-wdpa-feb2019/WDPA_Feb2019-shapefile-polygons.dbf",
+        points = "build/raw-wdpa-feb2019/WDPA_Feb2019-shapefile-points.shp"
+    shell: "unzip -o {input} -d build/raw-wdpa-feb2019"
 
 
 rule raw_srtm_elevation_tile_zipped:
@@ -199,9 +211,13 @@ rule raw_srtm_elevation_tile:
         "data/automatic/raw-srtm/srtm_{x}_{y}.zip"
     output:
         temp("build/srtm_{x}_{y}.tif")
-    shadow: "full"
-    shell:
-        "unzip {input} -d build"
+    run: # using Python here, because "unzip" issues a warning sometimes causing snakemake to break
+        import zipfile
+        from pathlib import Path
+
+        file_to_extract = Path(input[0]).with_suffix(".tif").name
+        with zipfile.ZipFile(input[0], "r") as zipref:
+            zipref.extract(file_to_extract, path="build")
 
 
 rule raw_srtm_elevation_data:
@@ -213,6 +229,7 @@ rule raw_srtm_elevation_data:
          if not (x is 34 and y in [3, 4, 5, 6])] # these tiles do not exist
     output:
         temp("build/raw-srtm-elevation-data.tif")
+    conda: "../envs/default.yaml"
     shell:
         "rio merge {input} {output} --overwrite"
 
@@ -240,6 +257,7 @@ rule raw_gmted_elevation_data:
          ]
     output:
         temp("build/raw-gmted-elevation-data.tif")
+    conda: "../envs/default.yaml"
     shell:
         "rio merge {input} {output} --overwrite"
 
@@ -263,11 +281,12 @@ rule elevation_in_europe:
         gmted = rules.raw_gmted_elevation_data.output,
         srtm = rules.raw_srtm_elevation_data.output
     output:
-        "build/elevation-europe.tif"
+        temp("build/elevation-europe.tif")
     params:
         srtm_bounds = "{x_min},{y_min},{x_max},60".format(**config["scope"]["bounds"]),
         gmted_bounds = "{x_min},59.5,{x_max},{y_max}".format(**config["scope"]["bounds"])
     threads: config["snakemake"]["max-threads"]
+    conda: "../envs/default.yaml"
     shell:
         """
         rio clip --bounds {params.srtm_bounds} {input.srtm} -o build/tmp-srtm.tif
@@ -286,6 +305,7 @@ rule land_cover_in_europe:
     input: rules.raw_land_cover.output
     output: "build/land-cover-europe.tif"
     params: bounds = "{x_min},{y_min},{x_max},{y_max}".format(**config["scope"]["bounds"])
+    conda: "../envs/default.yaml"
     shell: "rio clip {input} {output} --bounds {params.bounds}"
 
 
@@ -297,6 +317,7 @@ rule slope_in_europe:
     output:
         "build/slope-europe.tif"
     threads: config["snakemake"]["max-threads"]
+    conda: "../envs/default.yaml"
     shell:
         """
         gdaldem slope -s 111120 -compute_edges {input.elevation} build/slope-temp.tif
@@ -313,6 +334,7 @@ rule protected_areas_points_to_circles:
         rules.raw_protected_areas.output.points
     output:
         temp("build/protected-areas-points-as-circles.geojson")
+    conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT_WITH_CONFIG
 
@@ -329,6 +351,7 @@ rule protected_areas_in_europe:
         "build/rasterisation-benchmark.txt"
     params:
         bounds = "{x_min},{y_min},{x_max},{y_max}".format(**config["scope"]["bounds"])
+    conda: "../envs/default.yaml"
     shell:
         # The filter is in accordance to the way UNEP-WCMC calculates statistics:
         # https://www.protectedplanet.net/c/calculating-protected-area-coverage
@@ -357,7 +380,8 @@ rule settlements:
         urban_greens = "build/esm-class404145-urban-greens.tif",
         built_up = "build/esm-class303550-built-up.tif"
     threads: config["snakemake"]["max-threads"]
-    shadow: "full"
+    shadow: "minimal"
+    conda: "../envs/default.yaml"
     shell:
         """
         rio calc "(+ (+ (read 1) (read 2)) (read 3))" \
@@ -380,6 +404,7 @@ rule bathymetry_in_europe:
         reference = rules.land_cover_in_europe.output
     output:
         "build/bathymetry-in-europe.tif"
+    conda: "../envs/default.yaml"
     shell:
         """
         rio warp {input.bathymetry} -o {output} --like {input.reference} --resampling min
@@ -393,6 +418,7 @@ rule eez_in_europe:
     params:
         bounds="{x_min},{y_min},{x_max},{y_max}".format(**config["scope"]["bounds"]),
         countries=",".join(["'{}'".format(country) for country in config["scope"]["countries"]])
+    conda: "../envs/default.yaml"
     shell:
         """
         fio cat --bbox {params.bounds} {input}\
@@ -408,6 +434,7 @@ rule industry:
         RAW_INDUSTRY_DATA
     output:
         "build/industrial-load.geojson"
+    conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT
 
@@ -424,7 +451,7 @@ rule raw_population:
     message: "Extract population data as zip."
     input: rules.raw_population_zipped.output
     output: temp("build/GHS_POP_GPW42015_GLOBE_R2015A_54009_250_v1_0.tif")
-    shadow: "full"
+    shadow: "minimal"
     shell:
         """
         unzip {input} -d ./build/
@@ -440,6 +467,7 @@ rule population_in_europe:
         "build/population-europe.tif"
     params:
         bounds="{x_min},{y_min},{x_max},{y_max}".format(**config["scope"]["bounds"])
+    conda: "../envs/default.yaml"
     shell:
         """
         rio clip --geographic --bounds {params.bounds} --co compress=LZW {input.population} -o {output}

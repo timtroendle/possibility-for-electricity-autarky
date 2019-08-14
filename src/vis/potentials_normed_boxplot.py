@@ -74,9 +74,11 @@ def visualise_normed_potentials(path_to_results, path_to_plot):
     eu_patch = [child for child in ax.get_children() if isinstance(child, matplotlib.patches.PathPatch)][eu_position]
     eu_patch.set_facecolor(BLUE)
     eu_patch.set_edgecolor(BLUE)
-    eu_patch.set_alpha(0.8)
-    eu_patch.set_zorder(100000)
-    fig.savefig(path_to_plot, dpi=300, transparent=True)
+    eu_patch.set_zorder(2)
+    if path_to_plot[-3:] == "png":
+        fig.savefig(path_to_plot, dpi=600, transparent=False)
+    else:
+        fig.savefig(path_to_plot, dpi=600, transparent=False, pil_kwargs={"compression": "tiff_lzw"})
 
 
 if __name__ == "__main__":

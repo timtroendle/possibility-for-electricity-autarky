@@ -1,6 +1,10 @@
 """Rules analysing the scenario results."""
 
 
+wildcard_constraints:
+    plot_suffix = "((png)|(tif))" # can plot tif or png
+
+
 rule necessary_land_overview:
     message: "Create table showing the fraction of land needed to become autarkic in scenario {wildcards.scenario} "
              "for rooftop PV share {wildcards.pvshare}%."
@@ -37,9 +41,10 @@ rule normed_potential_boxplots:
     message: "Plot ranges of relative potential for scenario {wildcards.scenario}."
     input:
         "src/vis/potentials_normed_boxplot.py",
-        "build/municipal/{scenario}/merged-results.geojson"
+        "build/municipal/{scenario}/merged-results.gpkg"
     output:
-        "build/{scenario}/normed-potentials-boxplots.png"
+        "build/{scenario}/normed-potentials-boxplots.{plot_suffix}"
+    conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT
 
@@ -48,12 +53,13 @@ rule potentials_sufficiency_map:
     message: "Plot potential sufficiency maps for scenario {wildcards.scenario}."
     input:
         "src/vis/potentials_sufficiency_map.py",
-        "build/european/{scenario}/merged-results.geojson",
-        "build/national/{scenario}/merged-results.geojson",
-        "build/regional/{scenario}/merged-results.geojson",
-        "build/municipal/{scenario}/merged-results.geojson"
+        "build/continental/{scenario}/merged-results.gpkg",
+        "build/national/{scenario}/merged-results.gpkg",
+        "build/regional/{scenario}/merged-results.gpkg",
+        "build/municipal/{scenario}/merged-results.gpkg"
     output:
-        "build/{scenario}/sufficient-potentials-map.png"
+        "build/{scenario}/sufficient-potentials-map.{plot_suffix}"
+    conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT
 
@@ -64,10 +70,11 @@ rule necessary_land_plot_all_layers:
         "src/vis/necessary_land_all_layers.py",
         expand("build/{layer}/{{scenario}}/necessary-land-when-pv-{pvshare}%.csv",
                layer=config["layers"].keys(),
-               pvshare=[0, 20, 40, 60, 80, 100]),
+               pvshare=config["paper"]["pv-shares"]),
         expand("build/{layer}/population.csv", layer=config["layers"].keys()),
     output:
-        "build/{scenario}/necessary-land-all-layers.png"
+        "build/{scenario}/necessary-land-all-layers.{plot_suffix}"
+    conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT
 
@@ -81,7 +88,8 @@ rule necessary_land_map:
         expand("build/{layer}/{{scenario}}/necessary-land-when-pv-{{pvshare}}%.csv", layer=config["layers"].keys()),
         expand("build/{layer}/population.csv", layer=config["layers"].keys())
     output:
-        "build/{scenario}/necessary-land-map-when-pv-{pvshare}%.png"
+        "build/{scenario}/necessary-land-map-when-pv-{pvshare}%.{plot_suffix}"
+    conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT
 
@@ -96,7 +104,8 @@ rule exclusion_layers_plot:
         rules.protected_areas_in_europe.output,
         rules.settlements.output.buildings,
     output:
-        "build/exclusion-layers-{country_code}.png"
+        "build/exclusion-layers-{country_code}.{plot_suffix}"
+    conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT + " {wildcards.country_code}"
 
@@ -147,7 +156,7 @@ rule scenario_overview:
             df["layer"] = layer_name
             return df
 
-        ALL_LAYERS = ["european", "national", "regional", "municipal"]
+        ALL_LAYERS = ["continental", "national", "regional", "municipal"]
 
         normed_potential = pd.concat([pd.read_csv(path, index_col="id").pipe(lambda df: add_layer(df, path))
                                      for path in input.normed_potentials])
@@ -170,31 +179,33 @@ rule scenario_overview:
 
         overview.fillna(0).transpose().to_csv(output[0], index=True, header=True, float_format="%.1f")
 
+
 rule scenarios_overview:
     message: "Brief overview over results of all scenarios on the municipal level."
     input:
-        expand("build/municipal/{scenario}/constrained-potentials.csv", scenario=config["scenarios"].keys()),
-        "build/municipal/slope.csv",
-        rules.lau2_urbanisation_degree.output,
-        "build/municipal/population.csv",
-        "build/municipal/demand.csv"
+        potential = expand(
+            "build/municipal/{scenario}/potentials.csv",
+            scenario=config["paper"]["europe-level-results"]
+        ),
+        urbanisation = rules.lau2_urbanisation_degree.output[0],
+        population = "build/municipal/population.csv",
+        demand = "build/municipal/demand.csv"
     output:
-        "build/overview-scenarios.csv"
+        "build/municipal/overview-scenarios.csv"
     run:
         import pandas as pd
 
-        demand = pd.read_csv(input[-1], index_col=0)["demand_twh_per_year"]
-        industrial = pd.read_csv(input[-1], index_col=0)["industrial_demand_fraction"] > 0.5
-        population = pd.read_csv(input[-2], index_col=0)["population_sum"].reindex(demand.index)
-        high_density = pd.read_csv(input[-2], index_col=0)["density_p_per_km2"].reindex(demand.index) > 1000
-        potentials = [pd.read_csv(path, index_col=0).sum(axis=1).reindex(demand.index) for path in input[:-4]]
-        urbanisation = pd.read_csv(input[-3], index_col=0)["urbanisation_class"].reindex(demand.index)
-        steep = pd.read_csv(input[-4], index_col=0).reindex(demand.index)._median > 20
+        demand = pd.read_csv(input.demand, index_col=0)["demand_twh_per_year"]
+        industrial = pd.read_csv(input.demand, index_col=0)["industrial_demand_fraction"] > 0.5
+        population = pd.read_csv(input.population, index_col=0)["population_sum"].reindex(demand.index)
+        high_density = pd.read_csv(input.population, index_col=0)["density_p_per_km2"].reindex(demand.index) > 1000
+        potentials = [pd.read_csv(path, index_col=0).sum(axis=1).reindex(demand.index) for path in input.potential]
+        urbanisation = pd.read_csv(input.urbanisation, index_col=0)["urbanisation_class"].reindex(demand.index)
         urban = urbanisation == 1
         town = urbanisation == 2
         rural = urbanisation == 3
         classified = urban | town | rural
-        scenario_names = [path.split("/")[2] for path in input[:-4]]
+        scenario_names = [path.split("/")[2] for path in input.potential]
         overview = pd.DataFrame(
             index=scenario_names,
             columns=[
@@ -205,7 +216,6 @@ rule scenarios_overview:
                 "of which rural",
                 "of which densely populated",
                 "of which in industrial area",
-                "of which in steep area",
                 "high density pop affected",
                 "low density pop affected",
             ]
@@ -230,9 +240,6 @@ rule scenarios_overview:
         ]
         overview["of which in industrial area"] = [
             population[(pot < demand) & industrial].sum() / population[pot < demand].sum() for pot in potentials
-        ]
-        overview["of which in steep area"] = [
-            population[(pot < demand) & steep].sum() / population[pot < demand].sum() for pot in potentials
         ]
         overview["high density pop affected"] = [
             population[(pot < demand) & high_density].sum() / population[high_density].sum() for pot in potentials

@@ -72,7 +72,17 @@ def _layer_features(nuts_file, config, layer_id):
         new_feature["properties"]["type"] = "country" if layer_id == 0 else None
         new_feature["properties"]["proper"] = True
         new_feature["geometry"] = _all_parts_in_study_area_and_crs(feature, nuts_file.crs, config)
+        if layer_id == 0:
+            new_feature = _fix_country_feature(new_feature)
         yield new_feature
+
+
+def _fix_country_feature(feature):
+    # * IDs should have three letters instead of two
+    # * many country names are broken or missing
+    feature["properties"]["id"] = eu_country_code_to_iso3(feature["properties"]["id"])
+    feature["properties"]["name"] = pycountry.countries.lookup(feature["properties"]["id"]).name
+    return feature
 
 
 def _all_parts_in_study_area_and_crs(feature, src_crs, config):

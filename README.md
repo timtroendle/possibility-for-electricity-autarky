@@ -4,6 +4,10 @@ Is your European region able to provide itself with 100% renewable electricity?
 
 This repository contains the entire research project, including code and report. The philosophy behind this repository is that no intermediary results are included, but all results are computed from raw data and code.
 
+[![article DOI](https://img.shields.io/badge/article-10.1016%2Fj.esr.2019.100388-blue)](https://doi.org/10.1016/j.esr.2019.100388)
+[![data DOI](https://img.shields.io/badge/data-10.5281%2Fzenodo.3244985-blue)](https://doi.org/10.5281/zenodo.3244985)
+[![code DOI](https://img.shields.io/badge/code-10.5281%2Fzenodo.3246303-blue)](https://doi.org/10.5281/zenodo.3246303)
+
 ## Getting ready
 
 ### Installation
@@ -11,11 +15,10 @@ This repository contains the entire research project, including code and report.
 The following dependencies are needed to set up an environment in which the analysis can be run and the paper be build:
 
 * [conda](https://conda.io/docs/index.html)
-* `LaTeX` to [produce a PDF](http://pandoc.org/MANUAL.html#creating-a-pdf). Can be avoided by switching to [any other output format supported by pandoc](http://pandoc.org/index.html).
 
 When these dependencies are installed, you can create a conda environment from within you can run the analysis:
 
-    conda env create -f conda-environment.yml
+    conda env create -f environment.yaml
 
 Don't forget to activate the environment. To see what you can do now, run:
 
@@ -29,11 +32,11 @@ Whenever possible, data is downloaded automatically. As this is not always possi
 * [World Exclusive Economic Zones v10](http://www.marineregions.org/downloads.php), to be placed in `./data/World_EEZ_v10_20180221`
 * [Sonnendach.ch 2018-08-27](http://www.sonnendach.ch), to be placed in `./data/sonnendach/SOLKAT_20180827.gdb`
 * [Federal Register of Buildings and Dwellings (RBD/GWR) 2018-07-01](https://www.bfs.admin.ch/bfs/en/home/registers/federal-register-buildings-dwellings.html), to be placed in `./data/gwr/`
-* capacity factors from renewable.ninja, to be placed in `./data/capacityfactors/{technology}` for technology in ["wind-onshore", "wind-offshore", "rooftop-pv", "open-field-pv"] (where "open-field-pv" and "rooftop-pv" can be the same dataset and hence can be linked instead of copied)(to run simulations, see `Manual steps` below)
+* capacity factors from renewable.ninja, to be placed in `./data/capacityfactors/{technology}.nc` for technology in ["wind-onshore", "wind-offshore", "rooftop-pv", "open-field-pv"] (where "open-field-pv" and "rooftop-pv" can be the same dataset and hence can be linked instead of copied)(to run simulations, see `Manual steps` below)
 
 ## Run the analysis
 
-    snakemake paper
+    snakemake --use-conda paper
 
 This will run all analysis steps to reproduce results and eventually build the paper.
 
@@ -45,17 +48,25 @@ To generate a PDF of the dependency graph of all steps, run:
 
 (needs `dot`: `conda install graphviz`).
 
+## Run on Euler cluster
+
+To run on Euler, use the following command:
+
+    snakemake --use-conda --profile config/euler
+
+If you want to run on another cluster, read [snakemake's documentation on cluster execution](https://snakemake.readthedocs.io/en/stable/executable.html#cluster-execution) and take `config/euler` as a starting point.
+
 ## Manual steps
 
 At the moment, there is one manual step involved: running renewables.ninja simulations of wind and solar electricity. It is added to the automatic workflow as input data. Should you want to change the simulations, because you want to change parameters of the simulation (see `parameters.ninja` in the config), you can do that in three steps:
 
-1) Create input files by first chaning the config, then running `snakemake -s rules/ninja-input.smk`.
+1) Create input files by first changing the config, then running `snakemake -s rules/ninja-input.smk`.
 2) Run the simulations on renewables.ninja.
 3) Update the data in `data/capacityfactors/{technology}`.
 
 ## Run the tests
 
-    snakemake test
+    snakemake --use-conda test
 
 ## Repo structure
 
@@ -69,6 +80,8 @@ At the moment, there is one manual step involved: running renewables.ninja simul
 
 ## Citation
 
-If you make use of this in academic work, please cite:
+If you use this code or data in an academic publication, please see `CITATION.md`.
 
-Tim Tröndle, Stefan Pfenninger, and Johan Lilliestam (in review). Home-made or imported: on the possibility for renewable electricity autarky on all scales in Europe. Energy Strategy Reviews
+## License
+
+The code in this repo is MIT licensed, see `./LICENSE.md`. This excludes the KlinicSlab font family (all files in `./report/fonts/`) which is copyright Lost Type.

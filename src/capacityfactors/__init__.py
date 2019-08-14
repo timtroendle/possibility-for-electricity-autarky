@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 import geopandas as gpd
 import shapely
@@ -15,9 +17,8 @@ WGS84_PROJ4 = "+proj=longlat +datum=WGS84 +no_defs "
 def point_raster_on_shapes(bounds_wgs84, resolution_km2, shapes):
     """Creates a point raster with given resolution on a set of shapes.
 
-    Extends (=buffers) the shapes, so that each point less than half the resolution away is
-    included as well. This is to make sure that points on the edge of the shape are covered
-    by a square pixel as well.
+    Extends (=buffers) the shapes, so that whenever a raster cell is touched by any shape,
+    a point is created for that cell.
 
     Parameters:
         * bounds_wgs84: the bounds of the point raster, given in WGS84
@@ -31,19 +32,21 @@ def point_raster_on_shapes(bounds_wgs84, resolution_km2, shapes):
         from_epsg=WGS84,
         to_epsg=EPSG_3035
     )
-    points = [
+    all_points = [
         shapely.geometry.Point(x, y)
         for x in np.arange(start=x_min, stop=x_max, step=resolution_km2 * 1000)
         for y in np.arange(start=y_min, stop=y_max, step=resolution_km2 * 1000)
     ]
-    surface_areas = shapes.to_crs(EPSG_3035_PROJ4).simplify(resolution_km2 / 20 * 1000).buffer(
-        resolution_km2 / 2 * 1000
-    )
+    simplification_strength = resolution_km2 * 1000 / 20
+    buffer_size = math.sqrt(resolution_km2 ** 2 + resolution_km2 ** 2) / 2 * 1000
+    surface_areas = (shapes.to_crs(EPSG_3035_PROJ4)
+                           .simplify(simplification_strength)
+                           .buffer(buffer_size))
     prepared_polygons = [shapely.prepared.prep(polygon) for polygon in surface_areas.geometry]
     return gpd.GeoSeries(
         list(filter(
             lambda point: any(polygon.intersects(point) for polygon in prepared_polygons),
-            points
+            all_points
         )),
         crs=EPSG_3035_PROJ4
     ).to_crs(WGS84_PROJ4)

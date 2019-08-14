@@ -15,9 +15,10 @@ rule capacityfactor_timeseries:
     message: "Create index capacity factor timeseries of {wildcards.technology}."
     input:
         "src/capacityfactors/timeseries.py",
-        "data/capacityfactors/{technology}",
+        "data/capacityfactors/{technology}.nc"
     output:
         "build/capacityfactors/{technology}-timeseries.nc"
+    conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT
 
@@ -33,6 +34,7 @@ rule capacityfactor_id_map:
     shadow: "full"
     params:
         resolution = config["parameters"]["ninja"]["resolution-grid"]
+    conda: "../envs/default.yaml"
     shell:
         """
         {PYTHON} {input.src} {input.timeseries} build/{wildcards.technology}-ids-lowres.tif {params.resolution}
@@ -49,5 +51,6 @@ rule time_average_capacityfactor_map:
         rules.capacityfactor_timeseries.output
     output:
         "build/capacityfactors/{technology}-time-average.tif"
+    conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT
