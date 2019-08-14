@@ -1,12 +1,16 @@
-name: default
+name: report
 channels:
-  - conda-forge
+    - conda-forge
 dependencies:
-  - python=3.6
-  - ipython
-  - pandoc=2.1.1
-  - pip=19.1.1
-  - pip:
-      - pandoc-tablenos
-      - pandoc-fignos
-      - pantable
+    - python=3.7
+    - ipython
+    - pandoc=2.5
+    - pango=1.40.14
+    - imagemagick=7.0.8_54
+    - pip=19.1.1
+    - pip:
+        - pandoc-tablenos
+        - pandoc-fignos
+        - pantable
+        - cairocffi==1.0.1
+        - weasyprint==48

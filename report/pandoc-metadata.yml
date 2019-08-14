@@ -24,5 +24,8 @@ bibliography:
     - 'literature.bib'
 csl: 'energy-strategy-reviews.csl'
 link-citations: True
-date: draft-05-dev
+date: v1.0
+publication:
+    journal: Energy Strategy Reviews
+    DOI: 10.1016/j.esr.2019.100388
 ---

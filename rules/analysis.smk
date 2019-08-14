@@ -2,7 +2,7 @@
 
 
 wildcard_constraints:
-        suffix = "((png)|(tif))" # can plot tif or png
+    plot_suffix = "((png)|(tif))" # can plot tif or png
 
 
 rule necessary_land_overview:
@@ -43,7 +43,7 @@ rule normed_potential_boxplots:
         "src/vis/potentials_normed_boxplot.py",
         "build/municipal/{scenario}/merged-results.gpkg"
     output:
-        "build/{scenario}/normed-potentials-boxplots.{suffix}"
+        "build/{scenario}/normed-potentials-boxplots.{plot_suffix}"
     conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT
@@ -58,7 +58,7 @@ rule potentials_sufficiency_map:
         "build/regional/{scenario}/merged-results.gpkg",
         "build/municipal/{scenario}/merged-results.gpkg"
     output:
-        "build/{scenario}/sufficient-potentials-map.{suffix}"
+        "build/{scenario}/sufficient-potentials-map.{plot_suffix}"
     conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT
@@ -73,7 +73,7 @@ rule necessary_land_plot_all_layers:
                pvshare=config["paper"]["pv-shares"]),
         expand("build/{layer}/population.csv", layer=config["layers"].keys()),
     output:
-        "build/{scenario}/necessary-land-all-layers.{suffix}"
+        "build/{scenario}/necessary-land-all-layers.{plot_suffix}"
     conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT
@@ -88,7 +88,7 @@ rule necessary_land_map:
         expand("build/{layer}/{{scenario}}/necessary-land-when-pv-{{pvshare}}%.csv", layer=config["layers"].keys()),
         expand("build/{layer}/population.csv", layer=config["layers"].keys())
     output:
-        "build/{scenario}/necessary-land-map-when-pv-{pvshare}%.{suffix}"
+        "build/{scenario}/necessary-land-map-when-pv-{pvshare}%.{plot_suffix}"
     conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT
@@ -104,7 +104,7 @@ rule exclusion_layers_plot:
         rules.protected_areas_in_europe.output,
         rules.settlements.output.buildings,
     output:
-        "build/exclusion-layers-{country_code}.{suffix}"
+        "build/exclusion-layers-{country_code}.{plot_suffix}"
     conda: "../envs/default.yaml"
     shell:
         PYTHON_SCRIPT + " {wildcards.country_code}"

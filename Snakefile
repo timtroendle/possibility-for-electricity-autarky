@@ -33,8 +33,8 @@ onerror:
 rule all:
     message: "Run entire analysis and compile report."
     input:
-        "build/paper.docx",
-        "build/supplementary-material.docx",
+        "build/paper-600dpi.docx",
+        "build/supplementary-material.pdf",
         "build/logs/test-report.html",
         "build/technical-potential/normed-potentials-boxplots.tif",
         "build/technical-potential/sufficient-potentials-map.tif",
@@ -45,62 +45,72 @@ rule all:
         "build/exclusion-layers-ROU.tif",
 
 
-PAPER_DEPENDENCIES = [
-    "report/paper.md",
+GENERAL_DOCUMENT_DEPENDENCIES = [
     "report/literature.bib",
     "report/pandoc-metadata.yml",
     "report/energy-strategy-reviews.csl",
-    "build/technical-potential/normed-potentials-boxplots.png",
-    "build/technical-potential/sufficient-potentials-map.png",
-    "build/technical-social-potential/sufficient-potentials-map.png",
-    "build/technical-social-potential/normed-potentials-boxplots.png",
-    "build/necessary-land/overview-necessary-land-when-pv-100%.csv",
-    "build/necessary-land/overview-necessary-land-when-pv-40%.csv",
-    "build/necessary-land/necessary-land-map-when-pv-40%.png",
-    "build/necessary-land/necessary-land-all-layers.png",
-    "build/exclusion-layers-ROU.png",
-    rules.layer_overview.output
+    "report/template.html",
+    "report/report.css",
+    "report/fonts/KlinicSlabBook.otf",
+    "report/fonts/KlinicSlabBookIt.otf",
+    "report/fonts/KlinicSlabMedium.otf",
+    "report/fonts/KlinicSlabMediumIt.otf",
 ]
 
 
+def pandoc_options(wildcards):
+    suffix = wildcards["suffix"]
+    if suffix == "html":
+        return "--self-contained --css=report.css --number-sections --template template.html --to html5"
+    elif suffix == "pdf":
+        return "--css=report.css --number-sections --template template.html --pdf-engine weasyprint"
+    elif suffix == "docx":
+        return []
+    else:
+        raise ValueError(f"Cannot create report with suffix {suffix}.")
+
+
 rule paper:
-    message: "Compile paper."
-    input: PAPER_DEPENDENCIES
-    output:
-        "build/paper.docx"
-    shadow: "minimal"
-    conda: "envs/report.yaml"
-    shell:
-        """
-        cp report/* .
-        {PANDOC} paper.md pandoc-metadata.yml -t docx -o {output}
-        """
-
-
-rule paper_html:
-    message: "Create a self-contained html version of the paper."
+    message: "Compile {output}."
     input:
-        paper = "report/paper.md",
-        metadata = "report/pandoc-metadata.yml",
-        css = "report/report.css",
-        template = "report/template.html",
-        all_other = rules.paper.output # to avoid repeating actual dependencies
-    output: "index.html"
+        GENERAL_DOCUMENT_DEPENDENCIES,
+        "report/paper.md",
+        "build/technical-potential/normed-potentials-boxplots.png",
+        "build/technical-potential/sufficient-potentials-map.png",
+        "build/technical-social-potential/sufficient-potentials-map.png",
+        "build/technical-social-potential/normed-potentials-boxplots.png",
+        "build/necessary-land/overview-necessary-land-when-pv-100%.csv",
+        "build/necessary-land/overview-necessary-land-when-pv-40%.csv",
+        "build/necessary-land/necessary-land-map-when-pv-40%.png",
+        "build/necessary-land/necessary-land-all-layers.png",
+        "build/exclusion-layers-ROU.png",
+        rules.layer_overview.output
+    params: options = pandoc_options
+    output: "build/paper-{dpi}dpi.{suffix}"
+    conda: "envs/report.yaml"
+    shadow: "minimal"
     shell:
         """
-        cd ./report
-        {PANDOC} ../report/paper.md ../report/pandoc-metadata.yml -o ../index.html \
-        -f markdown+simple_tables+table_captions+yaml_metadata_block -t html --standalone \
-        --css ../report/report.css --number-sections --self-contained --template template.html
+        cd report
+        rsync -rpLtgoD ../build .
+        if [ {wildcards.dpi} != 600 ];then
+            echo "Resizing images."
+            for i in {input}; do
+                if [[ $i == *.png ]];then
+                    echo "Resizing $i."
+                    convert -resample {wildcards.dpi}x{wildcards.dpi} -units PixelsPerInch $i $i
+                fi
+            done
+        fi
+        {PANDOC} paper.md pandoc-metadata.yml {params.options} -o ../build/paper-{wildcards.dpi}dpi.{wildcards.suffix}
         """
 
 
 rule supplementary_material:
     message: "Compile the supplementary material."
     input:
+        GENERAL_DOCUMENT_DEPENDENCIES,
         "report/supplementary.md",
-        "report/literature.bib",
-        "report/energy-strategy-reviews.csl",
         "report/data-sources.csv",
         rules.sonnendach_statistics.output.publish,
         expand(
@@ -110,14 +120,15 @@ rule supplementary_material:
         ),
         "build/national/technical-potential/potentials-polished.csv",
         "build/national/technical-social-potential/potentials-polished.csv"
-    output:
-        "build/supplementary-material.docx"
+    params: options = pandoc_options
+    output: "build/supplementary-material.{suffix}"
     shadow: "minimal"
     conda: "envs/report.yaml"
     shell:
         """
-        cp ./report/* .
-        {PANDOC} supplementary.md -t docx -o {output} --table-of-contents
+        cd report
+        ln -s ../build .
+        {PANDOC} supplementary.md {params.options} -o {output} --table-of-contents
         """
 
 
@@ -130,9 +141,15 @@ rule clean: # removes all generated results
 
 
 rule test:
+    message: "Run tests."
     input:
-        PAPER_DEPENDENCIES, # proxy for: all has to exist before running the tests
-        rules.total_swiss_yield_according_to_sonnendach_data.output
+        expand("build/{layer}/technical-potential/potentials.csv", layer=config["layers"]),
+        "build/technically-eligible-land.tif",
+        "build/technically-eligible-area-km2.tif",
+        "build/technically-eligible-electricity-yield-pv-prio-twh.tif",
+        "build/administrative-borders-nuts.gpkg",
+        "build/swiss/total-rooftop-area-according-to-sonnendach-data-km2.txt",
+        "build/swiss/total-yield-according-to-sonnendach-data-twh.txt"
     output: "build/logs/test-report.html"
     conda: "envs/default.yaml"
     shell:

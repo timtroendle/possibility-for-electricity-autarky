@@ -81,3 +81,7 @@ At the moment, there is one manual step involved: running renewables.ninja simul
 ## Citation
 
 If you use this code or data in an academic publication, please see `CITATION.md`.
+
+## License
+
+The code in this repo is MIT licensed, see `./LICENSE.md`. This excludes the KlinicSlab font family (all files in `./report/fonts/`) which is copyright Lost Type.
