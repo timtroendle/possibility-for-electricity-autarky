@@ -24,6 +24,7 @@ bibliography:
     - 'literature.bib'
 csl: 'energy-strategy-reviews.csl'
 link-citations: True
+lang: en-GB
 date: v1.0
 publication:
     journal: Energy Strategy Reviews

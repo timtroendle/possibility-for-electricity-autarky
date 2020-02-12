@@ -10,6 +10,7 @@ bibliography:
     - 'literature.bib'
 csl: 'energy-strategy-reviews.csl'
 link-citations: True
+lang: en-GB
 ---
 
 # Code and data
