@@ -9,8 +9,8 @@ dependencies:
     - imagemagick=7.0.8_54
     - pip=19.1.1
     - pip:
-        - pandoc-tablenos
-        - pandoc-fignos
+        - pandoc-tablenos==2.1.1
+        - pandoc-fignos==2.2.0
         - pantable
         - cairocffi==1.0.1
         - weasyprint==48

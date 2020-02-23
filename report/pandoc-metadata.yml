@@ -25,6 +25,9 @@ bibliography:
 csl: 'energy-strategy-reviews.csl'
 link-citations: True
 lang: en-GB
+xnos-cleveref: True
+fignos-plus-name: "Figure\ "
+tablenos-plus-name: "Table\ " # this excludes references to supplementary
 date: v1.0
 publication:
     journal: Energy Strategy Reviews
