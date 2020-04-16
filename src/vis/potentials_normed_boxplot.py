@@ -24,7 +24,7 @@ def visualise_normed_potentials(path_to_results, path_to_plot):
     units = pd.DataFrame(gpd.read_file(path_to_results))
     units = units[["country_code", "population_sum", "normed_potential"]]
     units["country"] = units["country_code"].map(lambda country_code: pycountry.countries.lookup(country_code).name)
-    units["country"].replace("Macedonia, Republic of", value="Macedonia", inplace=True) # too long
+    units["country"].replace("North Macedonia", value="Macedonia", inplace=True) # too long
     units["country"].replace("Bosnia and Herzegovina", value="Bosnia", inplace=True) # too long
     people = pd.DataFrame(
         data={
