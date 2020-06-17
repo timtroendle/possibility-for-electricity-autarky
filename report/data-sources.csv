@@ -4,7 +4,7 @@ Global Administrative Areas Database (GADM),vector,-,EPSG:4326,GeoPackage,@GADM:
 Local Administrative Unit 2 (LAU2),vector,1:1 Million,EPSG:4258,Shapefile,@eurostat:2015
 Exclusive Economic Zones (EEZ),vector,-,EPSG:4326,Shapefile,@Claus:2018
 GlobCover 2009,raster,"10 """,EPSG:4326,GeoTIFF,@EuropeanSpaceAgency:2010
-Gap filled NASA Shuttle Radar Topographic Mission (SRTM),raster,"3 """,EPSG:4326,GeoTIFF,@Reuter:2007 @ferranti:2014
+Gap filled NASA Shuttle Radar Topographic Mission (SRTM),raster,"3 """,EPSG:4326,GeoTIFF,@Reuter:2007 @deFerranti:2014
 ETOPO1,raster,1 ',EPSG:4326,GeoTIFF,@Amante:2009
 World Database on Protected Areas,vector,-,EPSG:4326,Shapefile,@UNEP-WCMC:2018
 European Settlement Map 2017,raster,6.25 m,EPSG:3035,GeoTIFF,@Ferri:2017
