@@ -24,7 +24,7 @@ def determine_capacities(path_to_eligibility_categories, path_to_eligible_areas,
     with rasterio.open(path_to_eligibility_categories) as src:
         eligibility_categories = src.read(1)
     flat_roof_share = pd.read_csv(path_to_statistical_roof_model).set_index("orientation").loc[
-        "flat", "share of roof areas"
+        "flat", "share_of_roof_areas"
     ]
     capacities_pv_prio = _determine_capacities(areas, eligibility_categories, config, flat_roof_share, pv_prio=True)
     capacities_wind_prio = _determine_capacities(areas, eligibility_categories, config, flat_roof_share, pv_prio=False)

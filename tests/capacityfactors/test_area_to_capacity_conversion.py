@@ -6,7 +6,7 @@ from pandas.testing import assert_frame_equal
 
 from src.capacityfactors.ninja_input_pv import area_to_capacity
 
-ROOF_MODEL = """orientation,tilt,share of roof areas
+ROOF_MODEL = """orientation,average_tilt,share_of_roof_areas
 E, 18.155579, 0.049090
 E, 25.863758, 0.039782
 E, 32.876361, 0.036700
@@ -29,7 +29,7 @@ flat, 0.000000, 0.301960
 
 @pytest.fixture()
 def roof_model_area_based():
-    model = pd.read_csv(io.StringIO(ROOF_MODEL)).set_index(["orientation", "tilt"])
+    model = pd.read_csv(io.StringIO(ROOF_MODEL)).set_index(["orientation", "average_tilt"])
     assert model.sum().sum() == pytest.approx(1.0)
     return model
 
@@ -40,7 +40,7 @@ def test_capacity_based_roof_model_sums_to_one(roof_model_area_based):
         power_density_flat=1,
         power_density_tilted=2
     )
-    assert roof_model_capacity_based["share of roof areas"].sum() == pytest.approx(1.0)
+    assert roof_model_capacity_based["share_of_roof_areas"].sum() == pytest.approx(1.0)
 
 
 def test_capacity_based_roof_model_equals_area_based_for_equal_power_density(roof_model_area_based):

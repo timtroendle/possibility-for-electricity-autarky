@@ -38,7 +38,7 @@ Table @tbl:roof-statistics shows the share of roof categories from the sonnendac
 ---
 caption: 'Area share of roof categories used Europe-wide, based on data from Switzerland in the sonnendach.ch dataset [@SwissFederalOfficeofEnergy:2018]. {#tbl:roof-statistics tag="S2"}'
 alignment: CCC
-include: ./build/swiss/roof-statistics-publish.csv
+include: ./build/sonnendach/roof-statistics-publish.csv
 markdown: True
 ---
 ```

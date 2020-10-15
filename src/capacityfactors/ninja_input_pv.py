@@ -37,20 +37,20 @@ def pv_simulation_parameters(path_to_shapes_of_land_surface, path_to_roof_catego
     index = pd.MultiIndex.from_product((points.index, roof_categories.index), names=["id", "roof_cat_id"])
     data = pd.DataFrame(index=index).reset_index()
     data = data.merge(roof_categories, left_on="roof_cat_id", right_index=True).rename(
-        columns={"share of roof areas": "weight"}
+        columns={"share_of_roof_areas": "weight"}
     )
     data = data.merge(lat_long, left_on="id", right_index=True)
     data["azim"] = data["orientation"].map(orientation_to_azimuth)
     data["site_id"] = data.id
     data["sim_id"] = data.apply(
-        lambda row: "{}_{}_{}".format(row.id, row.orientation, round(row.tilt)),
+        lambda row: "{}_{}_{}".format(row.id, row.orientation, round(row.average_tilt)),
         axis=1
     )
     flat_mask = data["orientation"] == "flat"
-    data.loc[flat_mask, "tilt"] = data.loc[flat_mask, "lat"].map(optimal_tilt)
+    data.loc[flat_mask, "average_tilt"] = data.loc[flat_mask, "lat"].map(optimal_tilt)
     data["pr"] = config["parameters"]["ninja"]["pv-performance-ratio"]
     data[
-        ["sim_id", "weight", "site_id", "lat", "long", "tilt",
+        ["sim_id", "weight", "site_id", "lat", "long", "average_tilt",
          "orientation", "azim", "pr"]
     ].sort_index().to_csv(
         path_to_output,

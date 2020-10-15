@@ -112,7 +112,7 @@ rule supplementary_material:
         GENERAL_DOCUMENT_DEPENDENCIES,
         "report/supplementary.md",
         "report/data-sources.csv",
-        rules.sonnendach_statistics.output.publish,
+        rules.sonnendach_statistics_publish.output,
         expand(
             "build/exclusion-layers-{country_code}.png",
             country_code=[pycountry.countries.lookup(country).alpha_3
@@ -148,8 +148,8 @@ rule test:
         "build/technically-eligible-area-km2.tif",
         "build/technically-eligible-electricity-yield-pv-prio-twh.tif",
         "build/administrative-borders-nuts.gpkg",
-        "build/swiss/total-rooftop-area-according-to-sonnendach-data-km2.txt",
-        "build/swiss/total-yield-according-to-sonnendach-data-twh.txt"
+        "data/automatic/sonnendach/total-rooftop-area-km2.txt",
+        "data/automatic/sonnendach/total-yield-twh.txt"
     output: "build/logs/test-report.html"
     conda: "envs/default.yaml"
     shell:

@@ -124,7 +124,7 @@ rule capacity_of_technical_eligibility:
         "src/technically_eligible_capacity.py",
         rules.category_of_technical_eligibility.output,
         rules.area_of_technical_eligibility.output,
-        rules.sonnendach_statistics.output.raw
+        rules.sonnendach_statistics.output
     output:
         "build/technically-eligible-capacity-pv-prio-mw.tif",
         "build/technically-eligible-capacity-wind-prio-mw.tif",

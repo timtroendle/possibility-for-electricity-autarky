@@ -26,7 +26,7 @@ rule pv_simulation_points:
     input:
         "src/capacityfactors/ninja_input_pv.py",
         "build/continental/units.geojson",
-        rules.sonnendach_statistics.output.raw
+        rules.sonnendach_statistics.output
     output:
         points = "build/capacityfactors/ninja-input-pv.csv",
     conda: "../envs/default.yaml"
